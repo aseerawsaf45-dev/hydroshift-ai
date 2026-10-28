@@ -17,6 +17,16 @@ import pandas as pd
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(ROOT_DIR)
 
+# Detect project virtualenv interpreter if available
+VENV_PY_WIN = os.path.join(ROOT_DIR, ".venv", "Scripts", "python.exe")
+VENV_PY_UNIX = os.path.join(ROOT_DIR, ".venv", "bin", "python")
+if os.path.exists(VENV_PY_WIN):
+    PYTHON_EXEC = VENV_PY_WIN
+elif os.path.exists(VENV_PY_UNIX):
+    PYTHON_EXEC = VENV_PY_UNIX
+else:
+    PYTHON_EXEC = sys.executable
+
 from services.api.app.services.crop_engine import AgronomicEngine
 
 def print_header(title: str):
@@ -26,7 +36,7 @@ def print_header(title: str):
 
 def run_tests():
     print_header("1. Running Automated Backend Test Suite (Pytest)")
-    cmd = [sys.executable, "-m", "pytest", "tests/", "-v", "--tb=short"]
+    cmd = [PYTHON_EXEC, "-m", "pytest", "tests/", "-v", "--tb=short"]
     res = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
     print(res.stdout[-600:] if len(res.stdout) > 600 else res.stdout)
     if res.returncode != 0:
@@ -40,7 +50,7 @@ def verify_benchmark_report():
     b_path = os.path.join(ROOT_DIR, "apps/web/public/benchmark_results.json")
     if not os.path.exists(b_path):
         print(f"[FAIL] Missing {b_path}. Running benchmark_suite...")
-        cmd = [sys.executable, "ml/evaluation/benchmark_suite.py"]
+        cmd = [PYTHON_EXEC, "ml/evaluation/benchmark_suite.py"]
         subprocess.run(cmd, cwd=ROOT_DIR, check=True)
 
     with open(b_path) as f:
