@@ -217,11 +217,17 @@ To prove to competition judges that satellite altimetry makes a demonstrable phy
 | **Spatial Holdout (x = 55 km)** | **Pipeline A (With SWOT)** | 7.418 | 6.324 | **7.371** | 94.8% | **0.0%** |
 | Spatial Holdout (x = 55 km) | Pipeline B (Without SWOT) | 6.823 | 5.714 | 6.678 | 96.0% | **0.0%** |
 
-#### Key Scientific Findings:
-1. **Satellite Revisit Limitations:** SWOT passes occur at 10 to 21-day orbital revisit intervals for southwest Bangladesh. Consequently, satellite altimetry cannot resolve high-frequency 12.42-hour semi-diurnal tidal cycles, meaning it does not improve intra-day point MAE.
-2. **Seasonal Extreme & Hydraulic Constraint:** Incorporating reach-level WSE and width constrains seasonal tidal prism storage, reducing peak salinity error under high-salinity regimes and bounding runaway spatial extrapolation on unseen reaches.
-3. **Downstream Agricultural Impact:** In spatial holdout testing, Pipeline A achieved a **0.0% False Negative Rate** for Boro rice threshold breaches ($EC \ge 4.0\text{ dS/m}$), ensuring that no farmer is falsely advised that toxic saline water is safe for irrigation.
-4. **Missing Data & Orbital Gap Handling:** When SWOT observations are delayed or masked by cloud/radar fill flags, the platform transitions seamlessly to astronomical tidal harmonic baselines without service interruption.
+#### Key Scientific Findings & Trade-Off Disclosure:
+1. **No Direct Salinity Regression Benefit from Satellite Altimetry:**
+   Directly feeding SWOT water-surface elevation and width into neural network point regression makes point metrics slightly worse (Chronological MAE increases from 2.649 to 2.784 dS/m; Spatial MAE increases from 5.714 to 6.324 dS/m).
+2. **Physical Explanation of the Discrepancy:**
+   SWOT KaRIn radar altimetry has a 10 to 21-day orbital revisit cycle. Estuarine salinity is governed by the 12.42-hour lunar semi-diurnal ($M_2$) tide and the 14.77-day spring-neap envelope. Sampling an intra-tidal chemical concentration process with 10–21 day radar height snapshots introduces temporal aliasing noise into point regressions.
+3. **The True Physical Value of NASA SWOT in this Platform:**
+   SWOT is not a chemical salinity sensor and cannot replace high-frequency ground gauges for point curve-fitting. Rather, SWOT provides the **reach-scale hydraulic boundary conditions** that ground gauges lack:
+   - **Polder Drainage Gravity Head ($\Delta h = WSE_{\text{river}} - H_{\text{canal}}$):** SWOT Water Surface Elevation determines whether internal polder canals can drain through flap gates during low tide or whether river stage blocks drainage.
+   - **Cross-Sectional Hydraulic Geometry:** Reach width ($W$) and slope ($S_0$) constrain advection velocity in the 1D Advection-Dispersion physical transport regularizer.
+4. **Missing Data & Operational Resilience:**
+   When SWOT observations are delayed or filtered due to orbital gaps or radar fill values, the system smoothly defaults to the pure spatial-temporal baseline (`PlainMLP` / Harmonic) without performance collapse.
 
 ---
 

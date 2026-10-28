@@ -72,8 +72,8 @@
     "delta_overall_mae_pct": 10.68
   },
   "scientific_synthesis": {
-    "core_finding": "SWOT telemetry significantly reduces peak salinity error (-17.8% peak MAE) by constraining seasonal reach-scale storage, but does not improve semi-diurnal tidal interpolation due to 10-21 day satellite revisit intervals.",
-    "decision_impact": "Including SWOT telemetry reduces the false negative breach rate for Boro rice (4.0 dS/m threshold) from 18.2% down to 9.1%, preventing costly crop damage from erroneous irrigation recommendations.",
+    "core_finding": "Empirical ablation confirms that adding satellite SWOT reach telemetry directly into point salinity regression does not reduce aggregate MAE (2.784 dS/m with SWOT vs 2.649 dS/m without SWOT) or peak MAE (2.923 vs 2.738 dS/m), because SWOT's 10-21 day orbital revisit aliases the 12.42-hour semi-diurnal tidal cycle.",
+    "hydraulic_justification": "SWOT's verified physical value in the platform is not unconstrained curve-fitting; it provides reach geometry (width, slope) and water surface elevation (WSE) required to evaluate gravity flap-gate drainage head (Delta_h = WSE_river - Canal_target) to prevent polder waterlogging.",
     "missing_swot_handling": "When real-time SWOT telemetry is unavailable (clouds, orbital gap, or latency), the system smoothly defaults to the astronomical harmonic baseline without catastrophic degradation."
   }
 }
