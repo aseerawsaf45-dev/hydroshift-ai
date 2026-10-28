@@ -334,6 +334,19 @@ export default function ScenariosPage() {
   return (
     <div className="flex flex-col space-y-6 pb-12 select-none">
       
+      {/* 0. RESEARCH PROTOTYPE & EXTRAPOLATION WARNING */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs">
+        <div className="flex items-start sm:items-center gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+          <span>
+            <strong>Extrapolation Notice:</strong> Scenario modifiers (Gorai discharge cuts, cyclone surge amplitudes) simulate hydrodynamic stress beyond historical calibration regimes. Results represent numerical sensitivity stress-tests rather than deterministic forecasts.
+          </span>
+        </div>
+        <Badge variant="outline" className="border-amber-500/40 text-amber-300 font-mono text-[10px] shrink-0">
+          NUMERICAL SENSITIVITY MODE
+        </Badge>
+      </div>
+
       {/* 1. TOP HEADER & PRESET SELECTOR */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div className="flex flex-col space-y-1.5">

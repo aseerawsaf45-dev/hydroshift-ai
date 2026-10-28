@@ -17,11 +17,13 @@ import {
   X,
   Radio,
   Waves,
+  Sprout,
 } from "lucide-react";
 
 export const navItems = [
   { name: "Overview", href: "/app/overview", icon: LayoutDashboard },
   { name: "Map Explorer", href: "/app/map", icon: Map },
+  { name: "Crop Rotation DSS", href: "/app/crop-rotation", icon: Sprout },
   { name: "Forecasts", href: "/app/forecasts", icon: LineChart },
   { name: "Experiments", href: "/app/experiments/new", icon: FlaskConical },
   { name: "Scenarios", href: "/app/scenarios", icon: GitCompare },

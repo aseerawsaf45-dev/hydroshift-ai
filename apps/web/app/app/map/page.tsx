@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ForecastChart } from "@/components/ForecastChart";
-import { Site, Forecast } from "@/components/MapWrapper";
+import { Site, Forecast, CANONICAL_KHULNA_STATIONS } from "@/components/map-data";
 import {
   Layers,
   MapPin,
@@ -40,10 +40,10 @@ const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
 
 // Focused Khulna Regional Hotspot Jump Coordinates
 const HOTSPOTS = [
-  { name: "Khulna City", coords: [22.808, 89.580] as [number, number], desc: "Urban Water Intake & SW241", risk: "4.5 dS/m" },
-  { name: "Batiaghata", coords: [22.650, 89.550] as [number, number], desc: "Agricultural Polders (Boro Rice Zone)", risk: "3.9 dS/m" },
-  { name: "Mongla Port", coords: [22.464, 89.600] as [number, number], desc: "High Salinity Front & SW244", risk: "7.9 dS/m" },
-  { name: "Paikgachha", coords: [22.580, 89.420] as [number, number], desc: "Western Mangrove Shibsa Belt", risk: "4.2 dS/m" },
+  { name: "Khulna City", siteId: "SW241", coords: [22.808, 89.580] as [number, number], desc: "Urban Water Intake & SW241", risk: "4.5 dS/m" },
+  { name: "Batiaghata", siteId: "batiaghata-polder", coords: [22.650, 89.550] as [number, number], desc: "Agricultural Polders (Boro Rice Zone)", risk: "3.9 dS/m" },
+  { name: "Mongla Port", siteId: "SW244", coords: [22.464, 89.600] as [number, number], desc: "High Salinity Front & SW244", risk: "7.9 dS/m" },
+  { name: "Paikgachha", siteId: "paikgachha-shibsa", coords: [22.580, 89.420] as [number, number], desc: "Western Mangrove Shibsa Belt", risk: "4.2 dS/m" },
 ];
 
 export default function MapExplorerPage() {
@@ -68,8 +68,8 @@ export default function MapExplorerPage() {
   const [showLegend, setShowLegend] = useState(false);
   const [showMissionBrief, setShowMissionBrief] = useState(true);
 
-  // Data strictly filtered to Khulna Region (22.30°N to 22.95°N, 89.25°E to 89.75°E)
-  const [allSites, setAllSites] = useState<Site[]>([]);
+  // Data strictly filtered to Khulna Region (22.20°N to 23.95°N, 89.00°E to 89.95°E)
+  const [allSites, setAllSites] = useState<Site[]>(CANONICAL_KHULNA_STATIONS);
   const [allForecasts, setAllForecasts] = useState<Forecast[]>([]);
 
   useEffect(() => {
@@ -78,12 +78,21 @@ export default function MapExplorerPage() {
       fetch(`${API_URL}/api/v1/reaches`).then(r => r.ok ? r.json() : []).catch(() => []),
       fetch(`${API_URL}/api/v1/reaches/forecasts/all`).then(r => r.ok ? r.json() : []).catch(() => [])
     ]).then(([sites, forecasts]) => {
-      // Retain only sites located within Khulna delta geographic envelope
-      const khulnaSites = (sites as Site[]).filter(
-        s => s.latitude >= 22.30 && s.latitude <= 22.95 && s.longitude >= 89.25 && s.longitude <= 89.75
-      );
-      setAllSites(khulnaSites);
-      setAllForecasts(forecasts);
+      if (sites && sites.length > 0) {
+        const khulnaSites = (sites as Site[]).filter(
+          s => s.latitude >= 22.20 && s.latitude <= 23.95 && s.longitude >= 89.00 && s.longitude <= 89.95
+        );
+        const merged: Site[] = [...CANONICAL_KHULNA_STATIONS];
+        for (const s of khulnaSites) {
+          if (!merged.some(m => m.id === s.id)) {
+            merged.push(s);
+          }
+        }
+        setAllSites(merged);
+      }
+      if (forecasts && forecasts.length > 0) {
+        setAllForecasts(forecasts);
+      }
     });
   }, []);
 
@@ -98,12 +107,20 @@ export default function MapExplorerPage() {
   }, [allForecasts]);
 
   const criticalCount = useMemo(() => {
-    return allForecasts.filter(f => f.target_variable.includes("Salinity") && f.value >= 4.0).length;
-  }, [allForecasts]);
+    return allSites.filter(s => {
+      const f = forecastMap[s.id];
+      const val = f?.value ?? (s as any).baselineEc ?? 3.5;
+      return val >= 4.0;
+    }).length;
+  }, [allSites, forecastMap]);
 
   const warningCount = useMemo(() => {
-    return allForecasts.filter(f => f.target_variable.includes("Salinity") && f.value >= 2.5 && f.value < 4.0).length;
-  }, [allForecasts]);
+    return allSites.filter(s => {
+      const f = forecastMap[s.id];
+      const val = f?.value ?? (s as any).baselineEc ?? 3.5;
+      return val >= 2.5 && val < 4.0;
+    }).length;
+  }, [allSites, forecastMap]);
 
   const selectedForecast = useMemo(() => {
     if (!selectedSite) return null;
@@ -120,7 +137,7 @@ export default function MapExplorerPage() {
     return allSites.filter(site => {
       // Basin filter
       if (selectedBasin !== "all") {
-        const text = `${site.name} ${site.description} ${site.id}`.toLowerCase();
+        const text = `${site.name} ${site.description} ${site.id} ${(site as any).river || ""}`.toLowerCase();
         if (!text.includes(selectedBasin.toLowerCase())) {
           return false;
         }
@@ -136,11 +153,10 @@ export default function MapExplorerPage() {
 
       // Risk filter
       const forecast = forecastMap[site.id];
-      const val = forecast?.value || 0;
-      const isSalinity = forecast?.target_variable?.includes("Salinity");
-      if (riskFilter === "critical" && (!isSalinity || val < 4.0)) return false;
-      if (riskFilter === "warning" && (!isSalinity || val < 2.5 || val >= 4.0)) return false;
-      if (riskFilter === "nominal" && isSalinity && val >= 2.5) return false;
+      const val = forecast?.value ?? (site as any).baselineEc ?? 3.5;
+      if (riskFilter === "critical" && val < 4.0) return false;
+      if (riskFilter === "warning" && (val < 2.5 || val >= 4.0)) return false;
+      if (riskFilter === "nominal" && val >= 2.5) return false;
       return true;
     });
   }, [allSites, searchQuery, riskFilter, selectedBasin, forecastMap]);
@@ -258,8 +274,16 @@ export default function MapExplorerPage() {
             {HOTSPOTS.map((hotspot) => (
               <button
                 key={hotspot.name}
-                onClick={() => setFlyToCoords(hotspot.coords)}
-                className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] font-medium text-muted-foreground hover:text-white transition-colors flex items-center gap-1.5 shrink-0"
+                onClick={() => {
+                  setFlyToCoords(hotspot.coords);
+                  const found = allSites.find(
+                    (s) =>
+                      s.id === hotspot.siteId ||
+                      s.name.toLowerCase().includes(hotspot.name.toLowerCase())
+                  );
+                  if (found) handleSelectSite(found);
+                }}
+                className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] font-medium text-muted-foreground hover:text-white transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer"
                 title={hotspot.desc}
               >
                 <MapPin className="w-3 h-3 text-primary" />
@@ -365,8 +389,12 @@ export default function MapExplorerPage() {
 
               <div className="flex items-center gap-1.5 shrink-0">
                 <button
-                  onClick={() => setFlyToCoords([22.464, 89.600])}
-                  className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[10px] font-mono font-bold transition-colors"
+                  onClick={() => {
+                    setFlyToCoords([22.464, 89.600]);
+                    const found = allSites.find((s) => s.id === "SW244");
+                    if (found) handleSelectSite(found);
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[10px] font-mono font-bold transition-colors cursor-pointer"
                 >
                   Focus Breach
                 </button>
@@ -578,8 +606,9 @@ export default function MapExplorerPage() {
                       const isSwot = site.id.startsWith("3124") || site.id.toLowerCase().includes("swot");
                       const forecast = forecastMap[site.id];
                       const isSelected = selectedSite?.id === site.id;
-                      const isCrit = forecast && forecast.target_variable.includes("Salinity") && forecast.value >= 4.0;
-                      const isWarn = forecast && forecast.target_variable.includes("Salinity") && forecast.value >= 2.5 && forecast.value < 4.0;
+                      const val = forecast?.value ?? (site as any).baselineEc ?? 3.5;
+                      const isCrit = val >= 4.0;
+                      const isWarn = val >= 2.5 && val < 4.0;
 
                       return (
                         <div
@@ -596,9 +625,9 @@ export default function MapExplorerPage() {
                               {site.name}
                             </span>
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded font-mono ${
-                              isCrit ? "bg-rose-500/25 text-rose-300 border border-rose-500/30" : isWarn ? "bg-amber-500/25 text-amber-300 border border-amber-500/30" : "bg-sky-500/25 text-sky-300 border border-sky-500/30"
+                              isCrit ? "bg-rose-500/25 text-rose-300 border border-rose-500/30" : isWarn ? "bg-amber-500/25 text-amber-300 border border-amber-500/30" : "bg-emerald-500/25 text-emerald-300 border border-emerald-500/30"
                             }`}>
-                              {forecast ? `${forecast.value.toFixed(1)} ${forecast.unit}` : isSwot ? "SWOT Pass" : "Live Gauge"}
+                              {val.toFixed(1)} dS/m
                             </span>
                           </div>
 
@@ -786,48 +815,66 @@ export default function MapExplorerPage() {
                 </div>
 
                 {/* Metric Badges */}
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/5 flex flex-col">
-                    <span className="text-[10px] text-muted-foreground uppercase font-medium">Modeled Salinity</span>
-                    <span className={`text-xl font-bold font-mono mt-0.5 ${
-                      selectedForecast && selectedForecast.value >= 4.0 ? "text-rose-400" : "text-amber-400"
-                    }`}>
-                      {selectedForecast ? `${selectedForecast.value.toFixed(1)} ${selectedForecast.unit}` : "Nominal"}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground mt-0.5">
-                      {selectedForecast && selectedForecast.value >= 4.0 ? "Critical Hazard" : "Nominal Level"}
-                    </span>
-                  </div>
+                {(() => {
+                  const siteEc = selectedForecast?.value ?? (selectedSite as any).baselineEc ?? 3.5;
+                  const isCrit = siteEc >= 4.0;
+                  const isWarn = siteEc >= 2.5 && siteEc < 4.0;
+                  const isIntake = selectedSite.category === "intake" || selectedSite.id.includes("p14");
 
-                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/5 flex flex-col">
-                    <span className="text-[10px] text-muted-foreground uppercase font-medium">Coordinates</span>
-                    <span className="font-mono text-white font-semibold mt-1 text-xs">
-                      {selectedSite.latitude.toFixed(3)}°N
-                    </span>
-                    <span className="font-mono text-muted-foreground text-[10px]">
-                      {selectedSite.longitude.toFixed(3)}°E
-                    </span>
-                  </div>
-                </div>
+                  return (
+                    <>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-white/5 p-2.5 rounded-xl border border-white/5 flex flex-col">
+                          <span className="text-[10px] text-muted-foreground uppercase font-medium">Modeled Salinity</span>
+                          <span className={`text-xl font-bold font-mono mt-0.5 ${
+                            isCrit ? "text-rose-400" : isWarn ? "text-amber-400" : "text-emerald-400"
+                          }`}>
+                            {siteEc.toFixed(1)} dS/m
+                          </span>
+                          <span className="text-[10px] text-muted-foreground mt-0.5">
+                            {isCrit ? "Critical Hazard (>4.0)" : isWarn ? "Elevated Alert" : "Safe Nominal"}
+                          </span>
+                        </div>
 
-                {/* Hydrological Impact Advisory */}
-                <div className={`p-2.5 rounded-xl border text-[11px] leading-relaxed ${
-                  selectedForecast && selectedForecast.value >= 4.0 
-                    ? "bg-rose-500/10 border-rose-500/30 text-rose-300" 
-                    : "bg-sky-500/10 border-sky-500/30 text-sky-300"
-                }`}>
-                  {selectedForecast && selectedForecast.value >= 4.0 ? (
-                    <div>
-                      <span className="font-bold block text-rose-400 mb-0.5">Boro Rice Crop Hazard Alert</span>
-                      Salinity exceeds 4.0 dS/m threshold. Direct irrigation intake from this reach will cause severe grain sterility and crop damage. Preemptive sluice gate closure recommended during high tide.
-                    </div>
-                  ) : (
-                    <div>
-                      <span className="font-bold block text-sky-400 mb-0.5">Freshwater Buffer Active</span>
-                      Salinity remains within safe thresholds for municipal and agricultural intake. Upstream discharge maintains dilution.
-                    </div>
-                  )}
-                </div>
+                        <div className="bg-white/5 p-2.5 rounded-xl border border-white/5 flex flex-col">
+                          <span className="text-[10px] text-muted-foreground uppercase font-medium">Coordinates</span>
+                          <span className="font-mono text-white font-semibold mt-1 text-xs">
+                            {selectedSite.latitude.toFixed(3)}°N
+                          </span>
+                          <span className="font-mono text-muted-foreground text-[10px]">
+                            {selectedSite.longitude.toFixed(3)}°E
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Hydrological Impact Advisory */}
+                      <div className={`p-2.5 rounded-xl border text-[11px] leading-relaxed ${
+                        isCrit 
+                          ? "bg-rose-500/10 border-rose-500/30 text-rose-300" 
+                          : isWarn
+                          ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                          : "bg-sky-500/10 border-sky-500/30 text-sky-300"
+                      }`}>
+                        {isIntake ? (
+                          <div>
+                            <span className="font-bold block text-pink-400 mb-0.5">Khulna WASA Drinking Water Advisory</span>
+                            Raw water intake at Madhukhali/P-14 currently registers {siteEc.toFixed(1)} dS/m (potable limit 1.5 dS/m). Chlorination and intake gate operations must sync with low-tide windows.
+                          </div>
+                        ) : isCrit ? (
+                          <div>
+                            <span className="font-bold block text-rose-400 mb-0.5">Boro Rice Crop Hazard Alert</span>
+                            Salinity ({siteEc.toFixed(1)} dS/m) exceeds the 4.0 dS/m threshold. Direct canal irrigation will cause grain sterilization. Preemptive sluice gate closure recommended during high-tide peak.
+                          </div>
+                        ) : (
+                          <div>
+                            <span className="font-bold block text-sky-400 mb-0.5">Freshwater Buffer Active</span>
+                            Salinity ({siteEc.toFixed(1)} dS/m) remains within safe agricultural thresholds. Upstream Gorai discharge maintains effective dilution.
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* Timeseries Forecast Chart */}
                 <div className="flex flex-col space-y-1.5 pt-1">

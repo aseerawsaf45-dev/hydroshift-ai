@@ -2,23 +2,51 @@ import numpy as np
 import pandas as pd
 from typing import Dict
 
-def compute_calibration_score(y_true: np.ndarray, y_pred_mean: np.ndarray, y_pred_std: np.ndarray, confidence_level: float = 0.95) -> float:
+def compute_conformal_calibration_factor(
+    y_cal: np.ndarray,
+    y_pred_mean: np.ndarray,
+    y_pred_std: np.ndarray,
+    nominal_coverage: float = 0.90
+) -> float:
+    """
+    Computes the empirical conformal quantile multiplier q_hat on a held-out calibration set.
+    Non-conformity score: s_i = |y_i - mu_i| / (sigma_i + eps).
+    Guarantees finite-sample coverage >= nominal_coverage on exchangeable test distributions.
+    """
+    eps = 1e-4
+    residuals = np.abs(np.asarray(y_cal) - np.asarray(y_pred_mean))
+    std = np.maximum(np.asarray(y_pred_std), eps)
+    scores = residuals / std
+    n = len(scores)
+    # Finite-sample conformal quantile: ceil((n+1) * (1-alpha)) / n
+    alpha = 1.0 - nominal_coverage
+    q_level = min(1.0, np.ceil((n + 1) * (1.0 - alpha)) / n)
+    q_hat = float(np.quantile(scores, q_level))
+    return max(1.0, q_hat)
+
+def compute_calibration_score(
+    y_true: np.ndarray,
+    y_pred_mean: np.ndarray,
+    y_pred_std: np.ndarray,
+    confidence_level: float = 0.95,
+    q_multiplier: float = None
+) -> float:
     """
     Evaluates uncertainty calibration. Returns the empirical coverage percentage.
-    If the model's uncertainty bounds are perfectly calibrated, the empirical coverage 
-    will equal the confidence_level (e.g., 95%).
+    If q_multiplier is provided, uses conformalized intervals; otherwise uses Gaussian z-score.
     """
     from scipy.stats import norm
     
-    z_score = norm.ppf((1 + confidence_level) / 2)
-    lower_bound = y_pred_mean - z_score * y_pred_std
-    upper_bound = y_pred_mean + z_score * y_pred_std
+    if q_multiplier is not None:
+        multiplier = q_multiplier
+    else:
+        multiplier = norm.ppf((1 + confidence_level) / 2)
+        
+    lower_bound = y_pred_mean - multiplier * y_pred_std
+    upper_bound = y_pred_mean + multiplier * y_pred_std
     
-    # Calculate percentage of true observations falling within the predicted confidence interval
     within_bounds = (y_true >= lower_bound) & (y_true <= upper_bound)
-    empirical_coverage = np.mean(within_bounds)
-    
-    return float(empirical_coverage)
+    return float(np.mean(within_bounds))
 
 def evaluate_reliability_by_lead_time(
     y_true: np.ndarray, 

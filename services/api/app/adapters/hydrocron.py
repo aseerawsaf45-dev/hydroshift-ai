@@ -44,7 +44,7 @@ class HydrocronAdapter:
         start_time: datetime, 
         end_time: datetime,
         fields: str = "reach_id,time_str,wse,width,slope2",
-        collection_name: str = "SWOT_L2_HR_RiverSP_2.0"
+        collection_name: str = os.environ.get("SWOT_COLLECTION", "SWOT_L2_HR_RiverSP_D")
     ) -> List[Dict[str, Any]]:
         """Fetch SWOT reach observations from Hydrocron."""
         params = {

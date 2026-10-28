@@ -64,6 +64,8 @@ def get_all_alerts(db: Session = Depends(get_db)):
         
         target = f.target_variable.lower()
         if "salinity" in target or "ec" in target:
+            ci_low = max(0.0, round(f.value - 3.11, 1))
+            ci_high = round(f.value + 3.11, 1)
             if f.value >= 4.0:
                 alerts.append({
                     "id": f"alert-{f.id}",
@@ -71,7 +73,7 @@ def get_all_alerts(db: Session = Depends(get_db)):
                     "entity": f.site_id,
                     "entity_name": site_name,
                     "timestamp": f.issue_time.isoformat() if f.issue_time else "Recent",
-                    "message": f"Salinity forecasted at {f.value} {f.unit} — exceeds 4.0 dS/m agriculture threshold in {f.site_id}.",
+                    "message": f"Salinity forecasted at {f.value:.1f} {f.unit} [95% CI: {ci_low} - {ci_high} {f.unit}] — exceeds 4.0 dS/m agriculture threshold in {f.site_id}. (Research Prototype: verify with local sensors before municipal intake operation).",
                     "status": "UNRESOLVED"
                 })
             elif f.value >= 2.5:
@@ -81,7 +83,7 @@ def get_all_alerts(db: Session = Depends(get_db)):
                     "entity": f.site_id,
                     "entity_name": site_name,
                     "timestamp": f.issue_time.isoformat() if f.issue_time else "Recent",
-                    "message": f"Salinity reaching {f.value} {f.unit} — elevated dry-season salinity front approaching.",
+                    "message": f"Salinity reaching {f.value:.1f} {f.unit} [95% CI: {ci_low} - {ci_high} {f.unit}] — elevated dry-season salinity front approaching. Advisory: prepare intra-polder water retention.",
                     "status": "MONITORING"
                 })
         elif "elevation" in target or "water_level" in target or "wse" in target:

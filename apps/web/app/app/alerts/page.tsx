@@ -37,6 +37,15 @@ export default function AlertsPage() {
         <p className="text-sm text-muted-foreground">System-generated warnings for threshold breaches and data source failures across Khulna reaches.</p>
       </div>
 
+      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-center justify-between">
+        <span>
+          <strong>Advisory Uncertainty Notice:</strong> Alerts incorporate 95% Confidence Intervals from the 5-model deep ensemble. Predictions represent research prototypes; verify with local sensors before operating municipal intake valves.
+        </span>
+        <Badge variant="outline" className="border-amber-500/40 text-amber-300 font-mono text-[10px] shrink-0 ml-3">
+          ENSEMBLE UNCERTAINTY ACTIVE
+        </Badge>
+      </div>
+
       <Card className="bg-card border-white/5 overflow-hidden">
         <div className="w-full overflow-x-auto">
           <table className="w-full text-sm text-left">

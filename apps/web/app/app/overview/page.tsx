@@ -14,6 +14,7 @@ import {
   ChevronRight,
   MapPin,
   ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
 
 const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
@@ -77,6 +78,19 @@ export default function OverviewPage() {
   return (
     <div className="flex flex-col space-y-6 max-w-7xl mx-auto">
       
+      {/* 0. RESEARCH PROTOTYPE & PROVENANCE NOTICE */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs">
+        <div className="flex items-start sm:items-center gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+          <span>
+            <strong>Research Prototype & Decision Support System:</strong> Surface water elevations and reaches are tracked via NASA SWOT KaRIn satellite altimetry; salinity is modeled via 1D Physics-Informed Neural Networks and SRDI empirical baselines. Not certified for life-safety operational flood alerts without in-situ ground sensors.
+          </span>
+        </div>
+        <span className="text-[10px] font-mono border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded shrink-0">
+          PROVENANCE: HARMONIZED IN-SITU + SWOT L2
+        </span>
+      </div>
+
       {/* 1. EXECUTIVE HYDRODYNAMIC BRIEF BANNER */}
       <div className="rounded-3xl bg-[#08131f]/90 border border-white/10 p-5 md:p-6 shadow-2xl relative overflow-hidden">
         <div className="absolute right-0 top-0 w-96 h-96 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />

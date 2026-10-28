@@ -47,3 +47,159 @@ class PINN(nn.Module):
         inputs = torch.cat([x, t], dim=-1)
         mapped = self.mapping(inputs)
         return self.net(mapped)
+
+
+# -------------------------------------------------------------
+# ADVANCED FOURIER PINN WITH TIDAL HARMONICS (FROM FILES.ZIP)
+# -------------------------------------------------------------
+M2_D = 12.4206 / 24.0      # Principal lunar semi-diurnal tide, days
+S2_D = 0.5                 # Principal solar semi-diurnal tide, days
+SPRING_NEAP_D = 14.765     # Spring-neap tidal envelope cycle, days
+
+class FourierPINN(nn.Module):
+    """
+    Fourier-feature PINN for 1D advection-dispersion of estuarine salinity.
+    Coordinates: x = km from sea mouth (0 = mouth, increasing upstream), t = days.
+    Network predicts normalised salinity un = EC / u_max in (0, 1).
+    PDE (km, day units): u_t + v*u_x - D*u_xx = 0
+    """
+    def __init__(self, L_km: float = 82.0, T_days: float = 250.0, u_max: float = 45.0, hidden: int = 128,
+                 depth: int = 4, n_fourier: int = 64, sigma_x: float = 2.0, sigma_t: float = 2.0, cond_dim: int = 0):
+        super().__init__()
+        import math
+        self.L, self.T, self.u_max, self.cond_dim = L_km, T_days, u_max, cond_dim
+
+        # Random Fourier features with normalized coordinates in [0, 1] x [0, 1]
+        B = torch.randn(n_fourier, 2)
+        B[:, 0] *= sigma_x
+        B[:, 1] *= sigma_t
+        self.register_buffer("B", B)
+
+        # Fixed tidal harmonics with physical frequencies (omega = 2*pi / Period_in_days)
+        self.register_buffer("tide_w", 2 * math.pi / torch.tensor([M2_D, S2_D, SPRING_NEAP_D], dtype=torch.float32))
+
+        in_dim = 2 + 2 * n_fourier + 2 * 3 + cond_dim
+        layers, d = [], in_dim
+        for _ in range(depth):
+            layers += [nn.Linear(d, hidden), nn.Tanh()]   # Smooth activation: needs 2nd derivatives
+            d = hidden
+        layers.append(nn.Linear(d, 1))
+        self.net = nn.Sequential(*layers)
+
+        # Physics parameters (learnable). v0 < 0 means net seaward transport (km/day)
+        self.v0 = nn.Parameter(torch.tensor(-0.5))              # km/day
+        self.v_q = nn.Parameter(torch.tensor(0.0))              # Sensitivity of v to conditioning discharge q
+        self.logD = nn.Parameter(torch.tensor(math.log(20.0)))   # km^2/day
+
+    @property
+    def D(self):
+        return torch.exp(self.logD)
+
+    def velocity(self, cond=None):
+        if cond is None or self.cond_dim == 0:
+            return self.v0
+        return self.v0 + self.v_q * cond[:, :1]
+
+    def forward(self, x_km: torch.Tensor, t_days: torch.Tensor, cond=None):
+        import math
+        xn = x_km / self.L
+        tn = t_days / self.T
+        # Coordinate projection in normalized dimensionless domain [0, 1] x [0, 1]
+        proj = 2 * math.pi * torch.cat([xn, tn], dim=1) @ self.B.T
+        # Tidal harmonics use physical time in days: omega_k * t_days (radians)
+        tide = t_days * self.tide_w                      # (N, 3)
+        feats = [xn, tn, torch.sin(proj), torch.cos(proj),
+                 torch.sin(tide), torch.cos(tide)]
+        if self.cond_dim and cond is not None:
+            feats.append(cond)
+        return torch.sigmoid(self.net(torch.cat(feats, dim=1)))   # Normalised salinity (0, 1)
+
+    def predict_ec(self, x_km: torch.Tensor, t_days: torch.Tensor, cond=None):
+        return self.u_max * self.forward(x_km, t_days, cond)
+
+    def pde_residual(self, x_km: torch.Tensor, t_days: torch.Tensor, cond=None):
+        """
+        Calculates 1D Advection-Dispersion Equation residual.
+        Dimensional verification:
+          x is in km  => u_x has units [1/km], u_xx has units [1/km^2]
+          t is in days => u_t has units [1/day]
+          velocity v has units [km/day] => v * u_x has units [1/day]
+          dispersion D has units [km^2/day] => D * u_xx has units [1/day]
+        All terms strictly match physical dimension [1/day].
+        """
+        x = x_km.clone().requires_grad_(True)
+        t = t_days.clone().requires_grad_(True)
+        u = self.forward(x, t, cond)
+        g = lambda y, z: torch.autograd.grad(y, z, torch.ones_like(y), create_graph=True)[0]
+        u_t = g(u, t)
+        u_x = g(u, x)
+        u_xx = g(u_x, x)
+        return u_t + self.velocity(cond) * u_x - self.D * u_xx
+
+
+class PINNEnsemble(nn.Module):
+    """
+    Deep Ensemble of K independent FourierPINN models trained with different random seeds
+    and stochastic collocation point sampling.
+    Estimates epistemic uncertainty and provides calibrated 95% confidence intervals:
+      mu(x, t)    = (1/K) sum u_k(x, t)
+      sigma(x, t) = sqrt( (1/(K-1)) sum (u_k(x, t) - mu(x, t))^2 )
+      ci_lower    = max(0.0, mu - 1.96 * sigma)
+      ci_upper    = mu + 1.96 * sigma
+    """
+    def __init__(self, models: list = None, q_cal: float = 1.96):
+        super().__init__()
+        self.models = nn.ModuleList(models or [])
+        self.q_cal = float(q_cal)
+
+    @property
+    def num_models(self) -> int:
+        return len(self.models)
+
+    def forward(self, x_km: torch.Tensor, t_days: torch.Tensor, cond=None) -> torch.Tensor:
+        """Returns ensemble mean normalized salinity [0, 1]."""
+        if not self.models:
+            raise ValueError("Ensemble has no member models.")
+        preds = torch.stack([m(x_km, t_days, cond) for m in self.models], dim=0)
+        return torch.mean(preds, dim=0)
+
+    def predict_ec(self, x_km: torch.Tensor, t_days: torch.Tensor, cond=None) -> torch.Tensor:
+        """Returns ensemble mean salinity in dS/m."""
+        if not self.models:
+            raise ValueError("Ensemble has no member models.")
+        preds = torch.stack([m.predict_ec(x_km, t_days, cond) for m in self.models], dim=0)
+        return torch.mean(preds, dim=0)
+
+    def set_calibration_factor(self, q_cal: float):
+        """Sets the empirical conformal calibration scaling factor."""
+        self.q_cal = float(q_cal)
+
+    def predict_with_uncertainty(self, x_km: torch.Tensor, t_days: torch.Tensor, cond=None):
+        """
+        Computes ensemble mean, standard deviation (epistemic uncertainty),
+        two-sided calibrated prediction interval, and one-sided 95th-percentile risk bound.
+        """
+        if not self.models:
+            raise ValueError("Ensemble has no member models.")
+        preds = torch.stack([m.predict_ec(x_km, t_days, cond) for m in self.models], dim=0) # (K, N, 1)
+        mean = torch.mean(preds, dim=0)
+        std = torch.std(preds, dim=0, unbiased=True) if len(self.models) > 1 else torch.zeros_like(mean)
+        
+        # Two-sided prediction interval using empirical calibration factor q_cal
+        ci_lower = torch.clamp(mean - self.q_cal * std, min=0.0)
+        ci_upper = mean + self.q_cal * std
+        
+        # One-sided 95th percentile risk bound (for conservative agricultural planning)
+        risk_bound_p95 = mean + 1.645 * std
+        
+        return {
+            "mean": mean,
+            "std": std,
+            "ci_lower": ci_lower,
+            "ci_upper": ci_upper,
+            "risk_bound_p95": risk_bound_p95,
+            "calibration_factor": self.q_cal,
+            "ensemble_size": len(self.models)
+        }
+
+
