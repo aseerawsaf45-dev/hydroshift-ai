@@ -5,7 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ForecastChart } from "@/components/ForecastChart";
-import { Site, Forecast, CANONICAL_KHULNA_STATIONS, PolderPolygon } from "@/components/map-data";
+import {
+  Site,
+  Forecast,
+  CANONICAL_KHULNA_STATIONS,
+  PolderPolygon,
+  KhulnaRegion,
+  KHULNA_UPAZILA_REGIONS,
+  RISK_TIERS_CONFIG,
+  KHULNA_DISTRICT_BOUNDS,
+} from "@/components/map-data";
 import {
   Layers,
   MapPin,
@@ -50,6 +59,7 @@ const HOTSPOTS = [
 
 export default function MapExplorerPage() {
   // Layer & Display States
+  const [showRiskChoropleth, setShowRiskChoropleth] = useState(true);
   const [showSwot, setShowSwot] = useState(true);
   const [showGauges, setShowGauges] = useState(true);
   const [showSalinityFront, setShowSalinityFront] = useState(true);
@@ -62,6 +72,7 @@ export default function MapExplorerPage() {
   const [riskFilter, setRiskFilter] = useState<"all" | "critical" | "warning" | "nominal">("all");
   const [currentMode, setCurrentMode] = useState<"all" | "salinity" | "gauges" | "swot">("all");
   const [selectedBasin, setSelectedBasin] = useState<"all" | "Passur" | "Shibsa" | "Rupsha">("all");
+  const [selectedRegion, setSelectedRegion] = useState<KhulnaRegion | null>(null);
   const [selectedPolder, setSelectedPolder] = useState<PolderPolygon | null>(null);
 
   // Workbench & Drawer states
@@ -275,28 +286,63 @@ export default function MapExplorerPage() {
 
           <div className="h-5 w-px bg-white/10 mx-1 hidden sm:block shrink-0" />
 
-          {/* Quick Jump Hotspot Pills */}
-          <div className="flex items-center gap-1 shrink-0">
-            {HOTSPOTS.map((hotspot) => (
-              <button
-                key={hotspot.name}
-                onClick={() => {
-                  setFlyToCoords(hotspot.coords);
-                  const found = allSites.find(
-                    (s) =>
-                      s.id === hotspot.siteId ||
-                      s.name.toLowerCase().includes(hotspot.name.toLowerCase())
-                  );
-                  if (found) handleSelectSite(found);
-                }}
-                className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] font-medium text-muted-foreground hover:text-white transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer"
-                title={hotspot.desc}
-              >
-                <MapPin className="w-3 h-3 text-primary" />
-                <span>{hotspot.name}</span>
-                <span className="text-[9px] font-mono opacity-60">({hotspot.risk})</span>
-              </button>
-            ))}
+          {/* Quick Regional Upazila Focus / Opt-Out Pills */}
+          <div className="flex items-center gap-1 shrink-0 overflow-x-auto py-0.5">
+            <button
+              onClick={() => {
+                setSelectedRegion(null);
+                setSelectedSite(null);
+                setSelectedPolder(null);
+              }}
+              className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                !selectedRegion
+                  ? "bg-primary text-black border-primary shadow-md shadow-primary/20"
+                  : "bg-white/5 hover:bg-white/10 border-white/10 text-muted-foreground hover:text-white"
+              }`}
+              title="View full Khulna District (Opt in all regions)"
+            >
+              <Compass className="w-3 h-3" />
+              <span>All Khulna</span>
+            </button>
+
+            {KHULNA_UPAZILA_REGIONS.map((region) => {
+              const isSelected = selectedRegion?.id === region.id;
+              return (
+                <button
+                  key={region.id}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedRegion(null);
+                    } else {
+                      setSelectedRegion(region);
+                      setSelectedSite(null);
+                      setSelectedPolder(null);
+                    }
+                  }}
+                  className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-medium transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                    isSelected
+                      ? "bg-white/20 text-white border-white shadow-md ring-2 ring-white/30 font-bold"
+                      : "bg-white/5 hover:bg-white/10 border-white/5 text-muted-foreground hover:text-white"
+                  }`}
+                  title={`Narrow down to ${region.name} (${region.riskTier} - ${region.avgEc} dS/m)`}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: region.color }}
+                  />
+                  <span>{region.name.replace(" Upazila", "")}</span>
+                  <span
+                    className="text-[9px] font-mono px-1 py-0.2 rounded"
+                    style={{
+                      backgroundColor: isSelected ? region.color : "rgba(255,255,255,0.06)",
+                      color: isSelected ? "#fff" : undefined,
+                    }}
+                  >
+                    {region.riskTier}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -464,6 +510,15 @@ export default function MapExplorerPage() {
         <MapWrapper
           selectedSiteId={selectedSite?.id || null}
           onSelectSite={handleSelectSite}
+          selectedRegionId={selectedRegion?.id || null}
+          onSelectRegion={(reg) => {
+            setSelectedRegion(reg);
+            if (reg) {
+              setSelectedSite(null);
+              setSelectedPolder(null);
+            }
+          }}
+          showRiskChoropleth={showRiskChoropleth}
           showSwot={showSwot}
           showGauges={showGauges}
           showSalinityFront={showSalinityFront}
@@ -725,6 +780,19 @@ export default function MapExplorerPage() {
                   {/* Spatial Layers */}
                   <div className="flex flex-col space-y-2 border-t border-white/10 pt-3">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono">GIS Vector Overlays</span>
+
+                    <label className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                      <span className="flex items-center gap-2 text-xs font-medium text-white">
+                        <span className="w-2.5 h-2.5 rounded bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-600" />
+                        5-Tier Regional Risk Choropleth
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={showRiskChoropleth}
+                        onChange={(e) => setShowRiskChoropleth(e.target.checked)}
+                        className="accent-primary cursor-pointer w-4 h-4"
+                      />
+                    </label>
 
                     <label className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
                       <span className="flex items-center gap-2 text-xs font-medium text-white">
@@ -1073,7 +1141,177 @@ export default function MapExplorerPage() {
           </div>
         )}
 
-        {/* 6. MINIMALIST LEGEND OVERLAY */}
+        {/* 6. REGIONAL RISK & INTELLIGENCE DOSSIER DRAWER (FOR NARROWED DOWN REGION) */}
+        {selectedRegion && !selectedSite && !selectedPolder && (
+          <div className="absolute inset-x-2 bottom-2 md:bottom-3 md:top-3 md:right-3 md:left-auto z-30 max-h-[85vh] md:max-h-none md:h-auto md:w-[410px] flex flex-col animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-right-4 duration-300">
+            <div className="h-full bg-[#08131f]/95 backdrop-blur-2xl border border-white/20 p-4 shadow-2xl flex flex-col justify-between overflow-y-auto rounded-2xl scrollbar-thin space-y-3.5">
+              
+              {/* Top Header */}
+              <div className="space-y-3">
+                <div className="flex items-start justify-between border-b border-white/10 pb-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-2.5 h-2.5 rounded-full animate-ping" style={{ backgroundColor: selectedRegion.color }} />
+                      <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-muted-foreground">
+                        Khulna Delta Regional Dossier
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-white text-lg leading-tight flex items-center gap-2">
+                      <span>{selectedRegion.name}</span>
+                    </h3>
+                    <span className="text-xs text-muted-foreground font-sans">
+                      {selectedRegion.bengaliName} &bull; Area: <strong className="text-white">{selectedRegion.areaKm2} km²</strong>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span
+                      className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border shadow"
+                      style={{
+                        backgroundColor: `${selectedRegion.color}25`,
+                        color: selectedRegion.color,
+                        borderColor: `${selectedRegion.color}60`,
+                      }}
+                    >
+                      {selectedRegion.riskTier}
+                    </span>
+                    <button
+                      onClick={() => setSelectedRegion(null)}
+                      className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-muted-foreground hover:text-white transition-colors cursor-pointer"
+                      title="Reset Map / Opt Back In"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Salinity & Hydrology KPIs */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
+                    <span className="text-[10px] text-muted-foreground block font-mono">River Water Salinity (EC)</span>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-xl font-bold font-mono" style={{ color: selectedRegion.color }}>
+                        {selectedRegion.avgEc}
+                      </span>
+                      <span className="text-xs text-muted-foreground font-mono">dS/m</span>
+                    </div>
+                    <span className="text-[9px] text-muted-foreground block mt-0.5">
+                      Safe Boro Limit: 4.0 dS/m
+                    </span>
+                  </div>
+
+                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
+                    <span className="text-[10px] text-muted-foreground block font-mono">Soil Salinity (ECe)</span>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-xl font-bold text-white font-mono">
+                        {selectedRegion.soilEc}
+                      </span>
+                      <span className="text-xs text-muted-foreground font-mono">dS/m</span>
+                    </div>
+                    <span className="text-[9px] text-muted-foreground block mt-0.5">
+                      Pop. at risk: {selectedRegion.population.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sluice Gate Operation Directive */}
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                    <span>Sluice Operation Directive:</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    {selectedRegion.sluiceAdvisory}
+                  </p>
+                </div>
+
+                {/* Ingress Pathway & Tidal Surging */}
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-white">
+                    <Waves className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Saline Ingress Dynamic:</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    {selectedRegion.intakeRisk}
+                  </p>
+                </div>
+
+                {/* Boro Rice & Agriculture Vulnerability */}
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-white">
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Boro Rice &amp; Irrigation Hazard:</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    {selectedRegion.boroVulnerability}
+                  </p>
+                </div>
+
+                {/* Recommended Salt-Tolerant Crops */}
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1.5">
+                  <span className="font-mono text-[10px] font-bold uppercase text-muted-foreground block">
+                    Recommended Crop Rotations (SRDI &amp; BRRI):
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedRegion.recommendedCrops.map((crop) => (
+                      <span
+                        key={crop}
+                        className="px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono"
+                      >
+                        {crop}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Included Polders & Telemetry Stations */}
+                <div className="space-y-1.5">
+                  <span className="font-mono text-[10px] font-bold uppercase text-muted-foreground block">
+                    Coastal Polders in this Region:
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedRegion.polders.map((p) => (
+                      <span key={p} className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-white text-[10px]">
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Bottom Action Footer */}
+              <div className="pt-3 border-t border-white/10 flex flex-col space-y-2 shrink-0">
+                <button
+                  onClick={() => setSelectedRegion(null)}
+                  className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-mono text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-lg"
+                >
+                  <Compass className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>Opt Back In (View Entire Khulna District)</span>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/app/crop-rotation`}
+                    className="flex-1 py-2 px-2.5 rounded-xl bg-primary text-black font-bold text-xs text-center hover:opacity-90 transition-opacity flex items-center justify-center gap-1 shadow-md shadow-primary/20"
+                  >
+                    <span>Crop Support</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </Link>
+                  <Link
+                    href="/app/scenarios"
+                    className="flex-1 py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs text-center transition-colors"
+                  >
+                    Simulate Surge
+                  </Link>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* 7. MINIMALIST LEGEND OVERLAY */}
         {showLegend && (
           <div className="absolute bottom-3 right-3 z-20 bg-[#08131f]/95 backdrop-blur-xl px-4 py-3 rounded-2xl border border-white/15 text-xs flex flex-col space-y-2 shadow-2xl animate-in fade-in duration-200">
             <div className="flex items-center justify-between border-b border-white/10 pb-1.5">

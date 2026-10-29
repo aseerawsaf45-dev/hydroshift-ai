@@ -33,6 +33,7 @@ import {
   Info,
   Crosshair,
   TrendingUp,
+  X,
 } from "lucide-react";
 
 export * from "./map-data";
@@ -41,6 +42,11 @@ import {
   Forecast,
   MapWrapperProps,
   PolderPolygon,
+  KhulnaRegion,
+  KHULNA_UPAZILA_REGIONS,
+  KHULNA_DISTRICT_BOUNDS,
+  RISK_TIERS_CONFIG,
+  RiskTier,
   CANONICAL_KHULNA_STATIONS,
   PASSUR_MARINE_INGRESS_CORRIDOR,
   PASSUR_TRANSITION_CORRIDOR,
@@ -62,10 +68,12 @@ import {
 function MapController({
   coords,
   zoom,
+  regionBounds,
   onCursorMove,
 }: {
   coords: [number, number] | null;
   zoom: number;
+  regionBounds?: [[number, number], [number, number]] | null;
   onCursorMove?: (lat: number, lng: number) => void;
 }) {
   const map = useMap();
@@ -78,15 +86,28 @@ function MapController({
     },
   });
 
+  // Smoothly fit bounds when a region is selected or reset
   useEffect(() => {
-    if (coords && coords[0] && coords[1] && map) {
+    if (map) {
+      try {
+        if (regionBounds) {
+          map.fitBounds(regionBounds, { padding: [45, 45], maxZoom: 13, duration: 1.2 });
+        }
+      } catch {
+        // Prevent animation crashes
+      }
+    }
+  }, [regionBounds, map]);
+
+  useEffect(() => {
+    if (coords && coords[0] && coords[1] && map && !regionBounds) {
       try {
         map.flyTo(coords, zoom, { duration: 1.2, easeLinearity: 0.25 });
       } catch {
         // Prevent unmounted map crash during animation/HMR
       }
     }
-  }, [coords, zoom, map]);
+  }, [coords, zoom, map, regionBounds]);
 
   return null;
 }
@@ -179,6 +200,9 @@ const createGisStationIcon = (
 export default function MapWrapper({
   selectedSiteId,
   onSelectSite,
+  selectedRegionId = null,
+  onSelectRegion,
+  showRiskChoropleth = true,
   showSwot = true,
   showGauges = true,
   showSalinityFront = true,
@@ -200,6 +224,11 @@ export default function MapWrapper({
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
   const [cursorCoords, setCursorCoords] = useState<[number, number]>([22.65, 89.56]);
   const [internalBasemap, setInternalBasemap] = useState<"satellite" | "dark" | "topo" | "osm">(basemap);
+
+  const activeRegion = useMemo(() => {
+    if (!selectedRegionId) return null;
+    return KHULNA_UPAZILA_REGIONS.find((r) => r.id === selectedRegionId) || null;
+  }, [selectedRegionId]);
 
   // Sync external basemap prop
   useEffect(() => {
@@ -283,9 +312,20 @@ export default function MapWrapper({
       if (riskFilter === "warning" && (val < 2.5 || val >= 4.0)) return false;
       if (riskFilter === "nominal" && val >= 2.5) return false;
 
+      // When a region is selected, narrow down stations strictly to that region
+      if (activeRegion) {
+        const isAssociated = activeRegion.associatedStationIds.includes(site.id);
+        const insideBox =
+          site.latitude >= activeRegion.bounds[0][0] - 0.04 &&
+          site.latitude <= activeRegion.bounds[1][0] + 0.04 &&
+          site.longitude >= activeRegion.bounds[0][1] - 0.04 &&
+          site.longitude <= activeRegion.bounds[1][1] + 0.04;
+        if (!isAssociated && !insideBox) return false;
+      }
+
       return true;
     });
-  }, [sites, showSwot, showGauges, searchQuery, riskFilter, forecastMap]);
+  }, [sites, showSwot, showGauges, searchQuery, riskFilter, forecastMap, activeRegion]);
 
   if (!mounted || mapKey === 0) {
     return (
@@ -380,7 +420,7 @@ export default function MapWrapper({
       `}</style>
 
       {/* 2. FLOATING GIS BASEMAP SELECTOR (TOP-RIGHT) */}
-      <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2 pointer-events-none">
+      <div className="absolute top-3 right-3 z-[500] flex flex-col items-end gap-2 pointer-events-none">
         <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 p-1 rounded-xl shadow-2xl pointer-events-auto flex items-center gap-1">
           <button
             onClick={() => setInternalBasemap("satellite")}
@@ -433,8 +473,92 @@ export default function MapWrapper({
         </div>
       </div>
 
-      {/* 3. GIS CURSOR & COORDINATES HUD (BOTTOM-LEFT) */}
-      <div className="absolute bottom-4 left-4 z-10 pointer-events-none flex flex-col space-y-1">
+      {/* 3. FOCUSED REGION BANNER (WHEN REGION IS ISOLATED) */}
+      {activeRegion && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[600] pointer-events-none flex justify-center animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-2xl shadow-2xl pointer-events-auto flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full animate-ping" style={{ backgroundColor: activeRegion.color }} />
+              <span className="font-bold text-white font-sans text-sm">{activeRegion.name}</span>
+              <span
+                className="text-[10px] font-mono font-bold px-2 py-0.5 rounded text-white shadow"
+                style={{ backgroundColor: activeRegion.color }}
+              >
+                {activeRegion.riskTier} ({activeRegion.avgEc} dS/m)
+              </span>
+            </div>
+            <span className="text-muted-foreground text-[11px] hidden md:inline">| Other regions opted out</span>
+            <button
+              onClick={() => onSelectRegion && onSelectRegion(null)}
+              className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-cyan-300 text-[11px] font-mono font-bold transition-colors cursor-pointer flex items-center gap-1 border border-white/10"
+            >
+              <span>View All Khulna</span>
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 4. AUTHENTIC 5-TIER RISK LEGEND & NORTH ARROW (MATCHING USER GRAPHIC) */}
+      {!activeRegion && (
+        <div className="absolute bottom-12 right-4 z-[500] pointer-events-none flex flex-col items-end space-y-2 animate-in fade-in duration-300">
+          <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/20 p-3 rounded-2xl shadow-2xl pointer-events-auto flex flex-col space-y-2 min-w-[150px]">
+            {/* Title */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-1">
+              <span className="font-serif font-bold text-white text-sm tracking-wide">Risk</span>
+              <span className="text-[9px] font-mono text-muted-foreground uppercase">Khulna</span>
+            </div>
+
+            {/* 5-Tier Items */}
+            <div className="flex flex-col space-y-1">
+              {RISK_TIERS_CONFIG.map((tier) => {
+                return (
+                  <div
+                    key={tier.tier}
+                    className="flex items-center gap-2 px-1 py-0.5 rounded hover:bg-white/10 transition-colors cursor-pointer"
+                    onClick={() => {
+                      const match = KHULNA_UPAZILA_REGIONS.find((r) => r.riskTier === tier.tier);
+                      if (match && onSelectRegion) {
+                        onSelectRegion(match);
+                      }
+                    }}
+                    title={`Click to focus: ${tier.label} (${tier.range})`}
+                  >
+                    <span
+                      className="w-3.5 h-3.5 rounded-sm shrink-0 border border-black/40 shadow-sm"
+                      style={{ backgroundColor: tier.color }}
+                    />
+                    <div className="flex items-baseline justify-between flex-1 gap-2">
+                      <span className="text-[11px] font-serif text-white font-medium">{tier.label}</span>
+                      <span className="text-[9px] font-mono text-muted-foreground">{tier.range}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* North Arrow & Scale (Matching User Graphic) */}
+            <div className="pt-2 border-t border-white/10 flex flex-col items-center justify-center space-y-1 text-white">
+              <div className="flex flex-col items-center">
+                <span className="font-serif font-bold text-xs tracking-widest">N</span>
+                <svg width="18" height="22" viewBox="0 0 24 28" fill="none" className="drop-shadow">
+                  <polygon points="12,2 18,22 12,17 6,22" fill="#ffffff" stroke="#000" strokeWidth="1" />
+                  <polygon points="12,2 12,17 6,22" fill="#94a3b8" />
+                </svg>
+              </div>
+              <div className="flex items-center gap-1.5 text-[9px] font-mono text-muted-foreground">
+                <span>0</span>
+                <span>5</span>
+                <span>10</span>
+                <span>20 Miles</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. GIS CURSOR & COORDINATES HUD (BOTTOM-LEFT) */}
+      <div className="absolute bottom-4 left-4 z-[500] pointer-events-none flex flex-col space-y-1">
         <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-xl shadow-2xl pointer-events-auto flex items-center gap-3 text-[11px] font-mono text-white/90">
           <div className="flex items-center gap-1.5 text-primary font-bold">
             <Crosshair className="w-3.5 h-3.5" />
@@ -454,31 +578,7 @@ export default function MapWrapper({
         </div>
       </div>
 
-      {/* 4. SALINITY HAZARD GRADIENT LEGEND BAR (BOTTOM-RIGHT) */}
-      <div className="absolute bottom-4 right-4 z-10 pointer-events-none flex flex-col items-end space-y-2">
-        <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 p-2.5 rounded-xl shadow-2xl pointer-events-auto flex flex-col space-y-1.5 max-w-xs">
-          <div className="flex items-center justify-between text-[10px] font-mono uppercase text-muted-foreground font-bold">
-            <span className="flex items-center gap-1 text-white">
-              <Waves className="w-3 h-3 text-cyan-400" />
-              <span>Salinity Hazard Scale</span>
-            </span>
-            <span className="text-rose-400">4.0 dS/m Limit</span>
-          </div>
-
-          {/* Continuous Multi-Stop Gradient Bar */}
-          <div className="w-48 sm:w-56 h-2 rounded-full bg-gradient-to-r from-emerald-500 via-sky-400 via-amber-400 to-rose-600 shadow-inner border border-white/20" />
-
-          {/* Calibration Marks */}
-          <div className="flex justify-between text-[9px] font-mono text-muted-foreground px-0.5">
-            <span className="text-emerald-400 font-bold">0.0 Fresh</span>
-            <span className="text-sky-300">2.0 Safe</span>
-            <span className="text-amber-400 font-bold">4.0 Hazard</span>
-            <span className="text-rose-400 font-bold">8.0+ Marine</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 5. LEAFLET MAP CONTAINER */}
+      {/* 6. LEAFLET MAP CONTAINER */}
       <MapContainer
         key={`gis-map-v${mapKey}-${internalBasemap}`}
         center={[22.65, 89.56]}
@@ -493,7 +593,12 @@ export default function MapWrapper({
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%", minHeight: "480px", background: "#0c1824" }}
       >
-        <MapController coords={flyToCoords} zoom={12} onCursorMove={handleCursorMove} />
+        <MapController
+          coords={flyToCoords}
+          zoom={12}
+          regionBounds={activeRegion ? activeRegion.bounds : null}
+          onCursorMove={handleCursorMove}
+        />
         <ScaleControl position="bottomleft" imperial={false} metric={true} />
 
         {/* Base GIS TileLayer */}
@@ -515,6 +620,89 @@ export default function MapWrapper({
             opacity={0.9}
             pane="overlayPane"
           />
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* 5. KHULNA 5-TIER SALINITY RISK CHOROPLETH REGIONS            */}
+        {/* ------------------------------------------------------------- */}
+        {showRiskChoropleth &&
+          KHULNA_UPAZILA_REGIONS.map((region) => {
+            const isSelected = selectedRegionId === region.id;
+            const isAnySelected = Boolean(selectedRegionId);
+            const isOptedOut = isAnySelected && !isSelected;
+
+            return (
+              <Polygon
+                key={region.id}
+                positions={region.coordinates}
+                pathOptions={{
+                  fillColor: isOptedOut ? "#05070d" : region.fillColor,
+                  fillOpacity: isSelected ? 0.65 : isOptedOut ? 0.72 : 0.40,
+                  color: isSelected ? "#ffffff" : isOptedOut ? "#ffffff10" : region.color,
+                  weight: isSelected ? 3.5 : isOptedOut ? 1 : 2,
+                  dashArray: isOptedOut ? "4, 4" : undefined,
+                  lineJoin: "round",
+                  lineCap: "round",
+                }}
+                eventHandlers={{
+                  click: () => {
+                    if (onSelectRegion) {
+                      onSelectRegion(isSelected ? null : region);
+                    }
+                  },
+                }}
+              >
+                <Tooltip sticky direction="center">
+                  <div className="flex flex-col space-y-1 p-1 min-w-[200px] text-foreground font-sans">
+                    <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-1">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs text-white">{region.name}</span>
+                        <span className="text-[10px] text-muted-foreground">{region.bengaliName}</span>
+                      </div>
+                      <span
+                        className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded text-white shadow-sm"
+                        style={{ backgroundColor: region.color }}
+                      >
+                        {region.riskTier}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-zinc-300 font-mono">
+                      Avg Salinity: <strong className="text-white">{region.avgEc} dS/m</strong> &bull; Soil: <strong className="text-white">{region.soilEc} dS/m</strong>
+                    </div>
+                    <div className="text-[10px] text-amber-300 line-clamp-2">
+                      {region.boroVulnerability}
+                    </div>
+                    <div className="text-[9px] text-cyan-300 font-mono pt-1 border-t border-white/10">
+                      {isSelected ? "Click to deselect (View All)" : "Click to narrow down & opt out others"}
+                    </div>
+                  </div>
+                </Tooltip>
+              </Polygon>
+            );
+          })}
+
+        {/* Active Region Center Pin */}
+        {activeRegion && (
+          <CircleMarker
+            center={activeRegion.center}
+            radius={7}
+            pathOptions={{
+              color: "#ffffff",
+              fillColor: activeRegion.color,
+              fillOpacity: 1,
+              weight: 3,
+            }}
+          >
+            <Tooltip permanent direction="top" offset={[0, -10]}>
+              <div className="flex items-center gap-1.5 font-bold font-mono text-xs text-white bg-black/90 px-2 py-1 rounded-lg border border-white/30 shadow-2xl">
+                <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: activeRegion.color }} />
+                <span>{activeRegion.name}</span>
+                <span className="text-[10px] px-1 py-0.2 rounded text-white" style={{ backgroundColor: activeRegion.color }}>
+                  {activeRegion.riskTier}
+                </span>
+              </div>
+            </Tooltip>
+          </CircleMarker>
         )}
 
         {/* ------------------------------------------------------------- */}

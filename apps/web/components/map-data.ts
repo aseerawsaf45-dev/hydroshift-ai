@@ -22,9 +22,36 @@ export interface Forecast {
   validation_status: string;
 }
 
+export type RiskTier = "Very Low" | "Low" | "Moderate" | "High" | "Very High";
+
+export interface KhulnaRegion {
+  id: string;
+  name: string;
+  bengaliName: string;
+  riskTier: RiskTier;
+  color: string;
+  fillColor: string;
+  avgEc: number; // in dS/m
+  soilEc: number; // in dS/m
+  areaKm2: number;
+  population: number;
+  polders: string[];
+  intakeRisk: string;
+  boroVulnerability: string;
+  sluiceAdvisory: string;
+  recommendedCrops: string[];
+  associatedStationIds: string[];
+  bounds: [[number, number], [number, number]]; // [SW, NE]
+  center: [number, number];
+  coordinates: [number, number][];
+}
+
 export interface MapWrapperProps {
   selectedSiteId?: string | null;
   onSelectSite?: (site: Site | null) => void;
+  selectedRegionId?: string | null;
+  onSelectRegion?: (region: KhulnaRegion | null) => void;
+  showRiskChoropleth?: boolean;
   showSwot?: boolean;
   showGauges?: boolean;
   showSalinityFront?: boolean;
@@ -452,3 +479,348 @@ export const POLDER_SLUICE_GATES = [
   { id: "gate-sutarkhali", name: "Sutarkhali Flap Gate Sluice", coords: [22.490, 89.540] as [number, number], polder: "Polder 32", status: "Locked Shut (Tide High)" },
   { id: "gate-chalna", name: "Chalna Estuarine Regulating Sluice", coords: [22.610, 89.575] as [number, number], polder: "Polder 31", status: "Active Drainage" },
 ];
+
+// -------------------------------------------------------------
+// 7. KHULNA DISTRICT CANONICAL BOUNDS & 5-TIER RISK CONFIG
+// -------------------------------------------------------------
+export const KHULNA_DISTRICT_BOUNDS: [[number, number], [number, number]] = [
+  [22.18, 89.20], // Southwest bound (Koyra / Sundarbans border)
+  [23.08, 89.70], // Northeast bound (Terokhada / Phultala border)
+];
+
+export const KHULNA_DISTRICT_CENTER: [number, number] = [22.68, 89.48];
+
+export const RISK_TIERS_CONFIG: {
+  tier: RiskTier;
+  color: string;
+  fillColor: string;
+  label: string;
+  range: string;
+  badgeClass: string;
+}[] = [
+  {
+    tier: "Very Low",
+    color: "#15803d",
+    fillColor: "#15803d",
+    label: "Very Low",
+    range: "< 1.0 dS/m",
+    badgeClass: "bg-emerald-950/80 text-emerald-300 border-emerald-600/50",
+  },
+  {
+    tier: "Low",
+    color: "#65a30d",
+    fillColor: "#65a30d",
+    label: "Low",
+    range: "1.0 - 2.5 dS/m",
+    badgeClass: "bg-lime-950/80 text-lime-300 border-lime-600/50",
+  },
+  {
+    tier: "Moderate",
+    color: "#eab308",
+    fillColor: "#eab308",
+    label: "Moderate",
+    range: "2.5 - 5.0 dS/m",
+    badgeClass: "bg-amber-950/80 text-amber-300 border-amber-500/50",
+  },
+  {
+    tier: "High",
+    color: "#ea580c",
+    fillColor: "#ea580c",
+    label: "High",
+    range: "5.0 - 8.0 dS/m",
+    badgeClass: "bg-orange-950/80 text-orange-300 border-orange-500/50",
+  },
+  {
+    tier: "Very High",
+    color: "#dc2626",
+    fillColor: "#dc2626",
+    label: "Very High",
+    range: "> 8.0 dS/m",
+    badgeClass: "bg-rose-950/80 text-rose-300 border-rose-500/50",
+  },
+];
+
+// -------------------------------------------------------------
+// 8. KHULNA DISTRICT UPAZILA RISK CHOROPLETH REGIONS
+// -------------------------------------------------------------
+export const KHULNA_UPAZILA_REGIONS: KhulnaRegion[] = [
+  {
+    id: "koyra",
+    name: "Koyra Upazila",
+    bengaliName: "কয়রা উপজেলা",
+    riskTier: "Very High",
+    color: "#dc2626",
+    fillColor: "#dc2626",
+    avgEc: 12.4,
+    soilEc: 10.8,
+    areaKm2: 1775.4,
+    population: 202000,
+    polders: ["Polder 13/1", "Polder 14/1", "Koyra Coastal Embankment"],
+    intakeRisk: "Critical marine surge penetration. Surface river EC exceeds 12 dS/m throughout dry season (Feb-May).",
+    boroVulnerability: "Acute sterilization hazard. Surface water completely unfit for Boro rice (>10 dS/m). High seedling mortality.",
+    sluiceAdvisory: "Completely lock all gravity intake sluices during high tide. Only discharge interior rainwater runoff during minimum low water springs.",
+    recommendedCrops: [
+      "BRRI dhan67 (Max 8 dS/m)",
+      "BINA dhan-10 (Salt tolerant)",
+      "Brackish Shrimp (Bagda) / Crab Fattening",
+      "Sunflower (Hysun-33)",
+    ],
+    associatedStationIds: ["31241000011", "SW244"],
+    bounds: [
+      [22.180, 89.240],
+      [22.480, 89.460],
+    ],
+    center: [22.340, 89.340],
+    coordinates: [
+      [22.480, 89.300],
+      [22.470, 89.370],
+      [22.420, 89.440],
+      [22.350, 89.460],
+      [22.280, 89.420],
+      [22.220, 89.380],
+      [22.180, 89.330],
+      [22.190, 89.280],
+      [22.250, 89.260],
+      [22.330, 89.240],
+      [22.410, 89.270],
+      [22.480, 89.300],
+    ],
+  },
+  {
+    id: "dacope",
+    name: "Dacope Upazila",
+    bengaliName: "দাকোপ উপজেলা",
+    riskTier: "Very High",
+    color: "#dc2626",
+    fillColor: "#dc2626",
+    avgEc: 8.8,
+    soilEc: 7.6,
+    areaKm2: 991.6,
+    population: 157000,
+    polders: ["Polder 31 (Bajua / Pankhali)", "Polder 32 (Kamarkhola / Sutarkhali)", "Polder 33"],
+    intakeRisk: "Severe estuarine tidal intrusion along Passur and Shibsa channels. SW244 Mongla records 7.9 - 9.2 dS/m.",
+    boroVulnerability: "Severe danger during Boro panicle initiation (March-April). River water irrigation causes acute leaf tip scorch.",
+    sluiceAdvisory: "Open Sutarkhali & Bajua flap gates only during 2-hour window after slack high water when SWOT river stage drops below polder canal stage.",
+    recommendedCrops: [
+      "BRRI dhan67",
+      "BRRI dhan97",
+      "Sesame (BINA Til-2 / Til-3)",
+      "Sunflower (Hysun-33)",
+      "Aman Relaying (BRRI dhan52)",
+    ],
+    associatedStationIds: ["SW244", "31241400601", "chalna-gauge", "31241400561", "gate-sutarkhali", "gate-chalna"],
+    bounds: [
+      [22.420, 89.450],
+      [22.680, 89.660],
+    ],
+    center: [22.560, 89.550],
+    coordinates: [
+      [22.680, 89.520],
+      [22.670, 89.580],
+      [22.620, 89.640],
+      [22.550, 89.660],
+      [22.480, 89.610],
+      [22.420, 89.550],
+      [22.430, 89.490],
+      [22.490, 89.460],
+      [22.580, 89.480],
+      [22.680, 89.520],
+    ],
+  },
+  {
+    id: "paikgachha",
+    name: "Paikgachha Upazila",
+    bengaliName: "পাইকগাছা উপজেলা",
+    riskTier: "High",
+    color: "#ea580c",
+    fillColor: "#ea580c",
+    avgEc: 6.9,
+    soilEc: 6.2,
+    areaKm2: 411.2,
+    population: 248000,
+    polders: ["Polder 22 (Gadaipur)", "Polder 23", "Polder 20"],
+    intakeRisk: "High brackish intrusion through western Shibsa and Kobodak estuaries. Saline shrimp aquaculture seepage.",
+    boroVulnerability: "High vulnerability; canal storage must be topped off in December before river salinity exceeds 4.0 dS/m.",
+    sluiceAdvisory: "Seal dyke breaches against uncontrolled shrimp gher saltwater pumping adjacent to crop clusters; monitor canal EC weekly.",
+    recommendedCrops: [
+      "BRRI dhan67",
+      "BRRI dhan89 (Early Harvest)",
+      "Mustard (BARI Sarisha-14 / 17)",
+      "Watermelon",
+      "Maize (Pac 339)",
+    ],
+    associatedStationIds: ["paikgachha-shibsa", "31241400561"],
+    bounds: [
+      [22.460, 89.220],
+      [22.720, 89.450],
+    ],
+    center: [22.580, 89.330],
+    coordinates: [
+      [22.720, 89.320],
+      [22.710, 89.410],
+      [22.660, 89.440],
+      [22.580, 89.450],
+      [22.480, 89.370],
+      [22.460, 89.280],
+      [22.510, 89.230],
+      [22.620, 89.220],
+      [22.720, 89.320],
+    ],
+  },
+  {
+    id: "batiaghata",
+    name: "Batiaghata Upazila",
+    bengaliName: "বটিয়াঘাটা উপজেলা",
+    riskTier: "Moderate",
+    color: "#eab308",
+    fillColor: "#eab308",
+    avgEc: 4.1,
+    soilEc: 3.8,
+    areaKm2: 248.3,
+    population: 172000,
+    polders: ["Polder 30 (Batiaghata)", "Polder 29"],
+    intakeRisk: "Critical threshold zone; river salinity oscillates across 4.0 dS/m during March-April spring tides.",
+    boroVulnerability: "Moderate to high; dynamic SWOT timing enables safe irrigation during ebb tide when salinity temporarily falls below 3.5 dS/m.",
+    sluiceAdvisory: "Close Alutala 10-Vent Sluice when Rupsha EC reaches 3.8 dS/m; irrigate exclusively from internal freshwater reserve khals.",
+    recommendedCrops: [
+      "BRRI dhan28 / 29 (with freshwater canal buffering)",
+      "BRRI dhan67",
+      "BINA dhan-8",
+      "Wheat (BARI Gom-25)",
+      "Lentils / Grasspea",
+    ],
+    associatedStationIds: ["batiaghata-polder", "gate-alutala", "SW241"],
+    bounds: [
+      [22.660, 89.440],
+      [22.820, 89.620],
+    ],
+    center: [22.740, 89.530],
+    coordinates: [
+      [22.820, 89.520],
+      [22.810, 89.590],
+      [22.740, 89.620],
+      [22.680, 89.580],
+      [22.660, 89.510],
+      [22.700, 89.450],
+      [22.780, 89.460],
+      [22.820, 89.520],
+    ],
+  },
+  {
+    id: "dumuria",
+    name: "Dumuria Upazila",
+    bengaliName: "ডুমুরিয়া উপজেলা",
+    riskTier: "Low",
+    color: "#65a30d",
+    fillColor: "#65a30d",
+    avgEc: 2.2,
+    soilEc: 1.8,
+    areaKm2: 454.2,
+    population: 306000,
+    polders: ["Polder 28/1", "Polder 29", "Upper Ghashiakhali Canal"],
+    intakeRisk: "Low salinity risk; protected by upstream Gorai-Madhumati freshwater dilution and controlled regulators.",
+    boroVulnerability: "Low risk under normal tidal conditions; slight backwater ingress during extreme dry season neap tides.",
+    sluiceAdvisory: "Maintain active gravity flushing; store early February freshwater in internal khals for April peak grain filling.",
+    recommendedCrops: [
+      "BRRI dhan28",
+      "BRRI dhan29",
+      "Boro Hybrid (SL-8H)",
+      "Vegetables (Tomato, Brinjal, Cabbage)",
+      "Potato",
+    ],
+    associatedStationIds: ["batiaghata-polder"],
+    bounds: [
+      [22.720, 89.260],
+      [22.950, 89.520],
+    ],
+    center: [22.830, 89.400],
+    coordinates: [
+      [22.950, 89.360],
+      [22.940, 89.460],
+      [22.870, 89.510],
+      [22.780, 89.490],
+      [22.730, 89.420],
+      [22.740, 89.320],
+      [22.820, 89.270],
+      [22.910, 89.290],
+      [22.950, 89.360],
+    ],
+  },
+  {
+    id: "khulna-sadar",
+    name: "Khulna Sadar & Rupsha",
+    bengaliName: "খুলনা সদর ও রূপসা",
+    riskTier: "Low",
+    color: "#65a30d",
+    fillColor: "#65a30d",
+    avgEc: 2.8,
+    soilEc: 1.4,
+    areaKm2: 130.5,
+    population: 820000,
+    polders: ["Khulna Urban Polder", "East Rupsha Embankment"],
+    intakeRisk: "WASA drinking water intake at Madhukhali vulnerable when Rupsha salinity breaches 1.0 dS/m municipal standard.",
+    boroVulnerability: "Low agricultural footprint; high municipal drinking and industrial cooling water vulnerability.",
+    sluiceAdvisory: "Coordinate with Khulna WASA; activate Bangabandhu Bridge deep tube well emergency backup when river EC > 1.5 dS/m.",
+    recommendedCrops: [
+      "Peri-urban Horticulture",
+      "Spices (Chili, Turmeric)",
+      "BRRI dhan29",
+      "Guava / Betel Leaf",
+    ],
+    associatedStationIds: ["khulna-p14", "SW241", "31241400581"],
+    bounds: [
+      [22.780, 89.500],
+      [22.930, 89.650],
+    ],
+    center: [22.840, 89.570],
+    coordinates: [
+      [22.930, 89.540],
+      [22.920, 89.630],
+      [22.850, 89.650],
+      [22.780, 89.620],
+      [22.790, 89.540],
+      [22.850, 89.510],
+      [22.930, 89.540],
+    ],
+  },
+  {
+    id: "phultala",
+    name: "Phultala, Dighalia & Terokhada",
+    bengaliName: "ফুলতলা, দিঘলিয়া ও তেরখাদা",
+    riskTier: "Very Low",
+    color: "#15803d",
+    fillColor: "#15803d",
+    avgEc: 0.6,
+    soilEc: 0.4,
+    areaKm2: 412.0,
+    population: 310000,
+    polders: ["Bhairab North Canal", "Atai-Bhairab Polder"],
+    intakeRisk: "Zero marine salinity risk; perennial freshwater corridor supplied by Gorai distributaries.",
+    boroVulnerability: "Negligible salinity risk; prime freshwater agricultural heartland and seed nursery zone.",
+    sluiceAdvisory: "Keep all sluices open for uninterrupted irrigation; maximum pumping permitted.",
+    recommendedCrops: [
+      "High-yield Boro (BRRI dhan29 / 89 / 92)",
+      "Sugarcane",
+      "Jute (Toshe / Deshi)",
+      "Winter Vegetables",
+      "Banana",
+    ],
+    associatedStationIds: ["31241400581", "khulna-p14"],
+    bounds: [
+      [22.900, 89.400],
+      [23.080, 89.700],
+    ],
+    center: [22.990, 89.550],
+    coordinates: [
+      [23.080, 89.480],
+      [23.070, 89.620],
+      [23.010, 89.700],
+      [22.920, 89.670],
+      [22.910, 89.530],
+      [22.940, 89.430],
+      [23.020, 89.410],
+      [23.080, 89.480],
+    ],
+  },
+];
+
