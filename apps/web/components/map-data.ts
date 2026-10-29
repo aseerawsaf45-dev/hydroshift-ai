@@ -29,12 +29,16 @@ export interface MapWrapperProps {
   showGauges?: boolean;
   showSalinityFront?: boolean;
   showIsohalines?: boolean;
-  basemap?: "dark" | "satellite" | "osm";
+  showPolders?: boolean;
+  showThalweg?: boolean;
+  showLabels?: boolean;
+  basemap?: "satellite" | "dark" | "topo" | "osm";
   horizon?: "now" | "7d" | "14d";
   searchQuery?: string;
   riskFilter?: "all" | "critical" | "warning" | "nominal";
   flyToCoords?: [number, number] | null;
   onSelectCorridor?: (corridorName: string) => void;
+  onSelectPolder?: (polder: PolderPolygon | null) => void;
 }
 
 // -------------------------------------------------------------
@@ -280,25 +284,171 @@ export const SWOT_NADIR_GROUND_TRACK: [number, number][] = [
 ];
 
 // -------------------------------------------------------------
-// 4. PREMIUM BASEMAP DEFINITIONS (4K RETINA GIS TILES - ZERO WATERMARK)
+// 4. PROFESSIONAL GIS BASEMAP DEFINITIONS
 // -------------------------------------------------------------
 export const BASEMAP_TILES = {
-  dark: {
-    base: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-    ref: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-    attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ",
-    name: "Dark Radar",
-  },
   satellite: {
     base: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     ref: "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-    attribution: "Tiles &copy; Esri &mdash; NASA, USGS, ESA, GeoEye",
-    name: "KaRIn Satellite",
+    subdomains: "",
+    attribution: "Tiles &copy; Esri &mdash; NASA Earth Data, USGS, ESA, Maxar",
+    name: "Satellite Hybrid",
+    description: "High-resolution orbital satellite photography with place labels",
   },
-  osm: {
+  dark: {
+    base: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    ref: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+    subdomains: "",
+    attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ",
+    name: "Dark Radar",
+    description: "High-contrast dark radar basemap with crisp reference typography",
+  },
+  topo: {
     base: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
     ref: null,
-    attribution: "Tiles &copy; Esri &mdash; USGS, NOAA",
+    subdomains: "",
+    attribution: "Tiles &copy; Esri &mdash; USGS, NOAA, DeLorme",
     name: "Hydro Topo",
+    description: "Topographic elevation contours with river hydrography",
+  },
+  osm: {
+    base: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    ref: null,
+    subdomains: "abc",
+    attribution: "&copy; OpenStreetMap contributors",
+    name: "Street / Cadastral",
+    description: "Detailed civil infrastructure, roads, and village polder networks",
   },
 };
+
+// -------------------------------------------------------------
+// 5. COASTAL POLDER BOUNDARIES & PROTECTED EMBANKMENTS (GIS POLYGONS)
+// -------------------------------------------------------------
+export interface PolderPolygon {
+  id: string;
+  name: string;
+  upazila: string;
+  areaKm2: number;
+  embankmentKm: number;
+  elevationM: number;
+  status: "Protected" | "At Risk" | "Critical";
+  salinityRisk: string;
+  color: string;
+  coordinates: [number, number][];
+}
+
+export const COASTAL_POLDERS: PolderPolygon[] = [
+  {
+    id: "polder-31",
+    name: "Polder 31 (Dacope)",
+    upazila: "Dacope",
+    areaKm2: 84.5,
+    embankmentKm: 42.0,
+    elevationM: 1.4,
+    status: "At Risk",
+    salinityRisk: "Severe Boro Rice hazard during pre-monsoon dry season (>4.0 dS/m)",
+    color: "#f59e0b",
+    coordinates: [
+      [22.680, 89.490],
+      [22.685, 89.540],
+      [22.645, 89.560],
+      [22.585, 89.540],
+      [22.580, 89.485],
+      [22.630, 89.475],
+      [22.680, 89.490],
+    ],
+  },
+  {
+    id: "polder-32",
+    name: "Polder 32 (Sutarkhali / Dacope)",
+    upazila: "Dacope",
+    areaKm2: 67.2,
+    embankmentKm: 48.5,
+    elevationM: 1.2,
+    status: "Critical",
+    salinityRisk: "Hyper-saline tidal exposure (>7.0 dS/m); vulnerable to embankment overtopping",
+    color: "#f43f5e",
+    coordinates: [
+      [22.570, 89.480],
+      [22.575, 89.535],
+      [22.510, 89.545],
+      [22.450, 89.525],
+      [22.445, 89.470],
+      [22.510, 89.455],
+      [22.570, 89.480],
+    ],
+  },
+  {
+    id: "polder-30",
+    name: "Polder 30 (Batiaghata)",
+    upazila: "Batiaghata",
+    areaKm2: 95.0,
+    embankmentKm: 38.0,
+    elevationM: 1.8,
+    status: "Protected",
+    salinityRisk: "Moderate salinity ingress; freshwater canal buffers buffer early Boro",
+    color: "#10b981",
+    coordinates: [
+      [22.780, 89.500],
+      [22.790, 89.565],
+      [22.730, 89.575],
+      [22.690, 89.545],
+      [22.700, 89.495],
+      [22.780, 89.500],
+    ],
+  },
+  {
+    id: "sundarbans-boundary",
+    name: "Sundarbans Biosphere Mangrove Zone",
+    upazila: "Protected Forest Reserve",
+    areaKm2: 6017.0,
+    embankmentKm: 0.0,
+    elevationM: 0.8,
+    status: "Protected",
+    salinityRisk: "Natural mangrove tidal buffer; saline intrusion tolerance limit 15 dS/m",
+    color: "#059669",
+    coordinates: [
+      [22.450, 89.200],
+      [22.450, 89.700],
+      [22.380, 89.650],
+      [22.250, 89.630],
+      [22.200, 89.400],
+      [22.300, 89.200],
+      [22.450, 89.200],
+    ],
+  },
+];
+
+// -------------------------------------------------------------
+// 6. PASSUR-RUPSHA CURVILINEAR THALWEG CENTERLINE & CHAINAGE
+// -------------------------------------------------------------
+export const PASSUR_RUPSHA_THALWEG: [number, number][] = [
+  [21.7500, 89.5800], // 0.00 km: Bay of Bengal Mouth
+  [21.8500, 89.5950], // 11.2 km: Hiron Point Outer Approach
+  [21.9800, 89.6100], // 25.8 km: Akram Point
+  [22.1200, 89.6250], // 41.5 km: Southern Sundarbans Fringe
+  [22.2500, 89.6150], // 56.1 km: Reach 31241000011
+  [22.3800, 89.6050], // 70.6 km: Sundarbans Northern Forest Gate
+  [22.4642, 89.6000], // 80.1 km / Mongla Node (SW244)
+  [22.5200, 89.5950], // Rampal Reach
+  [22.5600, 89.5850], // Rampal Bridge
+  [22.6050, 89.5700], // Chalna / Dacope Estuary Gauge (SW242)
+  [22.7100, 89.5400], // Batiaghata Polder 30 Flap Gate
+  [22.7600, 89.5650], // Alutala Sluice Junction
+  [22.8082, 89.5805], // Khulna Rupsha Bridge (SW241)
+  [22.8250, 89.5750], // Khulna WASA Madhukhali Intake (p14)
+];
+
+export const THALWEG_MILESTONES = [
+  { km: 0, label: "0 km (Sea Mouth)", coords: [21.750, 89.580] as [number, number] },
+  { km: 26, label: "26 km (Akram Pt)", coords: [21.980, 89.610] as [number, number] },
+  { km: 54, label: "54 km (Mongla)", coords: [22.464, 89.600] as [number, number] },
+  { km: 65, label: "65 km (Chalna)", coords: [22.605, 89.570] as [number, number] },
+  { km: 82, label: "82 km (Khulna WASA)", coords: [22.825, 89.575] as [number, number] },
+];
+
+export const POLDER_SLUICE_GATES = [
+  { id: "gate-alutala", name: "Alutala 10-Vent Sluice Gate", coords: [22.760, 89.565] as [number, number], polder: "Polder 30", status: "Active Drainage" },
+  { id: "gate-sutarkhali", name: "Sutarkhali Flap Gate Sluice", coords: [22.490, 89.540] as [number, number], polder: "Polder 32", status: "Locked Shut (Tide High)" },
+  { id: "gate-chalna", name: "Chalna Estuarine Regulating Sluice", coords: [22.610, 89.575] as [number, number], polder: "Polder 31", status: "Active Drainage" },
+];

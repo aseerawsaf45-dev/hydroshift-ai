@@ -9,7 +9,9 @@ import {
   Polyline,
   Polygon,
   Circle,
+  CircleMarker,
   Tooltip,
+  ScaleControl,
   useMap,
   useMapEvents,
 } from "react-leaflet";
@@ -38,6 +40,7 @@ import {
   Site,
   Forecast,
   MapWrapperProps,
+  PolderPolygon,
   CANONICAL_KHULNA_STATIONS,
   PASSUR_MARINE_INGRESS_CORRIDOR,
   PASSUR_TRANSITION_CORRIDOR,
@@ -47,10 +50,14 @@ import {
   SWOT_RIGHT_SWATH,
   SWOT_NADIR_GROUND_TRACK,
   BASEMAP_TILES,
+  COASTAL_POLDERS,
+  PASSUR_RUPSHA_THALWEG,
+  THALWEG_MILESTONES,
+  POLDER_SLUICE_GATES,
 } from "./map-data";
 
 // -------------------------------------------------------------
-// 5. MAP CONTROLLER & CURSOR TELEMETRY TRACKER
+// 1. MAP CONTROLLER & REAL-TIME CURSOR TELEMETRY
 // -------------------------------------------------------------
 function MapController({
   coords,
@@ -85,95 +92,89 @@ function MapController({
 }
 
 // -------------------------------------------------------------
-// 6. MULTI-LAYER BEACON CREATOR WITH ANIMATED GLOW RINGS
+// 2. PROFESSIONAL GIS VECTOR STATION SYMBOLOGY (CLEAN & NON-OVERLAPPING)
 // -------------------------------------------------------------
-const createTacticalBeaconIcon = (
+const createGisStationIcon = (
   category: "swot" | "gauge" | "intake",
   risk: string,
   isSelected: boolean,
   displayValue: string,
-  stationCode: string
+  stationCode: string,
+  showLabel: boolean
 ) => {
   const isCrit = risk === "CRITICAL";
   const isWarn = risk === "WARNING";
-  
-  // High-contrast neon radar palette
-  const accentColor = isCrit
-    ? "#f43f5e" // Vivid Neon Rose
+
+  // GIS Symbology Color Standards
+  const fillColor = isCrit
+    ? "#e11d48" // Rose 600 (High hazard >= 4.0 dS/m)
     : isWarn
-    ? "#f59e0b" // Vivid Amber
+    ? "#d97706" // Amber 600 (Moderate 2.5 - 4.0 dS/m)
     : category === "swot"
-    ? "#06b6d4" // Electric Cyan (NASA SWOT)
+    ? "#0284c7" // Sky 600 (NASA SWOT Reach)
     : category === "intake"
-    ? "#ec4899" // Hot Pink (Municipal Intake)
-    : "#38bdf8"; // Sky Blue (BWDB Gauge)
+    ? "#7c3aed" // Violet 600 (Municipal WASA Intake)
+    : "#059669"; // Emerald 600 (Fresh / Nominal < 2.5 dS/m)
 
-  const pingClass = isCrit
-    ? "beacon-ping-critical"
-    : isWarn
-    ? "beacon-ping-warning"
-    : "beacon-ping-nominal";
+  const pulseRing = isCrit
+    ? `<div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid #f43f5e;animation:gisPing 1.8s infinite;pointer-events:none;"></div>`
+    : "";
 
-  // Specialized SVG glyphs
-  const glyph =
+  // Category SVG glyphs:
+  // - Gauge: concentric sonar target
+  // - Intake: water droplet
+  // - SWOT Reach: satellite diamond
+  const iconGlyph =
     category === "swot" ? (
-      // Hexagonal Satellite Dish
-      `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${accentColor}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/>
-        <circle cx="12" cy="12" r="3.5" fill="${accentColor}" fill-opacity="0.3"/>
-      </svg>`
+      `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8"><polygon points="12 2 22 12 12 22 2 12"/></svg>`
     ) : category === "intake" ? (
-      // Drinking Water Shield / Drop
-      `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${accentColor}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" fill="${accentColor}" fill-opacity="0.25"/>
-      </svg>`
+      `<svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`
     ) : (
-      // BWDB Telemetry Sonar Ring
-      `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${accentColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="8" stroke-dasharray="2 3"/>
-        <circle cx="12" cy="12" r="3" fill="${accentColor}"/>
-      </svg>`
+      `<svg width="8" height="8" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="5"/></svg>`
     );
 
-  const borderRadius = category === "swot" ? "8px" : category === "intake" ? "10px" : "50%";
-  const isSelectedStyle = isSelected
-    ? `box-shadow: 0 0 0 4px ${accentColor}50, 0 0 24px ${accentColor}; transform: scale(1.15);`
-    : `box-shadow: 0 0 12px ${accentColor}60;`;
+  const markerShape =
+    category === "swot"
+      ? "border-radius: 4px; transform: rotate(45deg);"
+      : "border-radius: 50%;";
+  const innerGlyphTransform = category === "swot" ? "transform: rotate(-45deg);" : "";
+
+  // Compact floating callout label (rendered above pin with down carrot)
+  const labelHtml =
+    showLabel || isSelected
+      ? `
+    <div style="position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(8,19,31,0.92);border:1px solid ${fillColor};color:#ffffff;font-family:ui-monospace,SFMono-Regular,monospace;font-size:10px;font-weight:700;padding:1.5px 5px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.7);pointer-events:none;z-index:20;">
+      <span>${displayValue}</span>
+      <div style="position:absolute;top:100%;left:50%;transform:translateX(-50%);border-width:4px 4px 0 4px;border-style:solid;border-color:rgba(8,19,31,0.92) transparent transparent transparent;"></div>
+    </div>
+  `
+      : "";
+
+  const selectedRing = isSelected
+    ? `box-shadow: 0 0 0 3px #ffffff, 0 0 16px ${fillColor}; transform: scale(1.18);`
+    : `box-shadow: 0 2px 8px rgba(0,0,0,0.7);`;
 
   return L.divIcon({
-    className: "tactical-beacon-icon",
+    className: "gis-station-marker",
     html: `
-      <div style="position:relative;display:inline-flex;align-items:center;cursor:pointer;filter:drop-shadow(0 6px 14px rgba(0,0,0,0.8));">
-        
-        <!-- Animated Radar Sonar Ring -->
-        <div class="${pingClass}" style="position:absolute;left:2px;top:2px;width:26px;height:26px;border-radius:${borderRadius};pointer-events:none;"></div>
-        
-        <!-- Hardware Core Island -->
-        <div style="width:30px;height:30px;border-radius:${borderRadius};background:#05070d;border:2px solid ${accentColor};display:flex;align-items:center;justify-content:center;color:${accentColor};${isSelectedStyle}transition:all 0.3s cubic-bezier(0.16,1,0.3,1);z-index:2;flex-shrink:0;">
-          ${glyph}
-        </div>
-
-        <!-- Telemetry Data Pill Badge -->
-        ${
-          displayValue
-            ? `
-          <div style="margin-left:6px;padding:2.5px 8px;border-radius:8px;background:rgba(5,7,13,0.88);border:1px solid ${accentColor}80;color:#f1f6f8;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;font-weight:700;letter-spacing:-0.02em;white-space:nowrap;backdrop-filter:blur(12px);box-shadow:0 4px 12px rgba(0,0,0,0.6);display:flex;align-items:center;gap:4px;z-index:1;">
-            <span style="width:4.5px;height:4.5px;border-radius:50%;background:${accentColor};display:inline-block;"></span>
-            <span>${displayValue}</span>
+      <div style="position:relative;display:flex;align-items:center;justify-content:center;width:24px;height:24px;cursor:pointer;">
+        ${pulseRing}
+        ${labelHtml}
+        <div style="width:20px;height:20px;${markerShape}background:${fillColor};border:2px solid #ffffff;${selectedRing}display:flex;align-items:center;justify-content:center;transition:transform 0.15s ease;">
+          <div style="${innerGlyphTransform}display:flex;align-items:center;justify-content:center;">
+            ${iconGlyph}
           </div>
-        `
-            : ""
-        }
+        </div>
       </div>
     `,
-    iconSize: [95, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -20],
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -16],
   });
 };
 
 // -------------------------------------------------------------
-// 7. MAIN HIGH-PRECISION MAP WRAPPER COMPONENT
+// 3. MAIN HIGH-PRECISION GIS MAP WRAPPER COMPONENT
 // -------------------------------------------------------------
 export default function MapWrapper({
   selectedSiteId,
@@ -182,20 +183,28 @@ export default function MapWrapper({
   showGauges = true,
   showSalinityFront = true,
   showIsohalines = true,
-  basemap = "dark",
+  showPolders = true,
+  showThalweg = true,
+  showLabels = false,
+  basemap = "satellite",
   horizon = "now",
   searchQuery = "",
   riskFilter = "all",
   flyToCoords = null,
   onSelectCorridor,
+  onSelectPolder,
 }: MapWrapperProps) {
   const [mounted, setMounted] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const [sites, setSites] = useState<Site[]>(CANONICAL_KHULNA_STATIONS);
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
   const [cursorCoords, setCursorCoords] = useState<[number, number]>([22.65, 89.56]);
-  const [activeSwathDetails, setActiveSwathDetails] = useState<boolean>(false);
-  const [activeLayerMode, setActiveLayerMode] = useState<"all" | "swot" | "salinity">("all");
+  const [internalBasemap, setInternalBasemap] = useState<"satellite" | "dark" | "topo" | "osm">(basemap);
+
+  // Sync external basemap prop
+  useEffect(() => {
+    if (basemap) setInternalBasemap(basemap);
+  }, [basemap]);
 
   useEffect(() => {
     setMounted(true);
@@ -207,7 +216,6 @@ export default function MapWrapper({
       fetch(`${API_URL}/api/v1/reaches/forecasts/all`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
     ]).then(([loadedSites, loadedForecasts]) => {
       if (loadedSites && loadedSites.length > 0) {
-        // Merge with canonical stations so no critical telemetry is lost
         const merged = [...CANONICAL_KHULNA_STATIONS];
         for (const s of loadedSites) {
           if (!merged.some((m) => m.id === s.id)) {
@@ -244,7 +252,7 @@ export default function MapWrapper({
     return map;
   }, [forecasts]);
 
-  // Filter sites strictly to Khulna Geographic Envelope (22.25°N to 23.95°N, 89.00°E to 89.95°E)
+  // Filter sites strictly to Khulna Geographic Envelope
   const khulnaSites = useMemo(() => {
     return sites.filter((site) => {
       const inEnvelope =
@@ -254,11 +262,13 @@ export default function MapWrapper({
         site.longitude <= 89.95;
       if (!inEnvelope) return false;
 
-      const isSwot = site.category === "swot" || site.id.startsWith("3124") || site.id.toLowerCase().includes("swot");
+      const isSwot =
+        site.category === "swot" ||
+        site.id.startsWith("3124") ||
+        site.id.toLowerCase().includes("swot");
       if (isSwot && !showSwot) return false;
       if (!isSwot && !showGauges) return false;
 
-      // Search text filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesName = site.name.toLowerCase().includes(q);
@@ -267,7 +277,6 @@ export default function MapWrapper({
         if (!matchesName && !matchesId && !matchesDesc) return false;
       }
 
-      // Risk level filter
       const forecast = forecastMap[site.id];
       const val = forecast?.value ?? site.baselineEc ?? 3.5;
       if (riskFilter === "critical" && val < 4.0) return false;
@@ -278,238 +287,186 @@ export default function MapWrapper({
     });
   }, [sites, showSwot, showGauges, searchQuery, riskFilter, forecastMap]);
 
-  // Micro-offset for co-located stations (e.g. SWOT Reach + BWDB Gauge at Mongla/Khulna)
-  const placedSites = useMemo(() => {
-    const locCount: Record<string, number> = {};
-    return khulnaSites.map((site) => {
-      const key = `${site.latitude.toFixed(2)}_${site.longitude.toFixed(2)}`;
-      const index = locCount[key] || 0;
-      locCount[key] = index + 1;
-
-      if (index > 0) {
-        const latOffset = (index % 2 === 1 ? -0.012 : 0.012) * Math.ceil(index / 2);
-        const lonOffset = 0.015 * Math.ceil(index / 2);
-        return {
-          ...site,
-          displayLat: site.latitude + latOffset,
-          displayLon: site.longitude + lonOffset,
-        };
-      }
-      return {
-        ...site,
-        displayLat: site.latitude,
-        displayLon: site.longitude,
-      };
-    });
-  }, [khulnaSites]);
-
   if (!mounted || mapKey === 0) {
     return (
       <div className="w-full h-full bg-[#05070d] flex items-center justify-center text-muted-foreground text-xs min-h-[480px]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           <span className="font-mono text-xs uppercase tracking-wider text-primary">
-            Initializing SWOT Satellite Radar Canvas...
+            Initializing GIS Delta Cartography...
           </span>
         </div>
       </div>
     );
   }
 
-  const currentTileConfig = BASEMAP_TILES[basemap] || BASEMAP_TILES.dark;
+  const currentTileConfig = BASEMAP_TILES[internalBasemap] || BASEMAP_TILES.satellite;
+
+  // Approximate estuarine chainage calculation from cursor latitude
+  const cursorChainageKm = Math.max(
+    0,
+    Math.min(82.0, (cursorCoords[0] - 21.75) * (82.0 / (22.825 - 21.75)))
+  ).toFixed(1);
 
   return (
     <div className="w-full h-full relative z-0 min-h-[480px] overflow-hidden select-none">
-      {/* 1. EMBEDDED HAPTIC RADAR CSS & KEYFRAME ANIMATIONS */}
+      {/* 1. GIS CSS KEYFRAMES & POPUP THEME */}
       <style>{`
         .leaflet-container {
-          background-color: #05070d !important;
+          background-color: #0c1824 !important;
           font-family: inherit;
         }
-        
-        /* Animated flowing current lines */
-        @keyframes tidalFlowInward {
-          from { stroke-dashoffset: 240; }
-          to { stroke-dashoffset: 0; }
-        }
-        @keyframes tidalFlowOutward {
-          from { stroke-dashoffset: 0; }
-          to { stroke-dashoffset: 240; }
-        }
-        
-        .animated-passur-marine {
-          stroke-dasharray: 12 8;
-          animation: tidalFlowInward 4s linear infinite;
-          filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.9));
-        }
-        .animated-rupsha-transition {
-          stroke-dasharray: 10 6;
-          animation: tidalFlowInward 6s linear infinite;
-          filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.9));
-        }
-        .animated-shibsa-western {
-          stroke-dasharray: 8 6;
-          animation: tidalFlowInward 7s linear infinite;
-          filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.85));
-        }
-        .animated-gorai-freshwater {
-          stroke-dasharray: 8 5;
-          animation: tidalFlowOutward 8s linear infinite;
-          filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.85));
-        }
 
-        /* Sci-Fi Sonar Radar Beacon Pings */
-        @keyframes sonarPingCrit {
+        @keyframes gisPing {
           0% { transform: scale(0.9); opacity: 0.9; }
-          50% { transform: scale(1.8); opacity: 0.35; }
-          100% { transform: scale(2.6); opacity: 0; }
-        }
-        @keyframes sonarPingWarn {
-          0% { transform: scale(0.9); opacity: 0.8; }
-          50% { transform: scale(1.6); opacity: 0.25; }
           100% { transform: scale(2.2); opacity: 0; }
         }
-        @keyframes sonarPingNominal {
-          0% { transform: scale(0.9); opacity: 0.6; }
-          100% { transform: scale(1.9); opacity: 0; }
-        }
 
-        .beacon-ping-critical {
-          border: 2px solid #f43f5e;
-          animation: sonarPingCrit 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-        .beacon-ping-warning {
-          border: 2px solid #f59e0b;
-          animation: sonarPingWarn 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-        .beacon-ping-nominal {
-          border: 2px solid #06b6d4;
-          animation: sonarPingNominal 2.8s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-
-        /* Glassmorphism Popups */
+        /* High-Definition GIS Popups */
         .leaflet-popup-content-wrapper {
-          background: rgba(8, 19, 31, 0.95) !important;
+          background: rgba(8, 19, 31, 0.96) !important;
           color: #f1f6f8 !important;
           border: 1px solid rgba(255, 255, 255, 0.18) !important;
-          backdrop-filter: blur(24px) !important;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85) !important;
-          border-radius: 20px !important;
+          backdrop-filter: blur(20px) !important;
+          box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.85) !important;
+          border-radius: 16px !important;
           padding: 0 !important;
         }
         .leaflet-popup-tip {
-          background: rgba(8, 19, 31, 0.95) !important;
+          background: rgba(8, 19, 31, 0.96) !important;
           border: 1px solid rgba(255, 255, 255, 0.18) !important;
         }
         .leaflet-popup-content {
-          margin: 14px 16px !important;
+          margin: 12px 14px !important;
           line-height: 1.4 !important;
         }
         .leaflet-popup-close-button {
           color: #94a3b8 !important;
-          padding: 8px 10px !important;
+          padding: 6px 8px !important;
           font-size: 16px !important;
         }
         .leaflet-popup-close-button:hover {
           color: #ffffff !important;
         }
 
-        /* Tooltip styling */
+        /* Crisp GIS Tooltip */
         .leaflet-tooltip {
-          background: rgba(5, 7, 13, 0.92) !important;
+          background: rgba(8, 19, 31, 0.94) !important;
           color: #f8fafc !important;
           border: 1px solid rgba(255, 255, 255, 0.2) !important;
           backdrop-filter: blur(12px) !important;
-          border-radius: 10px !important;
-          padding: 6px 10px !important;
+          border-radius: 8px !important;
+          padding: 5px 8px !important;
           font-size: 11px !important;
           font-weight: 600 !important;
-          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7) !important;
+          box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.7) !important;
         }
         .leaflet-tooltip-top:before {
-          border-top-color: rgba(5, 7, 13, 0.92) !important;
+          border-top-color: rgba(8, 19, 31, 0.94) !important;
+        }
+
+        /* Scale Bar Styling */
+        .leaflet-control-scale-line {
+          background: rgba(8, 19, 31, 0.85) !important;
+          color: #f1f6f8 !important;
+          border: 2px solid rgba(255, 255, 255, 0.4) !important;
+          border-top: none !important;
+          font-family: ui-monospace, SFMono-Regular, monospace !important;
+          font-size: 10px !important;
+          font-weight: 700 !important;
+          padding: 2px 5px !important;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
         }
       `}</style>
 
-      {/* 2. TOP HUD: TACTICAL TELEMETRY STREAM & STATUS BAR */}
-      <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
-        
-        {/* Left: Basin Status Pill */}
-        <div className="bg-[#08131f]/90 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-2xl flex items-center gap-3 shadow-2xl pointer-events-auto">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-mono uppercase tracking-wider text-white font-bold">
-              SWOT Orbit 22.14 Synchronized
-            </span>
-          </div>
-
-          <div className="h-3 w-px bg-white/15 hidden sm:block" />
-
-          <div className="hidden sm:flex items-center gap-2 text-xs">
-            <span className="text-[11px] text-muted-foreground font-mono">Max Ingress:</span>
-            <span className="text-[11px] font-mono font-bold text-rose-400 bg-rose-500/15 px-1.5 py-0.5 rounded border border-rose-500/30">
-              7.9 dS/m (Mongla SW244)
-            </span>
-          </div>
-
-          <div className="h-3 w-px bg-white/15 hidden md:block" />
-
-          <div className="hidden md:flex items-center gap-2 text-xs">
-            <span className="text-[11px] text-muted-foreground font-mono">WASA Intake:</span>
-            <span className="text-[11px] font-mono font-bold text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30">
-              4.6 dS/m (Caution)
-            </span>
-          </div>
-        </div>
-
-        {/* Right: Quick View Modes */}
-        <div className="bg-[#08131f]/90 backdrop-blur-xl border border-white/15 px-2 py-1 rounded-2xl flex items-center gap-1 shadow-2xl pointer-events-auto">
+      {/* 2. FLOATING GIS BASEMAP SELECTOR (TOP-RIGHT) */}
+      <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2 pointer-events-none">
+        <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 p-1 rounded-xl shadow-2xl pointer-events-auto flex items-center gap-1">
           <button
-            onClick={() => setActiveSwathDetails((prev) => !prev)}
-            className={`px-2.5 py-1 rounded-xl text-[10px] font-mono font-bold transition-all flex items-center gap-1 ${
-              activeSwathDetails
-                ? "bg-cyan-500 text-black shadow-lg shadow-cyan-500/30"
+            onClick={() => setInternalBasemap("satellite")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 ${
+              internalBasemap === "satellite"
+                ? "bg-primary text-black shadow-md shadow-primary/20"
                 : "text-muted-foreground hover:text-white"
             }`}
+            title="NASA Earth Data / Esri Satellite Imagery with Place Labels"
           >
             <Satellite className="w-3 h-3" />
-            <span>SWOT 120km Swath</span>
+            <span>Satellite</span>
+          </button>
+          <button
+            onClick={() => setInternalBasemap("dark")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 ${
+              internalBasemap === "dark"
+                ? "bg-primary text-black shadow-md shadow-primary/20"
+                : "text-muted-foreground hover:text-white"
+            }`}
+            title="CartoDB Dark GIS Cartography"
+          >
+            <Layers className="w-3 h-3" />
+            <span>Dark GIS</span>
+          </button>
+          <button
+            onClick={() => setInternalBasemap("topo")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 ${
+              internalBasemap === "topo"
+                ? "bg-primary text-black shadow-md shadow-primary/20"
+                : "text-muted-foreground hover:text-white"
+            }`}
+            title="Hydrographic Topographic Contours"
+          >
+            <Waves className="w-3 h-3" />
+            <span>Topo</span>
+          </button>
+          <button
+            onClick={() => setInternalBasemap("osm")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 ${
+              internalBasemap === "osm"
+                ? "bg-primary text-black shadow-md shadow-primary/20"
+                : "text-muted-foreground hover:text-white"
+            }`}
+            title="OpenStreetMap Street Infrastructure"
+          >
+            <Compass className="w-3 h-3" />
+            <span>Street</span>
           </button>
         </div>
       </div>
 
-      {/* 3. BOTTOM-LEFT HUD: REAL-TIME CURSOR & HYDRODYNAMIC HEAD */}
-      <div className="absolute bottom-4 left-4 z-10 pointer-events-none hidden md:flex flex-col space-y-1">
-        <div className="bg-[#08131f]/90 backdrop-blur-xl border border-white/15 px-3 py-2 rounded-2xl shadow-2xl pointer-events-auto flex flex-col space-y-1 text-[11px] font-mono">
-          <div className="flex items-center justify-between gap-4 text-muted-foreground">
-            <span className="flex items-center gap-1 text-white">
-              <Crosshair className="w-3 h-3 text-primary" />
-              <span>RADAR POSITION:</span>
-            </span>
-            <span className="text-white font-bold">
-              {cursorCoords[0].toFixed(4)}°N, {cursorCoords[1].toFixed(4)}°E
-            </span>
+      {/* 3. GIS CURSOR & COORDINATES HUD (BOTTOM-LEFT) */}
+      <div className="absolute bottom-4 left-4 z-10 pointer-events-none flex flex-col space-y-1">
+        <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-xl shadow-2xl pointer-events-auto flex items-center gap-3 text-[11px] font-mono text-white/90">
+          <div className="flex items-center gap-1.5 text-primary font-bold">
+            <Crosshair className="w-3.5 h-3.5" />
+            <span>WGS84:</span>
           </div>
-          <div className="flex items-center justify-between gap-4 text-[10px] text-muted-foreground border-t border-white/10 pt-1">
-            <span>Datum: PWD (-0.46m EGM2008)</span>
-            <span className="text-emerald-400">Tidal Ingress: +1.2 km/d</span>
-          </div>
+          <span>
+            {cursorCoords[0].toFixed(4)}°N, {cursorCoords[1].toFixed(4)}°E
+          </span>
+          <div className="h-3 w-px bg-white/15" />
+          <span className="text-muted-foreground">
+            Thalweg: <strong className="text-sky-300">{cursorChainageKm} km</strong>
+          </span>
+          <div className="h-3 w-px bg-white/15 hidden sm:block" />
+          <span className="text-muted-foreground hidden sm:inline">
+            Datum: <strong className="text-emerald-300">PWD (+0.46m)</strong>
+          </span>
         </div>
       </div>
 
-      {/* 4. BOTTOM-RIGHT HUD: SALINITY GRADIENT COLORBAR SCALE */}
+      {/* 4. SALINITY HAZARD GRADIENT LEGEND BAR (BOTTOM-RIGHT) */}
       <div className="absolute bottom-4 right-4 z-10 pointer-events-none flex flex-col items-end space-y-2">
-        <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 p-3 rounded-2xl shadow-2xl pointer-events-auto flex flex-col space-y-2 max-w-xs">
+        <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 p-2.5 rounded-xl shadow-2xl pointer-events-auto flex flex-col space-y-1.5 max-w-xs">
           <div className="flex items-center justify-between text-[10px] font-mono uppercase text-muted-foreground font-bold">
             <span className="flex items-center gap-1 text-white">
               <Waves className="w-3 h-3 text-cyan-400" />
-              <span>Salinity Hazard Gradient</span>
+              <span>Salinity Hazard Scale</span>
             </span>
             <span className="text-rose-400">4.0 dS/m Limit</span>
           </div>
 
           {/* Continuous Multi-Stop Gradient Bar */}
-          <div className="w-48 sm:w-56 h-2.5 rounded-full bg-gradient-to-r from-emerald-500 via-sky-400 via-amber-400 to-rose-600 shadow-inner border border-white/20" />
+          <div className="w-48 sm:w-56 h-2 rounded-full bg-gradient-to-r from-emerald-500 via-sky-400 via-amber-400 to-rose-600 shadow-inner border border-white/20" />
 
           {/* Calibration Marks */}
           <div className="flex justify-between text-[9px] font-mono text-muted-foreground px-0.5">
@@ -521,47 +478,161 @@ export default function MapWrapper({
         </div>
       </div>
 
-      {/* 5. LEAFLET MAP CONTAINER (REACT 19 PROTECTED WITH MAPKEY & PANE SAFETY) */}
+      {/* 5. LEAFLET MAP CONTAINER */}
       <MapContainer
-        key={`khulna-map-v${mapKey}-${basemap}`}
+        key={`gis-map-v${mapKey}-${internalBasemap}`}
         center={[22.65, 89.56]}
         zoom={11}
-        minZoom={10}
-        maxZoom={15}
+        minZoom={9}
+        maxZoom={16}
         maxBounds={[
-          [22.15, 88.85],
-          [23.95, 90.15],
+          [21.50, 88.50],
+          [24.20, 90.50],
         ]}
-        maxBoundsViscosity={1.0}
+        maxBoundsViscosity={0.9}
         scrollWheelZoom={true}
-        style={{ height: "100%", width: "100%", minHeight: "480px", background: "#05070d" }}
+        style={{ height: "100%", width: "100%", minHeight: "480px", background: "#0c1824" }}
       >
         <MapController coords={flyToCoords} zoom={12} onCursorMove={handleCursorMove} />
+        <ScaleControl position="bottomleft" imperial={false} metric={true} />
 
-        {/* Base Cartographic Layer */}
+        {/* Base GIS TileLayer */}
         <TileLayer
-          key={`tile-base-${currentTileConfig.base}`}
+          key={`tile-base-${currentTileConfig.name}`}
           attribution={currentTileConfig.attribution}
           url={currentTileConfig.base}
+          subdomains={currentTileConfig.subdomains || "abc"}
           maxZoom={19}
         />
 
-        {/* Optional Reference Boundaries & Places */}
+        {/* Reference Labels & Hydrography Layer (Satellite Hybrid) */}
         {currentTileConfig.ref && (
           <TileLayer
             key={`tile-ref-${currentTileConfig.ref}`}
             attribution=""
             url={currentTileConfig.ref}
             maxZoom={18}
-            opacity={0.85}
+            opacity={0.9}
             pane="overlayPane"
           />
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* 6. NASA SWOT 120-KM WIDE-SWATH KA-BAND RADAR ORBIT FOOTPRINT  */}
+        {/* 6. COASTAL POLDER BOUNDARIES (GIS CADASTRE & EMBANKMENTS)     */}
         {/* ------------------------------------------------------------- */}
-        {(activeSwathDetails || showSwot) && (
+        {showPolders &&
+          COASTAL_POLDERS.map((polder) => (
+            <Polygon
+              key={polder.id}
+              positions={polder.coordinates}
+              pathOptions={{
+                color: polder.color,
+                fillColor: polder.color,
+                fillOpacity: polder.id === "sundarbans-boundary" ? 0.08 : 0.16,
+                weight: polder.id === "sundarbans-boundary" ? 1.5 : 2.5,
+                dashArray: polder.id === "sundarbans-boundary" ? "4, 4" : undefined,
+              }}
+              eventHandlers={{
+                click: () => onSelectPolder && onSelectPolder(polder),
+              }}
+            >
+              <Tooltip sticky>
+                <div className="flex flex-col space-y-1 p-0.5">
+                  <div className="flex items-center gap-1.5 font-bold font-mono text-xs text-white">
+                    <ShieldAlert className="w-3.5 h-3.5" style={{ color: polder.color }} />
+                    <span>{polder.name}</span>
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    Upazila: <span className="text-white">{polder.upazila}</span> &bull; Area:{" "}
+                    <span className="text-white">{polder.areaKm2} km²</span> &bull; Elev:{" "}
+                    <span className="text-white">{polder.elevationM}m PWD</span>
+                  </div>
+                  <div className="text-[10px] text-amber-300 font-medium">
+                    {polder.salinityRisk}
+                  </div>
+                </div>
+              </Tooltip>
+            </Polygon>
+          ))}
+
+        {/* ------------------------------------------------------------- */}
+        {/* 7. PASSUR-RUPSHA CURVILINEAR THALWEG CENTERLINE & MILEPOSTS   */}
+        {/* ------------------------------------------------------------- */}
+        {showThalweg && (
+          <>
+            <Polyline
+              positions={PASSUR_RUPSHA_THALWEG}
+              pathOptions={{
+                color: "#38bdf8",
+                weight: 4,
+                opacity: 0.9,
+                lineCap: "round",
+                lineJoin: "round",
+              }}
+            >
+              <Tooltip sticky>
+                <span className="font-mono text-sky-300 font-bold text-xs">
+                  Passur-Rupsha Curvilinear Thalweg (SWORD Centerline: 0 - 82 km)
+                </span>
+              </Tooltip>
+            </Polyline>
+
+            {/* Thalweg Chainage Milestones */}
+            {THALWEG_MILESTONES.map((m) => (
+              <CircleMarker
+                key={m.label}
+                center={m.coords}
+                radius={4}
+                pathOptions={{
+                  color: "#ffffff",
+                  fillColor: "#0284c7",
+                  fillOpacity: 1,
+                  weight: 2,
+                }}
+              >
+                <Tooltip permanent={false}>
+                  <span className="font-mono text-[10px] font-bold text-sky-200">
+                    Chainage: {m.label}
+                  </span>
+                </Tooltip>
+              </CircleMarker>
+            ))}
+          </>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* 8. POLDER SLUICE FLAP-GATES (GRAVITY DRAINAGE HYDRAULICS)    */}
+        {/* ------------------------------------------------------------- */}
+        {POLDER_SLUICE_GATES.map((gate) => (
+          <Marker
+            key={gate.id}
+            position={gate.coords}
+            icon={L.divIcon({
+              className: "sluice-gate-icon",
+              html: `
+                <div style="width:18px;height:18px;background:#f59e0b;border:2px solid #ffffff;border-radius:4px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.7);cursor:pointer;" title="${gate.name}">
+                  <div style="width:6px;height:6px;background:#05070d;border-radius:1px;"></div>
+                </div>
+              `,
+              iconSize: [18, 18],
+              iconAnchor: [9, 9],
+            })}
+          >
+            <Tooltip sticky>
+              <div className="flex flex-col space-y-0.5 text-xs">
+                <span className="font-mono font-bold text-amber-400">{gate.name}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  {gate.polder} &bull; Status: <strong className="text-white">{gate.status}</strong>
+                </span>
+              </div>
+            </Tooltip>
+          </Marker>
+        ))}
+
+        {/* ------------------------------------------------------------- */}
+        {/* 9. NASA SWOT 120-KM WIDE-SWATH KA-BAND RADAR ORBIT FOOTPRINT  */}
+        {/* ------------------------------------------------------------- */}
+        {showSwot && (
           <>
             {/* Left KaRIn 50km Radar Swath */}
             <Polygon
@@ -609,7 +680,7 @@ export default function MapWrapper({
               </Tooltip>
             </Polygon>
 
-            {/* Satellite Nadir Centerline Ground Track */}
+            {/* Sub-Satellite Nadir Ground Track */}
             <Polyline
               positions={SWOT_NADIR_GROUND_TRACK}
               pathOptions={{
@@ -629,17 +700,16 @@ export default function MapWrapper({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* 7. ANIMATED ESTUARINE SALINITY INGRESS CORRIDORS               */}
+        {/* 10. ESTUARINE SALINITY INGRESS CORRIDORS                      */}
         {/* ------------------------------------------------------------- */}
         {showSalinityFront && (
           <>
-            {/* Acute Marine Tidal Ingress Vector: Bay of Bengal -> Mongla Port (>7.0 dS/m) */}
+            {/* Marine Tidal Ingress Vector: Bay of Bengal -> Mongla Port (>7.0 dS/m) */}
             <Polyline
               positions={PASSUR_MARINE_INGRESS_CORRIDOR}
-              className="animated-passur-marine"
               pathOptions={{
                 color: "#f43f5e",
-                weight: 6.5,
+                weight: 5.5,
                 opacity: 0.95,
                 lineCap: "round",
               }}
@@ -665,10 +735,9 @@ export default function MapWrapper({
             {/* Transitional Salinity Front: Mongla -> Rampal -> Khulna City (4.0 - 7.0 dS/m) */}
             <Polyline
               positions={PASSUR_TRANSITION_CORRIDOR}
-              className="animated-rupsha-transition"
               pathOptions={{
                 color: "#f59e0b",
-                weight: 5.5,
+                weight: 4.5,
                 opacity: 0.95,
                 lineCap: "round",
               }}
@@ -694,10 +763,9 @@ export default function MapWrapper({
             {/* Northern Gorai Dilution Flush (<2.5 dS/m) */}
             <Polyline
               positions={RUPSHA_FRESHWATER_DILUTION}
-              className="animated-gorai-freshwater"
               pathOptions={{
                 color: "#10b981",
-                weight: 4.5,
+                weight: 4,
                 opacity: 0.85,
                 lineCap: "round",
               }}
@@ -717,10 +785,9 @@ export default function MapWrapper({
             {/* Western Shibsa Estuarine Corridor */}
             <Polyline
               positions={SHIBSA_WESTERN_CORRIDOR}
-              className="animated-shibsa-western"
               pathOptions={{
                 color: "#38bdf8",
-                weight: 4.5,
+                weight: 4,
                 opacity: 0.9,
                 lineCap: "round",
               }}
@@ -743,7 +810,7 @@ export default function MapWrapper({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* 8. 4.0 dS/m BORO RICE AGRICULTURAL HAZARD ISOHALINE           */}
+        {/* 11. 4.0 dS/m BORO RICE AGRICULTURAL HAZARD ISOHALINE          */}
         {/* ------------------------------------------------------------- */}
         {showIsohalines && (
           <Circle
@@ -752,7 +819,7 @@ export default function MapWrapper({
             pathOptions={{
               color: "#f59e0b",
               fillColor: "#f59e0b",
-              fillOpacity: 0.09,
+              fillOpacity: 0.08,
               weight: 2,
               dashArray: "5, 8",
             }}
@@ -771,9 +838,9 @@ export default function MapWrapper({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* 9. TACTICAL STATION MARKERS & SATELLITE BEACONS               */}
+        {/* 12. GIS STATION MARKERS & SATELLITE REACH BEACONS             */}
         {/* ------------------------------------------------------------- */}
-        {placedSites.map((site) => {
+        {khulnaSites.map((site) => {
           const isSwot =
             site.category === "swot" ||
             site.id.startsWith("3124") ||
@@ -782,7 +849,6 @@ export default function MapWrapper({
           const isSelected = selectedSiteId === site.id;
           const forecast = forecastMap[site.id];
 
-          // Determine risk level based on forecast and lead horizon
           let risk = "NOMINAL";
           let currentVal = site.baselineEc ?? 3.5;
           let unit = "dS/m";
@@ -797,31 +863,28 @@ export default function MapWrapper({
 
           const displayVal = `${currentVal.toFixed(1)} ${unit}`;
 
-          const markerIcon = createTacticalBeaconIcon(
+          const markerIcon = createGisStationIcon(
             isSwot ? "swot" : isIntake ? "intake" : "gauge",
             risk,
             isSelected,
             displayVal,
-            site.id
+            site.id,
+            showLabels
           );
 
           return (
             <Marker
               key={site.id}
-              position={[site.displayLat, site.displayLon]}
+              position={[site.latitude, site.longitude]}
               icon={markerIcon}
               eventHandlers={{
                 click: () => {
                   if (onSelectSite) onSelectSite(site);
                 },
-                popupopen: () => {
-                  if (onSelectSite) onSelectSite(site);
-                },
               }}
             >
-              <Popup className="custom-tactical-popup">
-                <div className="flex flex-col space-y-3 p-1 min-w-[260px] text-foreground font-sans">
-                  
+              <Popup className="custom-gis-popup">
+                <div className="flex flex-col space-y-3 p-1 min-w-[270px] text-foreground font-sans">
                   {/* Popup Header with Agency & Status Pill */}
                   <div className="flex items-center justify-between border-b border-white/10 pb-2">
                     <div className="flex items-center gap-1.5">
@@ -833,7 +896,11 @@ export default function MapWrapper({
                         <Radio className="w-3.5 h-3.5 text-sky-400" />
                       )}
                       <span className="font-mono text-[10px] tracking-wider uppercase font-bold text-muted-foreground">
-                        {isSwot ? "NASA SWOT Reach" : isIntake ? "WASA Municipal Intake" : "BWDB Tidal Station"}
+                        {isSwot
+                          ? "NASA SWOT Reach"
+                          : isIntake
+                          ? "WASA Municipal Intake"
+                          : "BWDB Tidal Station"}
                       </span>
                     </div>
 
@@ -858,9 +925,12 @@ export default function MapWrapper({
                     <span className="text-[10px] text-muted-foreground font-mono">
                       ID: {site.id} &bull; River: {site.river || "Khulna Estuary"} &bull; {site.distanceKm || 50} km to Sea
                     </span>
+                    <span className="text-[9px] text-muted-foreground/75 font-mono">
+                      GPS: {site.latitude.toFixed(4)}°N, {site.longitude.toFixed(4)}°E
+                    </span>
                   </div>
 
-                  {/* Live Telemetry KPI Box */}
+                  {/* Telemetry KPI Box */}
                   <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 flex flex-col space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] text-muted-foreground font-mono">
@@ -881,7 +951,11 @@ export default function MapWrapper({
                       <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
-                            currentVal >= 4.0 ? "bg-rose-500" : currentVal >= 2.5 ? "bg-amber-400" : "bg-emerald-400"
+                            currentVal >= 4.0
+                              ? "bg-rose-500"
+                              : currentVal >= 2.5
+                              ? "bg-amber-400"
+                              : "bg-emerald-400"
                           }`}
                           style={{ width: `${Math.min(100, (currentVal / 10.0) * 100)}%` }}
                         />
@@ -906,14 +980,14 @@ export default function MapWrapper({
                       onClick={() => onSelectSite && onSelectSite(site)}
                       className="text-xs font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1"
                     >
-                      <span>Studio Dossier</span>
+                      <span>GIS Feature Dossier</span>
                       <ChevronRight className="w-3 h-3" />
                     </button>
                     <a
                       href={`/app/reaches/${site.id}`}
                       className="text-[10px] text-muted-foreground hover:text-white flex items-center gap-1"
                     >
-                      <span>Audit Telemetry</span>
+                      <span>Sluice &amp; Hydraulics</span>
                       <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                   </div>

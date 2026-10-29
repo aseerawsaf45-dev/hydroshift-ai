@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ForecastChart } from "@/components/ForecastChart";
-import { Site, Forecast, CANONICAL_KHULNA_STATIONS } from "@/components/map-data";
+import { Site, Forecast, CANONICAL_KHULNA_STATIONS, PolderPolygon } from "@/components/map-data";
 import {
   Layers,
   MapPin,
@@ -24,6 +24,8 @@ import {
   GitCompare,
   Clock,
   Compass,
+  Satellite,
+  Waves,
 } from "lucide-react";
 
 const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
@@ -32,7 +34,7 @@ const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
     <div className="w-full h-full bg-[#05070d] flex items-center justify-center text-muted-foreground text-xs">
       <div className="flex flex-col items-center gap-3">
         <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="font-mono text-xs text-muted-foreground">Initializing Delta Spatial Bathymetry...</span>
+        <span className="font-mono text-xs text-muted-foreground">Initializing GIS Delta Cartography...</span>
       </div>
     </div>
   ),
@@ -52,11 +54,15 @@ export default function MapExplorerPage() {
   const [showGauges, setShowGauges] = useState(true);
   const [showSalinityFront, setShowSalinityFront] = useState(true);
   const [showIsohalines, setShowIsohalines] = useState(true);
-  const [basemap, setBasemap] = useState<"dark" | "satellite" | "osm">("dark");
+  const [showPolders, setShowPolders] = useState(true);
+  const [showThalweg, setShowThalweg] = useState(true);
+  const [showLabels, setShowLabels] = useState(false);
+  const [basemap, setBasemap] = useState<"satellite" | "dark" | "topo" | "osm">("satellite");
   const [horizon, setHorizon] = useState<"now" | "7d" | "14d">("now");
   const [riskFilter, setRiskFilter] = useState<"all" | "critical" | "warning" | "nominal">("all");
   const [currentMode, setCurrentMode] = useState<"all" | "salinity" | "gauges" | "swot">("all");
   const [selectedBasin, setSelectedBasin] = useState<"all" | "Passur" | "Shibsa" | "Rupsha">("all");
+  const [selectedPolder, setSelectedPolder] = useState<PolderPolygon | null>(null);
 
   // Workbench & Drawer states
   const [activePanel, setActivePanel] = useState<"directory" | "layers" | "guide" | null>(null);
@@ -300,28 +306,36 @@ export default function MapExplorerPage() {
           {/* Quick Basemap Switcher */}
           <div className="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5 text-xs">
             <button
-              onClick={() => setBasemap("dark")}
-              className={`px-2 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
-                basemap === "dark" ? "bg-white/20 text-white font-bold" : "text-muted-foreground hover:text-white"
-              }`}
-            >
-              DARK
-            </button>
-            <button
               onClick={() => setBasemap("satellite")}
-              className={`px-2 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
-                basemap === "satellite" ? "bg-white/20 text-white font-bold" : "text-muted-foreground hover:text-white"
+              className={`px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
+                basemap === "satellite" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
               }`}
             >
               SATELLITE
             </button>
             <button
-              onClick={() => setBasemap("osm")}
-              className={`px-2 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
-                basemap === "osm" ? "bg-white/20 text-white font-bold" : "text-muted-foreground hover:text-white"
+              onClick={() => setBasemap("dark")}
+              className={`px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
+                basemap === "dark" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
+              }`}
+            >
+              DARK GIS
+            </button>
+            <button
+              onClick={() => setBasemap("topo")}
+              className={`px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
+                basemap === "topo" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
               }`}
             >
               TOPO
+            </button>
+            <button
+              onClick={() => setBasemap("osm")}
+              className={`px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
+                basemap === "osm" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
+              }`}
+            >
+              STREET
             </button>
           </div>
 
@@ -454,12 +468,16 @@ export default function MapExplorerPage() {
           showGauges={showGauges}
           showSalinityFront={showSalinityFront}
           showIsohalines={showIsohalines}
+          showPolders={showPolders}
+          showThalweg={showThalweg}
+          showLabels={showLabels}
           basemap={basemap}
           horizon={horizon}
           searchQuery={searchQuery}
           riskFilter={riskFilter}
           flyToCoords={flyToCoords}
           onSelectCorridor={handleSelectCorridor}
+          onSelectPolder={(polder) => setSelectedPolder(polder)}
         />
 
         {/* 3. STUDIO WORKBENCH (DRAWER / BOTTOM SHEET) */}
@@ -648,47 +666,95 @@ export default function MapExplorerPage() {
                   
                   {/* Basemaps */}
                   <div className="flex flex-col space-y-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Cartographic Style</span>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        onClick={() => setBasemap("dark")}
-                        className={`p-2.5 rounded-xl border text-center transition-all flex flex-col items-center gap-1.5 ${
-                          basemap === "dark" ? "border-primary bg-primary/15 text-white font-bold" : "border-white/10 bg-white/5 text-muted-foreground hover:text-white"
-                        }`}
-                      >
-                        <div className="w-full h-7 rounded-lg bg-[#05070d] border border-white/10 flex items-center justify-center text-xs font-mono">DARK</div>
-                        <span className="text-[10px]">Dark Canvas</span>
-                      </button>
-
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono">GIS Basemap Provider</span>
+                    <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => setBasemap("satellite")}
-                        className={`p-2.5 rounded-xl border text-center transition-all flex flex-col items-center gap-1.5 ${
+                        className={`p-2 rounded-xl border text-left transition-all flex items-center gap-2 ${
                           basemap === "satellite" ? "border-primary bg-primary/15 text-white font-bold" : "border-white/10 bg-white/5 text-muted-foreground hover:text-white"
                         }`}
                       >
-                        <div className="w-full h-7 rounded-lg bg-[#14281d] border border-white/10 flex items-center justify-center text-xs font-mono">SAT</div>
-                        <span className="text-[10px]">Satellite</span>
+                        <Satellite className="w-4 h-4 text-cyan-400 shrink-0" />
+                        <div>
+                          <div className="text-[11px] font-bold text-white">Satellite Hybrid</div>
+                          <div className="text-[9px] text-muted-foreground">NASA / Esri High-Res</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setBasemap("dark")}
+                        className={`p-2 rounded-xl border text-left transition-all flex items-center gap-2 ${
+                          basemap === "dark" ? "border-primary bg-primary/15 text-white font-bold" : "border-white/10 bg-white/5 text-muted-foreground hover:text-white"
+                        }`}
+                      >
+                        <Layers className="w-4 h-4 text-sky-400 shrink-0" />
+                        <div>
+                          <div className="text-[11px] font-bold text-white">Dark GIS</div>
+                          <div className="text-[9px] text-muted-foreground">CartoDB Dark Matter</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setBasemap("topo")}
+                        className={`p-2 rounded-xl border text-left transition-all flex items-center gap-2 ${
+                          basemap === "topo" ? "border-primary bg-primary/15 text-white font-bold" : "border-white/10 bg-white/5 text-muted-foreground hover:text-white"
+                        }`}
+                      >
+                        <Waves className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <div>
+                          <div className="text-[11px] font-bold text-white">Hydro Topo</div>
+                          <div className="text-[9px] text-muted-foreground">USGS Elevation Contours</div>
+                        </div>
                       </button>
 
                       <button
                         onClick={() => setBasemap("osm")}
-                        className={`p-2.5 rounded-xl border text-center transition-all flex flex-col items-center gap-1.5 ${
+                        className={`p-2 rounded-xl border text-left transition-all flex items-center gap-2 ${
                           basemap === "osm" ? "border-primary bg-primary/15 text-white font-bold" : "border-white/10 bg-white/5 text-muted-foreground hover:text-white"
                         }`}
                       >
-                        <div className="w-full h-7 rounded-lg bg-[#2b3342] border border-white/10 flex items-center justify-center text-xs font-mono">TOPO</div>
-                        <span className="text-[10px]">Topographic</span>
+                        <Compass className="w-4 h-4 text-amber-400 shrink-0" />
+                        <div>
+                          <div className="text-[11px] font-bold text-white">Street Cadastre</div>
+                          <div className="text-[9px] text-muted-foreground">OpenStreetMap Grid</div>
+                        </div>
                       </button>
                     </div>
                   </div>
 
                   {/* Spatial Layers */}
                   <div className="flex flex-col space-y-2 border-t border-white/10 pt-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Spatial Data Overlays</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono">GIS Vector Overlays</span>
 
                     <label className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
                       <span className="flex items-center gap-2 text-xs font-medium text-white">
                         <span className="w-2.5 h-2.5 rounded bg-amber-400" />
+                        Coastal Polders (30, 31, 32)
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={showPolders}
+                        onChange={(e) => setShowPolders(e.target.checked)}
+                        className="accent-primary cursor-pointer w-4 h-4"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                      <span className="flex items-center gap-2 text-xs font-medium text-white">
+                        <span className="w-2.5 h-2.5 rounded bg-sky-400" />
+                        Passur Thalweg Centerline
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={showThalweg}
+                        onChange={(e) => setShowThalweg(e.target.checked)}
+                        className="accent-primary cursor-pointer w-4 h-4"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                      <span className="flex items-center gap-2 text-xs font-medium text-white">
+                        <span className="w-2.5 h-2.5 rounded bg-cyan-400" />
                         NASA SWOT Radar Passes
                       </span>
                       <input
@@ -734,6 +800,19 @@ export default function MapExplorerPage() {
                         type="checkbox"
                         checked={showIsohalines}
                         onChange={(e) => setShowIsohalines(e.target.checked)}
+                        className="accent-primary cursor-pointer w-4 h-4"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                      <span className="flex items-center gap-2 text-xs font-medium text-white">
+                        <span className="w-2.5 h-2.5 rounded bg-white text-[9px] text-black font-bold flex items-center justify-center">12</span>
+                        Station Value Callouts
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={showLabels}
+                        onChange={(e) => setShowLabels(e.target.checked)}
                         className="accent-primary cursor-pointer w-4 h-4"
                       />
                     </label>
@@ -924,7 +1003,77 @@ export default function MapExplorerPage() {
           </div>
         )}
 
-        {/* 5. MINIMALIST LEGEND OVERLAY */}
+        {/* 5. POLDER CADASTRE INSPECTOR DRAWER */}
+        {selectedPolder && !selectedSite && (
+          <div className="absolute inset-x-2 bottom-2 md:bottom-3 md:top-3 md:right-3 md:left-auto z-30 max-h-[80vh] md:max-h-none md:h-auto md:w-96 flex flex-col animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-right-4 duration-300">
+            <div className="h-full bg-[#08131f]/95 backdrop-blur-2xl border border-white/15 p-4 shadow-2xl flex flex-col justify-between overflow-y-auto rounded-2xl scrollbar-thin">
+              <div className="space-y-3">
+                <div className="flex items-start justify-between border-b border-white/10 pb-3">
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-amber-400">
+                        BWDB Coastal Polder Cadastre
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-white text-base leading-snug">{selectedPolder.name}</h3>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      Upazila: {selectedPolder.upazila} &bull; Embankment: {selectedPolder.embankmentKm} km
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setSelectedPolder(null)}
+                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-muted-foreground hover:text-white"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
+                    <span className="text-[10px] text-muted-foreground block font-mono">Protected Area</span>
+                    <span className="text-base font-bold text-white font-mono">{selectedPolder.areaKm2} km²</span>
+                  </div>
+                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
+                    <span className="text-[10px] text-muted-foreground block font-mono">Polder Elevation</span>
+                    <span className="text-base font-bold text-emerald-400 font-mono">+{selectedPolder.elevationM}m PWD</span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs">
+                  <span className="font-bold text-amber-300 block mb-1">Polder Risk & Sluice Advisory:</span>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    {selectedPolder.salinityRisk}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1.5">
+                  <span className="font-mono text-[10px] font-bold uppercase text-muted-foreground">NASA SWOT Coupled Drainage:</span>
+                  <p className="text-[11px] text-white/80">
+                    Sluice flap-gate gravity flushing is dynamically controlled by SWOT river water surface elevation (WSE) vs interior canal stage.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/10 flex items-center gap-2">
+                <Link
+                  href="/app/crop-rotation"
+                  className="flex-1 py-2 px-3 rounded-xl bg-primary text-black font-bold text-xs text-center hover:opacity-90 transition-opacity"
+                >
+                  Run Crop Decision Support
+                </Link>
+                <Link
+                  href="/app/reaches/31241000011"
+                  className="py-2 px-3 rounded-xl bg-white/10 text-white font-semibold text-xs hover:bg-white/20 transition-colors"
+                >
+                  Flap-Gate Hydraulics
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 6. MINIMALIST LEGEND OVERLAY */}
         {showLegend && (
           <div className="absolute bottom-3 right-3 z-20 bg-[#08131f]/95 backdrop-blur-xl px-4 py-3 rounded-2xl border border-white/15 text-xs flex flex-col space-y-2 shadow-2xl animate-in fade-in duration-200">
             <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
