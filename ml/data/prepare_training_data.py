@@ -67,9 +67,20 @@ def build_training_dataset(
 
     # Map station to longitudinal distance along Passur-Rupsha estuary (x_km)
     df_ec["x_km"] = df_ec["station_id"].map(station_x_km)
-    # Default unknown stations based on latitudinal distance from coast (lat ~21.8 to 22.8)
-    if "latitude" in df_ec.columns:
-        df_ec["x_km"] = df_ec["x_km"].fillna((df_ec["latitude"] - 21.8) * 110.0)
+    
+    # Precision Curvilinear Thalweg Orthogonal Projection for unmapped stations
+    if "latitude" in df_ec.columns and "longitude" in df_ec.columns:
+        unmapped_mask = df_ec["x_km"].isna()
+        if unmapped_mask.any():
+            from ml.data.geospatial import DEFAULT_THALWEG
+            projected = [
+                DEFAULT_THALWEG.project_gps_to_thalweg(lat, lon)[0]
+                for lat, lon in zip(df_ec.loc[unmapped_mask, "latitude"], df_ec.loc[unmapped_mask, "longitude"])
+            ]
+            df_ec.loc[unmapped_mask, "x_km"] = projected
+    elif "latitude" in df_ec.columns:
+        df_ec["x_km"] = df_ec["x_km"].fillna((df_ec["latitude"] - 21.75) * 82.0 / (22.825 - 21.75))
+
     df_ec["x_km"] = df_ec["x_km"].fillna(50.0)
 
     # Physical plausibility filter (0 <= EC <= 60 dS/m)

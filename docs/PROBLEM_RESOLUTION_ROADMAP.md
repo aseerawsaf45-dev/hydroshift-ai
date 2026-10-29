@@ -36,16 +36,16 @@ This roadmap establishes an actionable, prioritized execution plan to resolve th
 ## Phase 1: Precision Geospatial & GPS Pipeline (The Sinuosity Gap)
 > **Problem Statement:** The current fallback formula `x_km = (lat - 21.8) * 110.0` uses linear Euclidean distance along latitude lines. Because the Passur–Rupsha river channel meanders through the Sundarbans with a sinuosity factor of $\sim 1.35$, straight-line distance underestimates actual thalweg travel distance of water parcels by 15–30%, distorting physical advection velocities.
 
-- [ ] **Task 1.1: Extract High-Resolution SWORD Thalweg Centerlines**
+- [x] **Task 1.1: Extract High-Resolution SWORD Thalweg Centerlines**
   - Parse NASA SWORD (SWOT River Database) GeoJSON/Shapefiles for Reach IDs `31241400561`, `31241400581`, `31241400601`, and `31241000011`.
   - Extract discretized WGS84 polyline coordinates $(lat_k, lon_k)$ at 200-meter intervals along the channel thalweg from the Bay mouth ($0.0\text{ km}$) to Khulna WASA ($82.0\text{ km}$).
-- [ ] **Task 1.2: Implement Curvilinear Orthogonal Projection Function**
+- [x] **Task 1.2: Implement Curvilinear Orthogonal Projection Function**
   - Replace the linear scalar formula in `ml/data/prepare_training_data.py` with `project_gps_to_thalweg(lat, lon, centerline_coords)`.
   - Calculate the nearest orthogonal projection point on the polyline and return cumulative curved arc-length distance $x_{\text{thalweg\_km}}$.
-- [ ] **Task 1.3: Update Coordinate Mappings in Seed and Ingestion Scripts**
+- [x] **Task 1.3: Update Coordinate Mappings in Seed and Ingestion Scripts**
   - Update `services/api/app/adapters/realworld_env.py` and `scripts/generate_source_manifest.py` with precise curved thalweg chainage values.
-  - Recalculate station distance anchors: Mongla Port ($x=31.2\text{ km}$ true thalweg vs $25.0\text{ km}$ planar), Chalna ($x=58.4\text{ km}$ vs $45.0\text{ km}$), Khulna Rupsha ($x=98.6\text{ km}$ vs $78.0\text{ km}$).
-- [ ] **Task 1.4: Add Automated Geospatial Unit Tests**
+  - Recalculate station distance anchors: Mongla Port ($x=53.8\text{ km}$ true thalweg), Chalna ($x=64.6\text{ km}$), Khulna Rupsha ($x=80.7\text{ km}$), Khulna WASA ($x=82.0\text{ km}$).
+- [x] **Task 1.4: Add Automated Geospatial Unit Tests**
   - Add `tests/test_geospatial.py` asserting that arbitrary GPS coordinates within the Khulna coastal belt project monotonically along the centerline with orthogonal deviation $< 1.5\text{ km}$.
 
 * **Acceptance Criteria:** Maximum station position discrepancy between SWORD GIS centerline and training table $< 0.5\text{ km}$ (down from 20+ km linear distortion).
