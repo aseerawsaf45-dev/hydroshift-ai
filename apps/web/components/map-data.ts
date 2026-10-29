@@ -155,7 +155,7 @@ export interface MapWrapperProps {
   showLabels?: boolean;
   showRivers?: boolean;
   showGraticule?: boolean;
-  basemap?: "academic" | "satellite" | "dark" | "topo" | "osm";
+  basemap?: "offline" | "academic" | "satellite" | "dark" | "topo" | "osm";
   horizon?: "now" | "7d" | "14d";
   searchQuery?: string;
   riskFilter?: "all" | "critical" | "warning" | "nominal";
@@ -437,9 +437,28 @@ export const SWOT_NADIR_GROUND_TRACK: [number, number][] = [
 ];
 
 // -------------------------------------------------------------
-// 4. PROFESSIONAL GIS BASEMAP DEFINITIONS
+// 4. PROFESSIONAL GIS BASEMAP DEFINITIONS (WITH 100% OFFLINE LOCAL VECTOR ENGINE)
 // -------------------------------------------------------------
+export const KHULNA_REGIONAL_LANDMASS: [number, number][] = [
+  [23.25, 88.90],
+  [23.25, 89.95],
+  [22.45, 89.95],
+  [21.65, 89.85],
+  [21.65, 89.15],
+  [22.15, 88.95],
+  [22.75, 88.90],
+  [23.25, 88.90],
+];
+
 export const BASEMAP_TILES = {
+  offline: {
+    base: "",
+    ref: null,
+    subdomains: "",
+    attribution: "100% Offline Local Vector GIS &bull; Zero External API Latency",
+    name: "Instant Offline GIS",
+    description: "Instant loading local vector cartography with zero API requests or tile loading delay",
+  },
   academic: {
     base: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
     ref: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}",

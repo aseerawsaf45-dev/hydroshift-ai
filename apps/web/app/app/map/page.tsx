@@ -50,6 +50,7 @@ import {
   Columns3,
   Square,
   Maximize2,
+  Zap,
 } from "lucide-react";
 
 const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
@@ -58,26 +59,25 @@ const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
     <div className="w-full h-full bg-[#05070d] flex items-center justify-center text-muted-foreground text-xs">
       <div className="flex flex-col items-center gap-3">
         <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="font-mono text-xs text-muted-foreground">Initializing Scientific Delta Cartography...</span>
+        <span className="font-mono text-xs text-muted-foreground">Initializing Instant Local Khulna GIS...</span>
       </div>
     </div>
   ),
 });
 
-// Focused Hotspot Jump Coordinates for Coastal Delta & Khulna
+// Focused Hotspot Jump Coordinates for Khulna Region (100% Hardcoded Local Data)
 const HOTSPOTS = [
-  { name: "Kalapara (Bay of Bengal)", siteId: "kalapara", coords: [21.98, 90.24] as [number, number], desc: "Southern Coastal Salinity Front & Deep Freshwater Lens", risk: "14.5 ppt" },
-  { name: "Charfasson (Bhola South)", siteId: "charfasson", coords: [22.18, 90.71] as [number, number], desc: "Severe Marine Intrusion on Bhola Island", risk: "8.5 ppt" },
-  { name: "Patuakhali", siteId: "patuakhali", coords: [22.35, 90.35] as [number, number], desc: "Payra River Semi-Saline Estuary", risk: "3.8 ppt" },
-  { name: "Barishal City", siteId: "barishal", coords: [22.70, 90.36] as [number, number], desc: "Central Delta Confluence & Potable Deep Aquifer", risk: "0.22 ppt" },
-  { name: "Shariatpur", siteId: "shariatpur", coords: [23.24, 90.35] as [number, number], desc: "Pristine Deep Pleistocene Freshwater Reservoir", risk: "0.11 ppt" },
-  { name: "Khulna City (P-14)", siteId: "SW241", coords: [22.808, 89.580] as [number, number], desc: "Urban Water Intake & SW241", risk: "4.5 dS/m" },
-  { name: "Mongla Port", siteId: "SW244", coords: [22.464, 89.600] as [number, number], desc: "Marine Surge Corridor", risk: "7.9 dS/m" },
+  { name: "Khulna WASA Intake (P-14)", siteId: "khulna-p14", coords: [22.825, 89.575] as [number, number], desc: "Urban Water Extraction & SW241 Rupsha Bridge", risk: "4.6 dS/m" },
+  { name: "Mongla Seaport (SW244)", siteId: "SW244", coords: [22.464, 89.600] as [number, number], desc: "Hyper-Saline Passur Marine Surge Corridor", risk: "7.9 dS/m" },
+  { name: "Dacope (Polder 31 & 32)", siteId: "dacope", coords: [22.560, 89.550] as [number, number], desc: "Vulnerable Boro Embankment & Flap Sluice Gates", risk: "8.8 dS/m" },
+  { name: "Batiaghata (Polder 30)", siteId: "batiaghata", coords: [22.710, 89.540] as [number, number], desc: "Alutala 10-Vent Sluice & Agricultural Buffer", risk: "4.1 dS/m" },
+  { name: "Paikgachha (Western Shibsa)", siteId: "paikgachha", coords: [22.580, 89.330] as [number, number], desc: "Western Delta Shrimp Gher & Salinity Barrier", risk: "6.9 dS/m" },
+  { name: "Koyra (Sundarbans Fringe)", siteId: "koyra", coords: [22.340, 89.340] as [number, number], desc: "Southern Marine Front & Severe Soil Salinity", risk: "12.4 dS/m" },
 ];
 
 export default function MapExplorerPage() {
-  // Layer & Display States
-  const [studyArea, setStudyArea] = useState<"delta_publication" | "khulna_basin" | "all">("delta_publication");
+  // Layer & Display States (100% Offline & Hardcoded to Khulna Region by Default)
+  const [studyArea, setStudyArea] = useState<"khulna_basin" | "delta_publication" | "all">("khulna_basin");
   const [rasterOpacity, setRasterOpacity] = useState<number>(0.85);
   const [showRasterOverlay, setShowRasterOverlay] = useState<boolean>(true);
   const [showRiskChoropleth, setShowRiskChoropleth] = useState(true);
@@ -90,7 +90,7 @@ export default function MapExplorerPage() {
   const [showLabels, setShowLabels] = useState(true);
   const [showRivers, setShowRivers] = useState(true);
   const [showGraticule, setShowGraticule] = useState(true);
-  const [basemap, setBasemap] = useState<"academic" | "satellite" | "dark" | "topo" | "osm">("academic");
+  const [basemap, setBasemap] = useState<"offline" | "academic" | "satellite" | "dark" | "topo" | "osm">("offline");
   const [hydrologicDomain, setHydrologicDomain] = useState<HydrologicDomain>("river");
   const [viewLayout, setViewLayout] = useState<"single" | "triptych">("single");
   const [salinityUnit, setSalinityUnit] = useState<"ppt" | "dS/m">("ppt");
@@ -336,6 +336,23 @@ export default function MapExplorerPage() {
           {/* Study Area Dropdown / Toggle */}
           <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 shrink-0">
             <button
+              id="btn-study-khulna"
+              onClick={() => {
+                setStudyArea("khulna_basin");
+                setSelectedRegion(null);
+              }}
+              className={`px-2.5 py-1 text-[11px] font-serif font-bold rounded-lg transition-all flex items-center gap-1 ${
+                studyArea === "khulna_basin"
+                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 font-bold"
+                  : "text-muted-foreground hover:text-white"
+              }`}
+              title="Khulna District & Estuarine Basin (10 Upazilas) - 100% Hardcoded Local Data"
+            >
+              <MapPin className="w-3 h-3 text-emerald-300" />
+              <span>Khulna Region (10 Upazilas)</span>
+            </button>
+            <button
+              id="btn-study-publication"
               onClick={() => {
                 setStudyArea("delta_publication");
                 setSelectedRegion(null);
@@ -350,20 +367,7 @@ export default function MapExplorerPage() {
               Publication Delta (15 Upazilas)
             </button>
             <button
-              onClick={() => {
-                setStudyArea("khulna_basin");
-                setSelectedRegion(null);
-              }}
-              className={`px-2.5 py-1 text-[11px] font-serif font-bold rounded-lg transition-all ${
-                studyArea === "khulna_basin"
-                  ? "bg-sky-600 text-white shadow"
-                  : "text-muted-foreground hover:text-white"
-              }`}
-              title="Khulna Estuarine Basin"
-            >
-              Khulna Basin
-            </button>
-            <button
+              id="btn-study-all"
               onClick={() => {
                 setStudyArea("all");
                 setSelectedRegion(null);
@@ -455,6 +459,17 @@ export default function MapExplorerPage() {
           
           {/* Quick Basemap Switcher */}
           <div className="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5 text-xs">
+            <button
+              id="btn-basemap-offline"
+              onClick={() => setBasemap("offline")}
+              className={`px-2.5 py-1 rounded-lg font-serif text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                basemap === "offline" ? "bg-emerald-600 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
+              }`}
+              title="Instant Offline Local Vector GIS - Zero external API latency, 100% hardcoded"
+            >
+              <Zap className="w-3 h-3 text-emerald-300" />
+              <span>OFFLINE (FAST)</span>
+            </button>
             <button
               id="btn-basemap-academic"
               onClick={() => setBasemap("academic")}

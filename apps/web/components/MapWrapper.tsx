@@ -67,6 +67,8 @@ import {
   PUBLICATION_STUDY_BOUNDS,
   PUBLICATION_STUDY_CENTER,
   KHULNA_DISTRICT_BOUNDS,
+  KHULNA_DISTRICT_CENTER,
+  KHULNA_REGIONAL_LANDMASS,
   RISK_TIERS_CONFIG,
   RiskTier,
   CANONICAL_KHULNA_STATIONS,
@@ -211,7 +213,7 @@ export default function MapWrapper({
   showLabels = true,
   showRivers = true,
   showGraticule = true,
-  basemap = "academic",
+  basemap = "offline",
   horizon = "now",
   searchQuery = "",
   riskFilter = "all",
@@ -226,15 +228,15 @@ export default function MapWrapper({
   onOpacityChange,
   showRasterOverlay = true,
   onToggleRasterOverlay,
-  studyArea = "delta_publication",
+  studyArea = "khulna_basin",
   onSelectStudyArea,
 }: MapWrapperProps) {
   const [mounted, setMounted] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const [sites, setSites] = useState<Site[]>(CANONICAL_KHULNA_STATIONS);
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
-  const [cursorCoords, setCursorCoords] = useState<[number, number]>([22.45, 90.45]);
-  const [internalBasemap, setInternalBasemap] = useState<"academic" | "satellite" | "dark" | "topo" | "osm">(basemap);
+  const [cursorCoords, setCursorCoords] = useState<[number, number]>(KHULNA_DISTRICT_CENTER);
+  const [internalBasemap, setInternalBasemap] = useState<"offline" | "academic" | "satellite" | "dark" | "topo" | "osm">(basemap);
   const [internalOpacity, setInternalOpacity] = useState(rasterOpacity);
   const [internalShowRaster, setInternalShowRaster] = useState(showRasterOverlay);
 
@@ -779,17 +781,33 @@ export default function MapWrapper({
         />
         <ScaleControl position="bottomleft" imperial={false} metric={true} />
 
-        {/* Base GIS TileLayer */}
-        <TileLayer
-          key={`tile-base-${currentTileConfig.name}`}
-          attribution={currentTileConfig.attribution}
-          url={currentTileConfig.base}
-          subdomains={currentTileConfig.subdomains || "abc"}
-          maxZoom={18}
-        />
+        {/* Base GIS TileLayer - ONLY fetched if currentTileConfig.base is defined (offline mode makes ZERO network requests!) */}
+        {currentTileConfig.base ? (
+          <TileLayer
+            key={`tile-base-${currentTileConfig.name}`}
+            attribution={currentTileConfig.attribution}
+            url={currentTileConfig.base}
+            subdomains={currentTileConfig.subdomains || "abc"}
+            maxZoom={18}
+          />
+        ) : (
+          /* Instant 100% Offline Regional Coastal Delta Landmass */
+          <Polygon
+            positions={KHULNA_REGIONAL_LANDMASS}
+            pathOptions={{
+              fillColor: isAcademic ? "#f8fafc" : "#091726",
+              fillOpacity: 1,
+              color: isAcademic ? "#cbd5e1" : "#1e3a5f",
+              weight: 1.5,
+              lineCap: "round",
+              lineJoin: "round",
+            }}
+            interactive={false}
+          />
+        )}
 
-        {/* Reference Labels Layer */}
-        {currentTileConfig.ref && (
+        {/* Reference Labels Layer (Online only) */}
+        {currentTileConfig.base && currentTileConfig.ref && (
           <TileLayer
             key={`tile-ref-${currentTileConfig.ref}`}
             attribution=""
@@ -802,9 +820,9 @@ export default function MapWrapper({
 
         {/* ------------------------------------------------------------- */}
         {/* A. CONTINUOUS REMOTE SENSING RASTER OVERLAY                   */}
-        {/* Georeferenced RBF continuous salinity field matching paper   */}
+        {/* Georeferenced RBF continuous salinity field for Publication   */}
         {/* ------------------------------------------------------------- */}
-        {internalShowRaster && (
+        {internalShowRaster && studyArea === "delta_publication" && (
           <ImageOverlay
             url={
               hydrologicDomain === "river"
@@ -845,8 +863,8 @@ export default function MapWrapper({
                     ? (isAcademic ? "#f8fafc" : "#05070d") 
                     : isSelected 
                     ? domainColor 
-                    : (internalShowRaster ? "transparent" : domainColor),
-                  fillOpacity: isSelected ? 0.35 : isOptedOut ? 0.88 : (internalShowRaster ? 0 : 0.35),
+                    : (internalShowRaster && studyArea === "delta_publication" ? "transparent" : domainColor),
+                  fillOpacity: isSelected ? 0.45 : isOptedOut ? 0.88 : (internalShowRaster && studyArea === "delta_publication" ? 0 : 0.40),
                   color: isSelected 
                     ? "#0284c7" 
                     : isOptedOut 
