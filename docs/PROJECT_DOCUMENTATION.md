@@ -27,7 +27,7 @@
 10. [Summary Table: Quick Reference](#10-summary-table-quick-reference)
 11. [Independent Technical Audit & Resolution Matrix](#11-independent-technical-audit--resolution-matrix)
 12. [Verification, Test Suite & Build Verification Report](#12-verification-test-suite--build-verification-report)
-    - 12.1 Backend Pytest Execution Summary (26/26 Passed)
+    - 12.1 Backend Pytest Execution Summary (44/44 Passed)
     - 12.2 Frontend Production Next.js Build Report (16/16 Routes Prerendered)
     - 12.3 Single-Command System Verification Workflow (scripts/verify_project.py)
 13. [Complete Mathematical & Algorithmic Formulations](#13-complete-mathematical--algorithmic-formulations)
@@ -543,7 +543,7 @@ The entire SWOT Khulna Platform is backed by an automated CI/CD verification sui
 
 ### 12.1 Backend Pytest Execution Summary
 - **Execution Command:** `.venv\Scripts\python -m pytest`
-- **Result:** **26 passed in 19.96s** (100% pass rate)
+- **Result:** **44 passed in 17.74s** (100% pass rate)
 
 ```text
 ============================= test session starts =============================
@@ -551,12 +551,8 @@ platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.7.0
 rootdir: C:\Users\PC\Downloads\Codebases\swot-khulna-master
 configfile: pyproject.toml
 plugins: anyio-4.15.1, asyncio-1.4.0
-collected 26 items
+collected 44 items
 
-tests\test_api.py .                                                      [  3%]
-tests\test_baselines_and_ensemble.py .....                               [ 23%]
-tests\test_crop_engine.py ......                                         [ 46%]
-tests\test_crop_rotation.py ...                                          [ 57%]
 tests\test_api.py ....                                                   [  9%]
 tests\test_baselines_and_ensemble.py ......                              [ 22%]
 tests\test_crop_engine.py .......                                        [ 38%]
@@ -568,7 +564,7 @@ tests\test_live_boost.py .                                               [ 77%]
 tests\test_pinn.py ..                                                    [ 81%]
 tests\test_polder_hydraulics.py ......                                   [ 95%]
 tests\test_science.py ..                                                 [100%]
-======================= 44 passed, 1 warning in 17.35s ========================
+======================= 44 passed, 1 warning in 17.74s ========================
 ```
 
 #### Test Suite Breakdown (44 Automated Tests):
@@ -605,9 +601,6 @@ tests\test_science.py ..                                                 [100%]
 3. NASA SWOT Feature Ablation Experiment     : [PASS] Flap-gate drainage decoupled, point regression unaliased
 4. Data Provenance Manifest (source_manifest): [PASS] 1,770 records catalogued (48 direct, 1392 interp, 330 sat)
 5. Multi-Criteria Farmer Priority Pipeline   : [PASS] Rankings dynamically adapt across Profit, Water, Risk, Balanced
-==============================================================================
- [SUCCESS] ALL 5 VERIFICATION GATES PASSED WITH 100% COMPLIANCE.
-==============================================================================
 ==============================================================================
  [SUCCESS] ALL 5 VERIFICATION GATES PASSED WITH 100% COMPLIANCE.
 ==============================================================================
