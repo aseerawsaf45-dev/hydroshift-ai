@@ -1,0 +1,54 @@
+{
+  "title": "Offline Khulna GIS & Remote Sensing Geographic Suite",
+  "region": "Khulna District, Southwestern Coastal Delta, Bangladesh",
+  "study_area_bounds": {
+    "southwest": [
+      22.18,
+      89.2
+    ],
+    "northeast": [
+      23.08,
+      89.74
+    ],
+    "centroid": [
+      22.68,
+      89.48
+    ]
+  },
+  "spatial_reference": {
+    "horizontal_crs": "EPSG:4326 (WGS 84 / Geographic Latitude-Longitude)",
+    "vertical_datum": "PWD Datum (Public Works Department, Bangladesh, +0.46m above MSL)",
+    "rfc_standard": "RFC 7946 GeoJSON Standard"
+  },
+  "measurement_integrity": {
+    "primary_unit": "Electrical Conductivity (EC) in dS/m (deciSiemens per meter at 25°C)",
+    "secondary_unit": "Salinity in ppt (parts per thousand), conversion factor: 1 ppt = 1.5625 dS/m",
+    "agricultural_thresholds": {
+      "potable_drinking": "< 1.5 dS/m (Khulna WASA target)",
+      "boro_rice_safe": "< 2.5 dS/m (BRRI dhan28 / 29)",
+      "boro_rice_tolerance_limit": "4.0 dS/m (BRRI dhan67 salt-tolerant threshold)",
+      "crop_sterilization": "> 8.0 dS/m (acute seedling death)"
+    },
+    "ground_truth_sources": [
+      "Bangladesh Water Development Board (BWDB) Hydrology Division",
+      "Soil Resource Development Institute (SRDI) Salinity Surveys",
+      "NASA PO.DAAC Hydrocron SWOT KaRIn High-Rate Reach Telemetry",
+      "Khulna Water Supply and Sewerage Authority (Khulna WASA) Madhukhali Intake Monitoring",
+      "Center for Environmental and Geographic Information Services (CEGIS) Polder Database"
+    ]
+  },
+  "offline_architecture": {
+    "mode": "100% Offline-First / Zero Remote API Requests",
+    "external_tile_servers": "Disabled / None required",
+    "external_geocoding": "Disabled / None required",
+    "remote_api_keys": "None required",
+    "local_assets": [
+      "boundary.geojson",
+      "districts.geojson",
+      "salinity.geojson",
+      "rivers.geojson",
+      "polders.geojson",
+      "stations.geojson"
+    ]
+  }
+}

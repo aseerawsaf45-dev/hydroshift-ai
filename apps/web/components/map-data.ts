@@ -155,7 +155,7 @@ export interface MapWrapperProps {
   showLabels?: boolean;
   showRivers?: boolean;
   showGraticule?: boolean;
-  basemap?: "offline" | "academic" | "satellite" | "dark" | "topo" | "osm";
+  basemap?: "radar" | "academic" | "topo";
   horizon?: "now" | "7d" | "14d";
   searchQuery?: string;
   riskFilter?: "all" | "critical" | "warning" | "nominal";
@@ -170,8 +170,8 @@ export interface MapWrapperProps {
   onOpacityChange?: (val: number) => void;
   showRasterOverlay?: boolean;
   onToggleRasterOverlay?: () => void;
-  studyArea?: "delta_publication" | "khulna_basin" | "all";
-  onSelectStudyArea?: (area: "delta_publication" | "khulna_basin" | "all") => void;
+  studyArea?: "khulna_basin";
+  onSelectStudyArea?: (area: "khulna_basin") => void;
 }
 
 // -------------------------------------------------------------
@@ -451,53 +451,35 @@ export const KHULNA_REGIONAL_LANDMASS: [number, number][] = [
 ];
 
 export const BASEMAP_TILES = {
-  offline: {
-    base: "",
-    ref: null,
-    subdomains: "",
-    attribution: "100% Offline Local Vector GIS &bull; Zero External API Latency",
-    name: "Instant Offline GIS",
-    description: "Instant loading local vector cartography with zero API requests or tile loading delay",
+  radar: {
+    name: "Dark Radar GIS",
+    description: "High-contrast dark estuarine radar cartography with zero network requests",
+    theme: "dark",
+    bgColor: "#08131f",
+    waterColor: "#050b12",
+    landColor: "#0c1b2b",
+    borderColor: "#1e3a5f",
+    attribution: "100% Offline Local Vector GIS &bull; Zero Remote API Dependencies",
   },
   academic: {
-    base: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-    ref: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-    subdomains: "",
-    attribution: "Tiles &copy; Esri &mdash; Academic GIS Base",
-    name: "Scientific Academic",
-    description: "Clean publication white paper GIS cartography matching academic journals",
-  },
-  satellite: {
-    base: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    ref: "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-    subdomains: "",
-    attribution: "Tiles &copy; Esri &mdash; NASA Earth Data, USGS, ESA, Maxar",
-    name: "Satellite Hybrid",
-    description: "High-resolution orbital satellite photography with place labels",
-  },
-  dark: {
-    base: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-    ref: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-    subdomains: "",
-    attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ",
-    name: "Dark Radar",
-    description: "High-contrast dark radar basemap with crisp reference typography",
+    name: "Publication Academic",
+    description: "Clean scientific white paper cartography with high-contrast administrative borders",
+    theme: "academic",
+    bgColor: "#f8fafc",
+    waterColor: "#e0f2fe",
+    landColor: "#f1f5f9",
+    borderColor: "#94a3b8",
+    attribution: "100% Offline Academic GIS &bull; WGS 84 / PWD Datum",
   },
   topo: {
-    base: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-    ref: null,
-    subdomains: "",
-    attribution: "Tiles &copy; Esri &mdash; USGS, NOAA, DeLorme",
-    name: "Hydro Topo",
-    description: "Topographic elevation contours with river hydrography",
-  },
-  osm: {
-    base: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    ref: null,
-    subdomains: "abc",
-    attribution: "&copy; OpenStreetMap contributors",
-    name: "Street / Cadastral",
-    description: "Detailed civil infrastructure, roads, and village polder networks",
+    name: "Hydrographic Topo",
+    description: "Terrain relief and coastal polder elevation contours with river networks",
+    theme: "topo",
+    bgColor: "#0a1926",
+    waterColor: "#031525",
+    landColor: "#0e2438",
+    borderColor: "#0284c7",
+    attribution: "100% Offline Hydrographic GIS &bull; BWDB Coastal Cadastre",
   },
 };
 

@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   MapContainer,
-  TileLayer,
   Marker,
   Popup,
   Polyline,
@@ -40,6 +39,7 @@ import {
   Eye,
   EyeOff,
   Sliders,
+  Zap,
 } from "lucide-react";
 
 export * from "./map-data";
@@ -213,7 +213,7 @@ export default function MapWrapper({
   showLabels = true,
   showRivers = true,
   showGraticule = true,
-  basemap = "offline",
+  basemap = "radar",
   horizon = "now",
   searchQuery = "",
   riskFilter = "all",
@@ -236,7 +236,7 @@ export default function MapWrapper({
   const [sites, setSites] = useState<Site[]>(CANONICAL_KHULNA_STATIONS);
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
   const [cursorCoords, setCursorCoords] = useState<[number, number]>(KHULNA_DISTRICT_CENTER);
-  const [internalBasemap, setInternalBasemap] = useState<"offline" | "academic" | "satellite" | "dark" | "topo" | "osm">(basemap);
+  const [internalBasemap, setInternalBasemap] = useState<"radar" | "academic" | "topo">(basemap as any);
   const [internalOpacity, setInternalOpacity] = useState(rasterOpacity);
   const [internalShowRaster, setInternalShowRaster] = useState(showRasterOverlay);
 
@@ -250,18 +250,12 @@ export default function MapWrapper({
 
   const activeRegion = useMemo(() => {
     if (!selectedRegionId) return null;
-    return ALL_STUDY_REGIONS.find((r) => r.id === selectedRegionId) || null;
+    return KHULNA_UPAZILA_REGIONS.find((r) => r.id === selectedRegionId) || null;
   }, [selectedRegionId]);
 
   const displayRegions = useMemo(() => {
-    if (studyArea === "delta_publication") {
-      return COASTAL_DELTA_UPAZILAS;
-    }
-    if (studyArea === "khulna_basin") {
-      return KHULNA_UPAZILA_REGIONS;
-    }
-    return ALL_STUDY_REGIONS;
-  }, [studyArea]);
+    return KHULNA_UPAZILA_REGIONS;
+  }, []);
 
   // Continuous inverse-distance weighted salinity sampling at cursor
   const sampledSalinity = useMemo(() => {
@@ -385,7 +379,7 @@ export default function MapWrapper({
     );
   }
 
-  const currentTileConfig = BASEMAP_TILES[internalBasemap] || BASEMAP_TILES.academic;
+  const currentTileConfig = BASEMAP_TILES[internalBasemap] || BASEMAP_TILES.radar;
 
   const cursorChainageKm = Math.max(
     0,
@@ -399,7 +393,7 @@ export default function MapWrapper({
       {/* 1. GIS CSS KEYFRAMES & POPUP THEME */}
       <style>{`
         .leaflet-container {
-          background-color: ${isAcademic ? "#dff0fa" : "#0c1824"} !important;
+          background-color: ${currentTileConfig.waterColor || (isAcademic ? "#e0f2fe" : "#08131f")} !important;
           font-family: inherit;
         }
 
@@ -494,10 +488,22 @@ export default function MapWrapper({
 
       {/* 3. FLOATING BASEMAP & REMOTE SENSING TOOLBAR (TOP-RIGHT) */}
       <div className="absolute top-7 right-3 z-[500] flex flex-col items-end gap-2 pointer-events-none">
-        {/* Basemap Switcher */}
+        {/* Basemap Switcher - 100% Offline Local Themes */}
         <div className={`p-1 rounded-xl shadow-xl pointer-events-auto flex items-center gap-1 border ${
           isAcademic ? "bg-white/95 border-slate-300" : "bg-[#08131f]/95 border-white/15 backdrop-blur-xl"
         }`}>
+          <button
+            onClick={() => setInternalBasemap("radar")}
+            className={`px-2 py-1 rounded-lg text-[11px] font-serif font-bold transition-all flex items-center gap-1 ${
+              internalBasemap === "radar"
+                ? "bg-emerald-600 text-white shadow-sm"
+                : isAcademic ? "text-slate-600 hover:text-black" : "text-zinc-400 hover:text-white"
+            }`}
+            title="Instant Dark Radar GIS (100% Offline Local Vector)"
+          >
+            <Zap className="w-3 h-3" />
+            <span>Radar</span>
+          </button>
           <button
             onClick={() => setInternalBasemap("academic")}
             className={`px-2 py-1 rounded-lg text-[11px] font-serif font-bold transition-all flex items-center gap-1 ${
@@ -511,37 +517,13 @@ export default function MapWrapper({
             <span>Academic</span>
           </button>
           <button
-            onClick={() => setInternalBasemap("satellite")}
-            className={`px-2 py-1 rounded-lg text-[11px] font-serif font-bold transition-all flex items-center gap-1 ${
-              internalBasemap === "satellite"
-                ? "bg-sky-600 text-white shadow-sm"
-                : isAcademic ? "text-slate-600 hover:text-black" : "text-zinc-400 hover:text-white"
-            }`}
-            title="NASA Earth Data / Esri Satellite Imagery"
-          >
-            <Satellite className="w-3 h-3" />
-            <span>Satellite</span>
-          </button>
-          <button
-            onClick={() => setInternalBasemap("dark")}
-            className={`px-2 py-1 rounded-lg text-[11px] font-serif font-bold transition-all flex items-center gap-1 ${
-              internalBasemap === "dark"
-                ? "bg-sky-600 text-white shadow-sm"
-                : isAcademic ? "text-slate-600 hover:text-black" : "text-zinc-400 hover:text-white"
-            }`}
-            title="CartoDB Dark GIS Cartography"
-          >
-            <Layers className="w-3 h-3" />
-            <span>Dark</span>
-          </button>
-          <button
             onClick={() => setInternalBasemap("topo")}
             className={`px-2 py-1 rounded-lg text-[11px] font-serif font-bold transition-all flex items-center gap-1 ${
               internalBasemap === "topo"
                 ? "bg-sky-600 text-white shadow-sm"
                 : isAcademic ? "text-slate-600 hover:text-black" : "text-zinc-400 hover:text-white"
             }`}
-            title="Topographic River Elevation"
+            title="Topographic River & Polder Elevation"
           >
             <Waves className="w-3 h-3" />
             <span>Topo</span>
@@ -761,15 +743,15 @@ export default function MapWrapper({
       {/* 7. LEAFLET MAP CONTAINER */}
       <MapContainer
         key={`scientific-map-${mapKey}-${internalBasemap}-${hydrologicDomain}`}
-        center={activeRegion ? activeRegion.center : studyArea === "delta_publication" ? PUBLICATION_STUDY_CENTER : [22.68, 89.48]}
-        zoom={studyArea === "delta_publication" ? 9 : 10}
-        minZoom={7}
-        maxZoom={16}
+        center={activeRegion ? activeRegion.center : KHULNA_DISTRICT_CENTER}
+        zoom={10}
+        minZoom={8}
+        maxZoom={15}
         maxBounds={[
-          [20.80, 88.00],
-          [24.50, 92.00],
+          [21.60, 88.80],
+          [23.50, 90.10],
         ]}
-        maxBoundsViscosity={0.8}
+        maxBoundsViscosity={0.9}
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%", minHeight: "480px" }}
       >
@@ -781,48 +763,25 @@ export default function MapWrapper({
         />
         <ScaleControl position="bottomleft" imperial={false} metric={true} />
 
-        {/* Base GIS TileLayer - ONLY fetched if currentTileConfig.base is defined (offline mode makes ZERO network requests!) */}
-        {currentTileConfig.base ? (
-          <TileLayer
-            key={`tile-base-${currentTileConfig.name}`}
-            attribution={currentTileConfig.attribution}
-            url={currentTileConfig.base}
-            subdomains={currentTileConfig.subdomains || "abc"}
-            maxZoom={18}
-          />
-        ) : (
-          /* Instant 100% Offline Regional Coastal Delta Landmass */
-          <Polygon
-            positions={KHULNA_REGIONAL_LANDMASS}
-            pathOptions={{
-              fillColor: isAcademic ? "#f8fafc" : "#091726",
-              fillOpacity: 1,
-              color: isAcademic ? "#cbd5e1" : "#1e3a5f",
-              weight: 1.5,
-              lineCap: "round",
-              lineJoin: "round",
-            }}
-            interactive={false}
-          />
-        )}
-
-        {/* Reference Labels Layer (Online only) */}
-        {currentTileConfig.base && currentTileConfig.ref && (
-          <TileLayer
-            key={`tile-ref-${currentTileConfig.ref}`}
-            attribution=""
-            url={currentTileConfig.ref}
-            maxZoom={18}
-            opacity={0.85}
-            pane="overlayPane"
-          />
-        )}
+        {/* 100% Offline Regional Coastal Delta Landmass (ZERO network requests) */}
+        <Polygon
+          positions={KHULNA_REGIONAL_LANDMASS}
+          pathOptions={{
+            fillColor: currentTileConfig.landColor || (isAcademic ? "#f1f5f9" : "#0c1b2b"),
+            fillOpacity: 1,
+            color: currentTileConfig.borderColor || (isAcademic ? "#94a3b8" : "#1e3a5f"),
+            weight: 1.5,
+            lineCap: "round",
+            lineJoin: "round",
+          }}
+          interactive={false}
+        />
 
         {/* ------------------------------------------------------------- */}
         {/* A. CONTINUOUS REMOTE SENSING RASTER OVERLAY                   */}
         {/* Georeferenced RBF continuous salinity field for Publication   */}
         {/* ------------------------------------------------------------- */}
-        {internalShowRaster && studyArea === "delta_publication" && (
+        {internalShowRaster && (
           <ImageOverlay
             url={
               hydrologicDomain === "river"
@@ -863,8 +822,8 @@ export default function MapWrapper({
                     ? (isAcademic ? "#f8fafc" : "#05070d") 
                     : isSelected 
                     ? domainColor 
-                    : (internalShowRaster && studyArea === "delta_publication" ? "transparent" : domainColor),
-                  fillOpacity: isSelected ? 0.45 : isOptedOut ? 0.88 : (internalShowRaster && studyArea === "delta_publication" ? 0 : 0.40),
+                    : (internalShowRaster ? "transparent" : domainColor),
+                  fillOpacity: isSelected ? 0.45 : isOptedOut ? 0.88 : (internalShowRaster ? 0 : 0.40),
                   color: isSelected 
                     ? "#0284c7" 
                     : isOptedOut 
@@ -1023,7 +982,7 @@ export default function MapWrapper({
         {/* E. SOUTHERN BAY OF BENGAL MARITIME LABEL                      */}
         {/* ------------------------------------------------------------- */}
         <Marker
-          position={studyArea === "delta_publication" ? [21.58, 90.45] : BAY_OF_BENGAL_LOCATION}
+          position={BAY_OF_BENGAL_LOCATION}
           icon={L.divIcon({
             className: "bay-of-bengal-label",
             html: `
@@ -1079,7 +1038,7 @@ export default function MapWrapper({
         {/* ------------------------------------------------------------- */}
         {/* F. COASTAL POLDER CADASTRE & EMBANKMENTS (KHULNA REGION)      */}
         {/* ------------------------------------------------------------- */}
-        {showPolders && studyArea !== "delta_publication" &&
+        {showPolders &&
           COASTAL_POLDERS.map((polder) => (
             <Polygon
               key={polder.id}
@@ -1116,7 +1075,7 @@ export default function MapWrapper({
         {/* ------------------------------------------------------------- */}
         {/* G. PASSUR-RUPSHA CURVILINEAR THALWEG CENTERLINE (KHULNA)      */}
         {/* ------------------------------------------------------------- */}
-        {showThalweg && studyArea !== "delta_publication" && (
+        {showThalweg && (
           <>
             <Polyline
               positions={PASSUR_RUPSHA_THALWEG}
@@ -1160,7 +1119,7 @@ export default function MapWrapper({
         {/* ------------------------------------------------------------- */}
         {/* H. POLDER SLUICE GATES (KHULNA REGION)                         */}
         {/* ------------------------------------------------------------- */}
-        {studyArea !== "delta_publication" && POLDER_SLUICE_GATES.map((gate) => (
+        {POLDER_SLUICE_GATES.map((gate) => (
           <Marker
             key={gate.id}
             position={gate.coords}
@@ -1189,7 +1148,7 @@ export default function MapWrapper({
         {/* ------------------------------------------------------------- */}
         {/* I. NASA SWOT KA-BAND RADAR ORBIT FOOTPRINT                    */}
         {/* ------------------------------------------------------------- */}
-        {showSwot && studyArea !== "delta_publication" && (
+        {showSwot && (
           <>
             <Polygon
               positions={SWOT_LEFT_SWATH}
@@ -1256,7 +1215,7 @@ export default function MapWrapper({
         {/* ------------------------------------------------------------- */}
         {/* J. ESTUARINE SALINITY INGRESS CORRIDORS                       */}
         {/* ------------------------------------------------------------- */}
-        {showSalinityFront && studyArea !== "delta_publication" && (
+        {showSalinityFront && (
           <>
             <Polyline
               positions={PASSUR_MARINE_INGRESS_CORRIDOR}
@@ -1362,7 +1321,7 @@ export default function MapWrapper({
         {/* ------------------------------------------------------------- */}
         {/* K. GIS MONITORING STATIONS & SURFACE REACHES                  */}
         {/* ------------------------------------------------------------- */}
-        {studyArea !== "delta_publication" && khulnaSites.map((site) => {
+        {khulnaSites.map((site) => {
           const isSwot =
             site.category === "swot" ||
             site.id.startsWith("3124") ||
