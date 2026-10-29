@@ -9,4 +9,4 @@ khulna.db
 *.egg-info/
 .next/
 *.png
-files.zip
+*.zip

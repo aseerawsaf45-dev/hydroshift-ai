@@ -74,3 +74,32 @@ def test_evaluate_metrics():
     assert "rmse" in m and "mae" in m and "peak_mae" in m and "r2" in m
     assert m["rmse"] > 0.0
     assert m["r2"] > 0.95
+
+
+def test_mondrian_conformal_calibration():
+    """Verify Phase 6: Group-conditional conformal calibration partitions into 4 strata."""
+    from ml.evaluation.uncertainty import compute_mondrian_conformal_factors, get_mondrian_stratum
+
+    # Check stratum assignment
+    assert get_mondrian_stratum(82.0, 50.0) == "upstream_dry"
+    assert get_mondrian_stratum(82.0, 180.0) == "upstream_monsoon"
+    assert get_mondrian_stratum(30.0, 50.0) == "mouth_dry"
+    assert get_mondrian_stratum(30.0, 180.0) == "mouth_monsoon"
+
+    # Synthetic calibration test across strata
+    np.random.seed(42)
+    n = 100
+    x_km = np.random.choice([25.0, 55.0, 82.0], size=n)
+    t_days = np.random.uniform(0.0, 240.0, size=n)
+    y_true = np.random.uniform(1.0, 15.0, size=n)
+    y_pred = y_true + np.random.normal(0.0, 1.0, size=n)
+    y_std = np.abs(np.random.normal(1.0, 0.2, size=n)) + 0.1
+
+    strata_res = compute_mondrian_conformal_factors(x_km, t_days, y_true, y_pred, y_std, nominal_coverage=0.90)
+
+    assert len(strata_res) == 4
+    for s_name, info in strata_res.items():
+        assert "q_factor" in info
+        assert "empirical_coverage" in info
+        assert info["q_factor"] >= 1.0
+

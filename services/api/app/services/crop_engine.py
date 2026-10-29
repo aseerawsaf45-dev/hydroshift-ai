@@ -23,6 +23,8 @@ class CropEvaluationInput:
     irrigation_source: str
     advisory: str
     soil_ec_std: float = 0.5
+    conformal_q: float = 1.96
+    stratum: Optional[str] = None
 
 @dataclass
 class CropEvaluationResult:
@@ -149,8 +151,9 @@ class AgronomicEngine:
 
         # Epistemic Uncertainty & 95% Confidence Interval Assessment
         std = getattr(inp, "soil_ec_std", 0.5)
-        eff_ec_low = max(0.5, round(eff_ec - 1.96 * std, 2))
-        eff_ec_high = round(eff_ec + 1.96 * std, 2)
+        q_conf = getattr(inp, "conformal_q", 1.96)
+        eff_ec_low = max(0.5, round(eff_ec - q_conf * std, 2))
+        eff_ec_high = round(eff_ec + q_conf * std, 2)
         worst_case_loss = cls.calculate_maas_hoffman_yield_loss(eff_ec_high, inp.threshold_ec, inp.slope_b)
 
         if worst_case_loss >= 65.0 or (inp.canal_ec > 6.0 and inp.water_req_mm > 500.0):

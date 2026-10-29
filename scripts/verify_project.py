@@ -74,6 +74,11 @@ def verify_benchmark_report():
         print(f"  * Direct Field/Lab Measurements (N={d_lab.get('sample_count', 48)}): MAE = {d_lab.get('mae')} dS/m, R2 = {d_lab.get('r2')}")
         print(f"  * Harmonic Spline Pseudo-Obs (N={h_spl.get('sample_count', 1392)}): MAE = {h_spl.get('mae')} dS/m, R2 = {h_spl.get('r2')}")
     print(f"- Conformal Calibration Factor: q95 = {unc.get('conformal_calibration_factor_q95')} | Calibrated Coverage: {unc.get('calibrated_coverage_95') * 100}%")
+    mondrian = unc.get("mondrian_strata", {})
+    if mondrian:
+        print(f"- Phase 6 Mondrian (Group-Conditional) Conformal Strata:")
+        for s_name, s_info in mondrian.items():
+            print(f"  * {s_name:<18}: q = {s_info.get('calibrated_q_factor'):>4.2f} | Cov = {s_info.get('test_coverage_95')*100:>5.1f}% | CI Width = {s_info.get('mean_ci_width_dsm'):>5.1f} dS/m")
     print("[PASS] Benchmark report verified and traceable to saved outputs.")
     return True
 

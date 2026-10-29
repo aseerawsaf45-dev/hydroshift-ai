@@ -164,7 +164,11 @@ def run_benchmarks(data_path: str = DATA_CSV):
     # 3. ENSEMBLE UNCERTAINTY & CONFORMAL CALIBRATION (5 Random Seeds)
     # =========================================================================
     print("\n--- 3. Training PINN Ensemble for Uncertainty Quantification (K=5) ---")
-    from ml.evaluation.uncertainty import compute_conformal_calibration_factor
+    from ml.evaluation.uncertainty import (
+        compute_conformal_calibration_factor,
+        compute_mondrian_conformal_factors,
+        get_mondrian_stratum
+    )
     
     # Split historical training into pure training (75%) and calibration set (25%)
     split_cal = int(len(tr_chrono) * 0.75)
@@ -187,6 +191,16 @@ def run_benchmarks(data_path: str = DATA_CSV):
         q_cal_90 = compute_conformal_calibration_factor(cal_pure.ec_dsm.values, cal_mu, cal_std, nominal_coverage=0.90)
         q_cal_95 = compute_conformal_calibration_factor(cal_pure.ec_dsm.values, cal_mu, cal_std, nominal_coverage=0.95)
         
+        # Phase 6: Locally-Adaptive (Mondrian) Conformal Multipliers by Stratum
+        mondrian_cal = compute_mondrian_conformal_factors(
+            x_km=cal_pure.x_km.values,
+            t_days=cal_pure.t_days.values,
+            y_true=cal_pure.ec_dsm.values,
+            y_pred_mean=cal_mu,
+            y_pred_std=cal_std,
+            nominal_coverage=0.95
+        )
+        
     ensemble.set_calibration_factor(q_cal_90)
 
     # Evaluate on unseen future test set (te_chrono)
@@ -203,6 +217,26 @@ def run_benchmarks(data_path: str = DATA_CSV):
     conformal_cov_95 = compute_calibration_score(te_chrono.ec_dsm.values, mean_pred, std_pred, q_multiplier=q_cal_95)
     mean_ci_width = float(np.mean(ci_high - ci_low))
 
+    # Evaluate group-conditional coverage on test set across physical strata
+    te_strata = np.array([get_mondrian_stratum(x, t) for x, t in zip(te_chrono.x_km, te_chrono.t_days)])
+    mondrian_test_results = {}
+    for s_name, s_info in mondrian_cal.items():
+        mask = (te_strata == s_name)
+        if np.sum(mask) > 0:
+            q_k = s_info["q_factor"]
+            cov_k = compute_calibration_score(
+                te_chrono.ec_dsm.values[mask],
+                mean_pred[mask],
+                std_pred[mask],
+                q_multiplier=q_k
+            )
+            mondrian_test_results[s_name] = {
+                "test_samples": int(np.sum(mask)),
+                "calibrated_q_factor": q_k,
+                "test_coverage_95": round(cov_k, 3),
+                "mean_ci_width_dsm": s_info["mean_interval_width_dsm"]
+            }
+
     results["ensemble_uncertainty"] = {
         "ensemble_size": len(seeds),
         "uncalibrated_gaussian_cov_95": round(uncal_cov_95, 3),
@@ -212,7 +246,8 @@ def run_benchmarks(data_path: str = DATA_CSV):
         "calibrated_coverage_95": round(conformal_cov_95, 3),
         "mean_ci_width_dsm": round(mean_ci_width, 2),
         "mean_epistemic_std_dsm": round(float(np.mean(std_pred)), 2),
-        "risk_bound_type": "One-sided 95th-percentile (mu + 1.645*std)"
+        "risk_bound_type": "One-sided 95th-percentile (mu + 1.645*std)",
+        "mondrian_strata": mondrian_test_results
     }
 
     # =========================================================================

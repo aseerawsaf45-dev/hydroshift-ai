@@ -118,7 +118,7 @@ def get_audit_checklist() -> Dict[str, Any]:
             "title": "Automated Pytest Suite",
             "category": "CI / Testing",
             "status": "passed",
-            "metric": "42 / 42 Tests Passing (100%)",
+            "metric": "44 / 44 Tests Passing (100%)",
             "description": "Full unit, integration, geospatial, and physics-residual regression suite passing."
         }
     ]

@@ -56,3 +56,53 @@ def test_evaluate_crop_season():
     result = AgronomicEngine.evaluate_crop_season(inp)
     assert result.feasibility_status == "OPTIMAL"
     assert result.net_profit_bdt_per_ha > 0
+
+
+def test_evaluate_crop_season_with_conformal_q():
+    """Verify that group-conditional conformal_q modulates worst-case confidence bounds."""
+    # Under tight upstream monsoon bounds (q=1.2)
+    inp_tight = CropEvaluationInput(
+        crop_name="Sunflower",
+        variety="Hysun 33",
+        season_name="Rabi",
+        duration_days=110,
+        water_req_mm=350.0,
+        threshold_ec=4.8,
+        slope_b=5.5,
+        potential_yield_ton=2.5,
+        market_price_per_kg=65.0,
+        production_cost_ha=45000.0,
+        soil_ec=4.5,
+        canal_ec=1.5,
+        irrigation_source="Canal",
+        advisory="Low salinity regime",
+        soil_ec_std=0.4,
+        conformal_q=1.2
+    )
+    res_tight = AgronomicEngine.evaluate_crop_season(inp_tight)
+
+    # Under wide estuarine dry season bounds (q=3.5)
+    inp_wide = CropEvaluationInput(
+        crop_name="Sunflower",
+        variety="Hysun 33",
+        season_name="Rabi",
+        duration_days=110,
+        water_req_mm=350.0,
+        threshold_ec=4.8,
+        slope_b=5.5,
+        potential_yield_ton=2.5,
+        market_price_per_kg=65.0,
+        production_cost_ha=45000.0,
+        soil_ec=4.5,
+        canal_ec=1.5,
+        irrigation_source="Canal",
+        advisory="Estuarine boundary regime",
+        soil_ec_std=0.4,
+        conformal_q=3.5
+    )
+    res_wide = AgronomicEngine.evaluate_crop_season(inp_wide)
+
+    # Worst-case EC bound and yield loss must be higher under wider seaward conformal intervals
+    assert res_wide.confidence_interval_ec[1] > res_tight.confidence_interval_ec[1]
+    assert res_wide.worst_case_yield_loss_pct >= res_tight.worst_case_yield_loss_pct
+

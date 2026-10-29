@@ -81,7 +81,21 @@
     "calibrated_coverage_95": 0.903,
     "mean_ci_width_dsm": 73.61,
     "mean_epistemic_std_dsm": 11.21,
-    "risk_bound_type": "One-sided 95th-percentile (mu + 1.645*std)"
+    "risk_bound_type": "One-sided 95th-percentile (mu + 1.645*std)",
+    "mondrian_strata": {
+      "upstream_monsoon": {
+        "test_samples": 96,
+        "calibrated_q_factor": 1.0,
+        "test_coverage_95": 0.75,
+        "mean_ci_width_dsm": 22.87
+      },
+      "mouth_monsoon": {
+        "test_samples": 192,
+        "calibrated_q_factor": 8.66,
+        "test_coverage_95": 0.964,
+        "mean_ci_width_dsm": 98.18
+      }
+    }
   },
   "provenance_segregation": {
     "direct_measurements_only": {
