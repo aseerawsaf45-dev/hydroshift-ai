@@ -64,7 +64,7 @@ class FourierPINN(nn.Module):
     PDE (km, day units): u_t + v*u_x - D*u_xx = 0
     """
     def __init__(self, L_km: float = 82.0, T_days: float = 250.0, u_max: float = 45.0, hidden: int = 128,
-                 depth: int = 4, n_fourier: int = 64, sigma_x: float = 2.0, sigma_t: float = 2.0, cond_dim: int = 0):
+                 depth: int = 4, n_fourier: int = 64, sigma_x: float = 0.5, sigma_t: float = 2.0, cond_dim: int = 0):
         super().__init__()
         import math
         self.L, self.T, self.u_max, self.cond_dim = L_km, T_days, u_max, cond_dim

@@ -51,9 +51,16 @@ def train_fourier_pinn(tr_df: pd.DataFrame, epochs: int = 250, seed: int = 42, L
         cb = ct[torch.randint(0, len(ct), (128,))] if cond_dim else None
         l_bc = ((model(xb, tb, cb) - ut.max()) ** 2).mean()
 
-        # Balanced regularizer: gradual ramp-up with calibrated lambda_pde
+        # Spatial Total Variation Diminishing (TVD) and seaward monotonicity regularizers
+        xc_line = xc.clone().requires_grad_(True)
+        uc_line = model(xc_line, tc, cc)
+        du_dx = torch.autograd.grad(uc_line, xc_line, torch.ones_like(uc_line), create_graph=True)[0]
+        l_tvd = torch.mean(torch.abs(du_dx))
+        l_mono = torch.mean(torch.relu(du_dx) ** 2)
+
+        # Balanced regularizer: gradual ramp-up with calibrated physics and spatial smoothness
         warm = min(1.0, ep / (0.3 * epochs))
-        loss = l_data + warm * 0.005 * l_pde + 0.02 * l_bc
+        loss = l_data + warm * 0.005 * l_pde + 0.02 * l_bc + 0.01 * l_tvd + 0.05 * l_mono
         loss.backward()
         optimizer.step()
 
