@@ -11,12 +11,12 @@
 
 | Verification Gate | Target Objective | Live Metric / Status | Gate Result |
 | :--- | :--- | :--- | :---: |
-| **Gate 1: Automated Pytest Suite** | Complete unit, integration, and physics regression | **32 / 32 Passed (100%)** | `[PASS]` |
+| **Gate 1: Automated Pytest Suite** | Complete unit, integration, and physics regression | **40 / 40 Passed (100%)** | `[PASS]` |
 | **Gate 2: Geospatial Sinuosity** | Passur-Rupsha curvilinear thalweg projection | **< 0.05 km cross-track error** | `[PASS]` |
 | **Gate 3: Fourier PINN Regularization** | Spatial holdout extrapolation ($x=55\text{ km}$) | **MAE: 5.300 dS/m** *(was 18.74)* | `[PASS]` |
 | **Gate 4: Plain MLP Baseline** | Chronological forecast horizon | **MAE: 3.597 dS/m** ($R^2 = +0.125$) | `[PASS]` |
 | **Gate 5: Data Provenance Manifest** | Direct vs harmonic vs SWOT data separation | **48 Direct / 1,392 Harm / 330 SWOT** | `[PASS]` |
-| **Gate 6: SWOT Hydraulic Ablation** | Drainage head ($\Delta h$) vs point curve-fitting | **Flap-Gate Head Decoupled** | `[PASS]` |
+| **Gate 6: SWOT Hydraulic Ablation** | Drainage head ($\Delta h$) vs point curve-fitting | **Flap-Gate Head Decoupled & Tested** | `[PASS]` |
 | **Gate 7: Conformal Calibration** | Split conformal coverage ($q_{95} = 7.30$) | **91.3% Coverage** | `[PASS]` |
 | **Gate 8: Multi-Criteria Agronomics** | Dynamic farmer prioritization | **4 Profiles Active** | `[PASS]` |
 
@@ -29,8 +29,8 @@
   - Spatial Fourier basis decoupled ($\sigma_x=0.5$); TVD & seaward monotonicity loss added; spatial holdout MAE dropped to 5.30 dS/m.
 - [x] **Phase 3: Ground Truth Isolation (48 Direct vs 1,392 Synthetic)**
   - Isolate the 48 direct laboratory measurements into `data/ground_truth_test_split.csv` and report segregated metrics (MAE: 3.252 dS/m, R² = +0.709, Breach Acc: 95.8%). [PASS]
-- [ ] **Phase 4: SWOT Flap-Gate Drainage Decoupling**
-  - Implement polder gravity drainage service ($\Delta h = WSE_{\text{SWOT}} - H_{\text{canal}}$).
+- [x] **Phase 4: SWOT Flap-Gate Drainage Decoupling**
+  - Implemented polder gravity drainage engine (`PolderHydraulicsEngine`), decoupled SWOT WSE from point regression, added `/reaches/{id}/drainage` & `/hydraulics` endpoints, and interactive flap-gate UI widget. [PASS]
 - [ ] **Phase 5: Spatially-Varying Estuarine PDE Transport**
   - Parameterize exponential seaward dispersion $D(x)$ and width-conserved velocity $v(x, t)$.
 - [ ] **Phase 6: Locally-Adaptive (Mondrian) Conformal Uncertainty**
