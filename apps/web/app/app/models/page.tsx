@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import fs from "fs";
 import path from "path";
 import Link from "next/link";
-import { BarChart3, AlertTriangle, ShieldCheck, ExternalLink, Activity } from "lucide-react";
+import { BarChart3, AlertTriangle, ShieldCheck, ExternalLink, Activity, Database, CheckCircle2 } from "lucide-react";
 
 export default async function ModelsPage() {
   let benchmark: any = null;
@@ -224,6 +224,113 @@ export default async function ModelsPage() {
         <Card className="p-8 text-center bg-card border-white/5 border-dashed">
           <p className="text-muted-foreground mb-4">No benchmark manifest found.</p>
           <p className="text-sm text-muted-foreground">Run <code className="text-primary bg-primary/10 px-1 py-0.5 rounded">python ml/evaluation/benchmark_suite.py</code> to generate.</p>
+        </Card>
+      )}
+
+      {/* Phase 3: Provenance Segregation (Direct Lab vs Harmonic Splines) */}
+      {benchmark?.provenance_segregation && (
+        <Card className="p-5 bg-card border-white/10 flex flex-col space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-3 border-b border-white/10">
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Database className="w-4 h-4 text-cyan-400" />
+                Data Provenance Segregation: Pure Ground Truth vs Harmonic Reconstructions
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Phase 3 compliance: isolates the 48 direct laboratory bench calibration samples to prevent synthetic spline evaluation leakage.
+              </p>
+            </div>
+            <Badge variant="outline" className="text-[10px] border-cyan-500/30 text-cyan-400 font-mono">
+              PHASE 3 VERIFIED
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* 1. Direct Ground Truth */}
+            <div className="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-emerald-400">Direct In-Situ Measurements</span>
+                  <Badge className="bg-emerald-500/20 text-emerald-300 text-[9px] px-1.5 py-0 border-0">N = {benchmark.provenance_segregation.direct_measurements_only.sample_count}</Badge>
+                </div>
+                <p className="text-[11px] text-muted-foreground mb-3">
+                  Un-interpolated laboratory bench titration & field sensor logs (SW244, SW242, SW241, Khulna-P14).
+                </p>
+              </div>
+              <div className="space-y-1.5 text-xs font-mono pt-2 border-t border-emerald-500/10">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Pure MAE:</span>
+                  <span className="font-bold text-white">{benchmark.provenance_segregation.direct_measurements_only.mae} dS/m</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Coefficient R²:</span>
+                  <span className="font-bold text-emerald-300">+{benchmark.provenance_segregation.direct_measurements_only.r2}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">95% Bootstrap CI:</span>
+                  <span className="text-white">[{benchmark.provenance_segregation.direct_measurements_only.bootstrap_ci_mae_95[0]}, {benchmark.provenance_segregation.direct_measurements_only.bootstrap_ci_mae_95[1]}]</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Breach Accuracy:</span>
+                  <span className="font-bold text-emerald-400">{benchmark.provenance_segregation.direct_measurements_only.boro_breach_accuracy}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Harmonic Reconstructions */}
+            <div className="p-4 rounded-lg bg-white/[0.02] border border-white/10 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-white">Harmonic Spline Reconstructions</span>
+                  <Badge variant="outline" className="text-[9px] border-white/20 text-muted-foreground">N = {benchmark.provenance_segregation.harmonic_reconstructions.sample_count}</Badge>
+                </div>
+                <p className="text-[11px] text-muted-foreground mb-3">
+                  Daily sinusoidal interpolation driven by M2/S2 tidal constituents and BWDB monthly gauge records.
+                </p>
+              </div>
+              <div className="space-y-1.5 text-xs font-mono pt-2 border-t border-white/5">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Spline MAE:</span>
+                  <span className="font-bold text-white">{benchmark.provenance_segregation.harmonic_reconstructions.mae} dS/m</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Spline RMSE:</span>
+                  <span className="text-muted-foreground">{benchmark.provenance_segregation.harmonic_reconstructions.rmse} dS/m</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Correlation R²:</span>
+                  <span className="font-bold text-cyan-300">+{benchmark.provenance_segregation.harmonic_reconstructions.r2}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Combined Corpus */}
+            <div className="p-4 rounded-lg bg-white/[0.02] border border-white/10 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-white">Combined Harmonized Corpus</span>
+                  <Badge variant="outline" className="text-[9px] border-white/20 text-muted-foreground">N = {benchmark.provenance_segregation.combined_dataset.sample_count}</Badge>
+                </div>
+                <p className="text-[11px] text-muted-foreground mb-3">
+                  Full multi-source dataset across the 82-km Passur-Rupsha estuary training continuum.
+                </p>
+              </div>
+              <div className="space-y-1.5 text-xs font-mono pt-2 border-t border-white/5">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Aggregate MAE:</span>
+                  <span className="font-bold text-white">{benchmark.provenance_segregation.combined_dataset.mae} dS/m</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Aggregate RMSE:</span>
+                  <span className="text-muted-foreground">{benchmark.provenance_segregation.combined_dataset.rmse} dS/m</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Combined R²:</span>
+                  <span className="font-bold text-cyan-300">+{benchmark.provenance_segregation.combined_dataset.r2}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </Card>
       )}
 

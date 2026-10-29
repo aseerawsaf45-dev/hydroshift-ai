@@ -215,6 +215,62 @@ def run_benchmarks(data_path: str = DATA_CSV):
         "risk_bound_type": "One-sided 95th-percentile (mu + 1.645*std)"
     }
 
+    # =========================================================================
+    # 4. SEGREGATED PROVENANCE EVALUATION (48 Direct Lab vs 1,392 Harmonic)
+    # =========================================================================
+    print("\n--- 4. Evaluating Segregated Provenance (48 Direct vs 1,392 Harmonic) ---")
+    direct_mask = df["is_direct"].values if "is_direct" in df.columns else np.zeros(len(df), dtype=bool)
+
+    with torch.no_grad():
+        all_mlp_preds = plain_mlp.predict_ec(to_tensor(df.x_km), to_tensor(df.t_days)).squeeze().numpy()
+
+    y_true_all = df.ec_dsm.values
+    y_true_dir = y_true_all[direct_mask]
+    y_pred_dir = all_mlp_preds[direct_mask]
+    y_true_harm = y_true_all[~direct_mask]
+    y_pred_harm = all_mlp_preds[~direct_mask]
+
+    m_all = evaluate_metrics(y_true_all, all_mlp_preds)
+    m_dir = evaluate_metrics(y_true_dir, y_pred_dir)
+    m_harm = evaluate_metrics(y_true_harm, y_pred_harm)
+
+    # Compute 95% bootstrap CI on direct measurement MAE
+    np.random.seed(42)
+    dir_errors = np.abs(y_true_dir - y_pred_dir)
+    boot_means = [np.mean(np.random.choice(dir_errors, size=len(dir_errors), replace=True)) for _ in range(1000)]
+    ci_low = float(np.percentile(boot_means, 2.5))
+    ci_high = float(np.percentile(boot_means, 97.5))
+
+    # Calculate high-salinity breach accuracy on pure ground truth (threshold >= 4.0 dS/m)
+    dir_breach_true = (y_true_dir >= 4.0)
+    dir_breach_pred = (y_pred_dir >= 4.0)
+    dir_breach_acc = float(np.mean(dir_breach_true == dir_breach_pred))
+    dir_fn_rate = float(np.sum(dir_breach_true & ~dir_breach_pred) / max(1, np.sum(dir_breach_true)))
+
+    results["provenance_segregation"] = {
+        "direct_measurements_only": {
+            "sample_count": int(np.sum(direct_mask)),
+            "mae": round(m_dir["mae"], 3),
+            "rmse": round(m_dir["rmse"], 3),
+            "r2": round(m_dir["r2"], 3),
+            "bootstrap_ci_mae_95": [round(ci_low, 3), round(ci_high, 3)],
+            "boro_breach_accuracy": round(dir_breach_acc * 100.0, 1),
+            "boro_false_negative_rate": round(dir_fn_rate * 100.0, 1)
+        },
+        "harmonic_reconstructions": {
+            "sample_count": int(np.sum(~direct_mask)),
+            "mae": round(m_harm["mae"], 3),
+            "rmse": round(m_harm["rmse"], 3),
+            "r2": round(m_harm["r2"], 3)
+        },
+        "combined_dataset": {
+            "sample_count": len(df),
+            "mae": round(m_all["mae"], 3),
+            "rmse": round(m_all["rmse"], 3),
+            "r2": round(m_all["r2"], 3)
+        }
+    }
+
     # Save to JSON
     os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
     with open(OUT_JSON, "w") as f:
@@ -247,6 +303,18 @@ def run_benchmarks(data_path: str = DATA_CSV):
     print(f"Conformalized 90% Coverage: {results['ensemble_uncertainty']['calibrated_coverage_90'] * 100:.1f}% (q_multiplier: {results['ensemble_uncertainty']['conformal_calibration_factor_q90']})")
     print(f"Conformalized 95% Coverage: {results['ensemble_uncertainty']['calibrated_coverage_95'] * 100:.1f}% (q_multiplier: {results['ensemble_uncertainty']['conformal_calibration_factor_q95']})")
     print(f"Average Calibrated Interval Width: {results['ensemble_uncertainty']['mean_ci_width_dsm']} dS/m")
+
+    prov = results.get("provenance_segregation", {})
+    if prov:
+        print("\n[PROVENANCE SEGREGATION - Direct Ground Truth vs Harmonic Splines]")
+        print(f"{'Data Subset':<28} | {'N':<6} | {'MAE (dS/m)':<12} | {'RMSE (dS/m)':<12} | {'R2':<8}")
+        print("-" * 80)
+        for sub_name, sm in prov.items():
+            print(f"{sub_name:<28} | {sm['sample_count']:<6} | {sm['mae']:<12.3f} | {sm['rmse']:<12.3f} | {sm['r2']:<8.3f}")
+        dir_m = prov.get("direct_measurements_only", {})
+        print(f"-> Direct Measurements 95% Bootstrap CI for MAE: {dir_m.get('bootstrap_ci_mae_95')} dS/m")
+        print(f"-> Direct Measurements High-Salinity Breach Accuracy: {dir_m.get('boro_breach_accuracy')}% (FN Rate: {dir_m.get('boro_false_negative_rate')}%)")
+
     print("="*80 + "\n")
 
     return results

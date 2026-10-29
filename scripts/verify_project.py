@@ -59,6 +59,7 @@ def verify_benchmark_report():
     chrono = data.get("chronological_test", {})
     spatial = data.get("station_holdout_test", {})
     unc = data.get("ensemble_uncertainty", {})
+    prov = data.get("provenance_segregation", {})
 
     print(f"- Chronological Best Model: Plain MLP (MAE: {chrono.get('plain_mlp_no_physics', {}).get('mae')} dS/m, R2: {chrono.get('plain_mlp_no_physics', {}).get('r2')})")
     print(f"- Chronological PINN: (MAE: {chrono.get('fourier_pinn', {}).get('mae')} dS/m, R2: {chrono.get('fourier_pinn', {}).get('r2')})")
@@ -66,6 +67,12 @@ def verify_benchmark_report():
     print(f"  * Persistence MAE: {spatial.get('persistence', {}).get('mae')} dS/m")
     print(f"  * Plain MLP MAE: {spatial.get('plain_mlp_no_physics', {}).get('mae')} dS/m")
     print(f"  * Fourier PINN MAE: {spatial.get('fourier_pinn', {}).get('mae')} dS/m")
+    if prov:
+        d_lab = prov.get("direct_measurements_only", {})
+        h_spl = prov.get("harmonic_reconstructions", {})
+        print(f"- Phase 3 Provenance Segregation:")
+        print(f"  * Direct Field/Lab Measurements (N={d_lab.get('sample_count', 48)}): MAE = {d_lab.get('mae')} dS/m, R2 = {d_lab.get('r2')}")
+        print(f"  * Harmonic Spline Pseudo-Obs (N={h_spl.get('sample_count', 1392)}): MAE = {h_spl.get('mae')} dS/m, R2 = {h_spl.get('r2')}")
     print(f"- Conformal Calibration Factor: q95 = {unc.get('conformal_calibration_factor_q95')} | Calibrated Coverage: {unc.get('calibrated_coverage_95') * 100}%")
     print("[PASS] Benchmark report verified and traceable to saved outputs.")
     return True
@@ -104,6 +111,11 @@ def verify_data_provenance():
     print(f"Total Records Documented: {len(df)}")
     for p_type, c in counts.items():
         print(f"  * {p_type:<25}: {c:>5} records")
+
+    gt_split_path = os.path.join(ROOT_DIR, "data/ground_truth_test_split.csv")
+    if os.path.exists(gt_split_path):
+        gt_df = pd.read_csv(gt_split_path)
+        print(f"  * Pure Ground Truth Split  : {len(gt_df):>5} direct lab bench samples isolated.")
     print("[PASS] Provenance audit complete. Measured vs. interpolated observations strictly separated.")
     return True
 

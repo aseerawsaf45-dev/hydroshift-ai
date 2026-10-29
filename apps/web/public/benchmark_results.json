@@ -82,5 +82,31 @@
     "mean_ci_width_dsm": 72.9,
     "mean_epistemic_std_dsm": 11.49,
     "risk_bound_type": "One-sided 95th-percentile (mu + 1.645*std)"
+  },
+  "provenance_segregation": {
+    "direct_measurements_only": {
+      "sample_count": 48,
+      "mae": 3.252,
+      "rmse": 4.343,
+      "r2": 0.709,
+      "bootstrap_ci_mae_95": [
+        2.437,
+        4.113
+      ],
+      "boro_breach_accuracy": 95.8,
+      "boro_false_negative_rate": 2.4
+    },
+    "harmonic_reconstructions": {
+      "sample_count": 1392,
+      "mae": 2.623,
+      "rmse": 3.331,
+      "r2": 0.862
+    },
+    "combined_dataset": {
+      "sample_count": 1440,
+      "mae": 2.644,
+      "rmse": 3.37,
+      "r2": 0.858
+    }
   }
 }

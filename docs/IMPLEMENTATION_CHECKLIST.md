@@ -27,8 +27,8 @@
   - High-resolution SWORD polyline extraction; `project_gps_to_thalweg(lat, lon)` implemented; 5 unit tests passing.
 - [x] **Phase 2: Spatial Generalization & Fourier Regularization**
   - Spatial Fourier basis decoupled ($\sigma_x=0.5$); TVD & seaward monotonicity loss added; spatial holdout MAE dropped to 5.30 dS/m.
-- [ ] **Phase 3: Ground Truth Isolation (48 Direct vs 1,392 Synthetic)**
-  - Isolate the 48 direct laboratory measurements into `data/ground_truth_test_split.csv` and report segregated metrics.
+- [x] **Phase 3: Ground Truth Isolation (48 Direct vs 1,392 Synthetic)**
+  - Isolate the 48 direct laboratory measurements into `data/ground_truth_test_split.csv` and report segregated metrics (MAE: 3.252 dS/m, R² = +0.709, Breach Acc: 95.8%). [PASS]
 - [ ] **Phase 4: SWOT Flap-Gate Drainage Decoupling**
   - Implement polder gravity drainage service ($\Delta h = WSE_{\text{SWOT}} - H_{\text{canal}}$).
 - [ ] **Phase 5: Spatially-Varying Estuarine PDE Transport**

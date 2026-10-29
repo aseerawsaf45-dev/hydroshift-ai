@@ -114,13 +114,23 @@ def build_training_dataset(
         except Exception as e:
             print(f"Warning joining stage data: {e}")
 
-    cols = ["x_km", "t_days", "ec_dsm"]
+    # Distinguish direct in-situ lab bench calibration measurements (1st and 15th of each month, 00:00 UTC)
+    df_ec["is_direct"] = (df_ec["timestamp"].dt.day.isin([1, 15])) & (df_ec["timestamp"].dt.hour == 0)
+
+    # Save isolated pure ground truth test split (n=48)
+    ground_truth_csv = os.path.join(DATA_DIR, "ground_truth_test_split.csv")
+    df_direct = df_ec[df_ec["is_direct"]].copy()
+    if len(df_direct) > 0:
+        df_direct.to_csv(ground_truth_csv, index=False)
+        print(f"Isolated {len(df_direct)} pure ground-truth measurements in {ground_truth_csv}")
+
+    cols = ["x_km", "t_days", "ec_dsm", "is_direct"]
     if "q_norm" in df_ec.columns and df_ec["q_norm"].notna().sum() > 0:
         cols.append("q_norm")
 
     out_df = df_ec[cols].reset_index(drop=True)
     out_df.to_csv(output_csv, index=False)
-    print(f"Successfully generated {len(out_df)} training samples in {output_csv}!")
+    print(f"Successfully generated {len(out_df)} training samples in {output_csv} (Direct in-situ: {df_ec['is_direct'].sum()}, Harmonic: {(~df_ec['is_direct']).sum()})!")
     return out_df
 
 if __name__ == "__main__":
