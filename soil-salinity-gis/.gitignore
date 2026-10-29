@@ -1,0 +1,4 @@
+# Ignore large uncompressed 600 DPI publication TIFF files (>100MB)
+output/*.tiff
+.venv/
+__pycache__/
