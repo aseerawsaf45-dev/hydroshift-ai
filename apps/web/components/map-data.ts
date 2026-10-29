@@ -166,6 +166,12 @@ export interface MapWrapperProps {
   onToggleUnit?: () => void;
   compactLegend?: boolean;
   standaloneTitle?: string;
+  rasterOpacity?: number;
+  onOpacityChange?: (val: number) => void;
+  showRasterOverlay?: boolean;
+  onToggleRasterOverlay?: () => void;
+  studyArea?: "delta_publication" | "khulna_basin" | "all";
+  onSelectStudyArea?: (area: "delta_publication" | "khulna_basin" | "all") => void;
 }
 
 // -------------------------------------------------------------
@@ -618,6 +624,14 @@ export const KHULNA_DISTRICT_BOUNDS: [[number, number], [number, number]] = [
 
 export const KHULNA_DISTRICT_CENTER: [number, number] = [22.68, 89.48];
 
+// Canonical bounds for the Peer-Reviewed Coastal Delta Study Graphic (media_1793251878374.png)
+export const PUBLICATION_STUDY_BOUNDS: [[number, number], [number, number]] = [
+  [21.40, 89.90], // Southwest maritime bound (Bay of Bengal / Kuakata outer shelf)
+  [23.55, 90.95], // Northeast alluvial bound (Munshiganj / Meghna confluence)
+];
+
+export const PUBLICATION_STUDY_CENTER: [number, number] = [22.45, 90.45];
+
 export const RISK_TIERS_CONFIG: {
   tier: RiskTier;
   color: string;
@@ -992,6 +1006,455 @@ export const KHULNA_UPAZILA_REGIONS: KhulnaRegion[] = [
     drinkingSafety: "PRISTINE: Both shallow and deep groundwater completely fresh (<0.5 ppt). Ideal for intensive year-round irrigation and direct consumption.",
     hydrogeologySummary: "Upper deltaic alluvial plain. Direct fluvial recharge from Bhairab and Gorai distributaries maintains fresh hydraulic barrier.",
   },
+];
+
+// -------------------------------------------------------------
+// 8b. COASTAL DELTA UPAZILAS (EXACT 15 UPAZILAS FROM PUBLICATION FIG 1)
+// Munshiganj, Shariatpur, Chandpur, Haimchar, Raipur, Lakshmipur,
+// Wazirpur, Barishal, Bhola, Charfasson, Mirzaganj, Patuakhali, Barguna, Amtali, Kalapara
+// -------------------------------------------------------------
+export const COASTAL_DELTA_UPAZILAS: KhulnaRegion[] = [
+  {
+    id: "munshiganj",
+    name: "Munshiganj",
+    bengaliName: "মুন্সীগঞ্জ",
+    riskTier: "Very Low",
+    color: "#15803d",
+    fillColor: "#15803d",
+    avgEc: 0.16,
+    soilEc: 0.2,
+    areaKm2: 240.5,
+    population: 380000,
+    polders: ["Dhaleshwari Polder", "Padma Floodplain Embankment"],
+    intakeRisk: "Pristine freshwater river reach south of Dhaka. Salinity consistently <0.15 ppt.",
+    boroVulnerability: "Negligible. High-yield Boro rice zone irrigated safely from surface water.",
+    sluiceAdvisory: "Unrestricted gravity sluice intake year-round.",
+    recommendedCrops: ["BRRI dhan29", "Potato (Diamant)", "Mustard", "Vegetables"],
+    associatedStationIds: ["munshiganj-sw"],
+    bounds: [[23.38, 90.40], [23.55, 90.62]],
+    center: [23.48, 90.50],
+    coordinates: [
+      [23.55, 90.42], [23.55, 90.60], [23.40, 90.62], [23.38, 90.45], [23.44, 90.38], [23.55, 90.42]
+    ],
+    riverSalinityPpt: 0.10,
+    shallowGwSalinityPpt: 0.20,
+    deepGwSalinityPpt: 0.85,
+    aquiferDepthM: "Shallow: 15-45m | Deep: 140-200m",
+    drinkingSafety: "SAFE / POTABLE: Both surface river and groundwater pristine (<0.3 ppt).",
+    hydrogeologySummary: "Upper deltaic Ganges-Meghna confluence with continuous upstream freshwater flush."
+  },
+  {
+    id: "shariatpur",
+    name: "Shariatpur",
+    bengaliName: "শরীয়তপুর",
+    riskTier: "Very Low",
+    color: "#15803d",
+    fillColor: "#15803d",
+    avgEc: 0.17,
+    soilEc: 0.3,
+    areaKm2: 1180.0,
+    population: 1150000,
+    polders: ["Kirtinasha Polder", "Palong Embankment"],
+    intakeRisk: "Directly flushed by Padma river mainstem. Low salinity (<0.12 ppt).",
+    boroVulnerability: "Minimal salinity risk; seasonal river erosion rather than salinity is the primary water challenge.",
+    sluiceAdvisory: "Open drainage and intake channels for Boro cultivation.",
+    recommendedCrops: ["BRRI dhan28 / 29", "Jute", "Lentils", "Wheat"],
+    associatedStationIds: ["shariatpur-sw"],
+    bounds: [[23.10, 90.20], [23.40, 90.60]],
+    center: [23.24, 90.35],
+    coordinates: [
+      [23.38, 90.45], [23.40, 90.60], [23.24, 90.58], [23.10, 90.42], [23.15, 90.22], [23.32, 90.25], [23.38, 90.45]
+    ],
+    riverSalinityPpt: 0.11,
+    shallowGwSalinityPpt: 0.35,
+    deepGwSalinityPpt: 0.70,
+    aquiferDepthM: "Shallow: 20-50m | Deep: 160-220m",
+    drinkingSafety: "EXCELLENT: Distinct deep groundwater freshwater lens (<0.7 ppt).",
+    hydrogeologySummary: "Padma floodplain sands with strong vertical recharge protecting deeper Pleistocene layers."
+  },
+  {
+    id: "chandpur",
+    name: "Chandpur",
+    bengaliName: "চাঁদপুর",
+    riskTier: "Very Low",
+    color: "#15803d",
+    fillColor: "#15803d",
+    avgEc: 0.18,
+    soilEc: 0.3,
+    areaKm2: 430.0,
+    population: 460000,
+    polders: ["Chandpur Irrigation Project (CIP) Polder"],
+    intakeRisk: "Padma-Meghna confluence. High volume freshwater discharge prevents marine ingress.",
+    boroVulnerability: "Very low; premier freshwater Hilsha estuary and major irrigation scheme.",
+    sluiceAdvisory: "Chandpur Irrigation Project (CIP) pumping station operates continuously.",
+    recommendedCrops: ["High-yield Boro (BRRI dhan29)", "Soybean", "Maize", "Chili"],
+    associatedStationIds: ["chandpur-gw"],
+    bounds: [[23.15, 90.55], [23.35, 90.78]],
+    center: [23.23, 90.66],
+    coordinates: [
+      [23.35, 90.62], [23.32, 90.75], [23.18, 90.78], [23.16, 90.60], [23.25, 90.58], [23.35, 90.62]
+    ],
+    riverSalinityPpt: 0.11,
+    shallowGwSalinityPpt: 0.25,
+    deepGwSalinityPpt: 1.10,
+    aquiferDepthM: "Shallow: 20-60m | Deep: 180-240m",
+    drinkingSafety: "POTABLE: Low salinity in both surface and groundwater.",
+    hydrogeologySummary: "Eastern bank of Lower Meghna estuary. Robust fluvial flushing."
+  },
+  {
+    id: "haimchar",
+    name: "Haimchar",
+    bengaliName: "হাইমচর",
+    riskTier: "Very Low",
+    color: "#15803d",
+    fillColor: "#15803d",
+    avgEc: 0.21,
+    soilEc: 0.5,
+    areaKm2: 174.0,
+    population: 130000,
+    polders: ["Haimchar Riverbank Embankment"],
+    intakeRisk: "Lower Meghna eastern corridor. Stable fresh to brackish boundary.",
+    boroVulnerability: "Low risk; slight seasonal backwater during dry season neap tides.",
+    sluiceAdvisory: "Gravity sluices active; intake safe for agriculture.",
+    recommendedCrops: ["BRRI dhan67", "Soybean", "Groundnut", "Sesame"],
+    associatedStationIds: ["haimchar-sw"],
+    bounds: [[22.98, 90.55], [23.18, 90.80]],
+    center: [23.07, 90.64],
+    coordinates: [
+      [23.16, 90.60], [23.18, 90.78], [23.02, 90.80], [23.00, 90.62], [23.10, 90.60], [23.16, 90.60]
+    ],
+    riverSalinityPpt: 0.13,
+    shallowGwSalinityPpt: 0.55,
+    deepGwSalinityPpt: 1.60,
+    aquiferDepthM: "Shallow: 25-60m | Deep: 200-260m",
+    drinkingSafety: "POTABLE: Deep tube-wells yield fresh drinking water (1.6 ppt).",
+    hydrogeologySummary: "Transition from fluvial Meghna into estuarine mixing zone."
+  },
+  {
+    id: "raipur",
+    name: "Raipur",
+    bengaliName: "রায়পুর",
+    riskTier: "Very Low",
+    color: "#15803d",
+    fillColor: "#15803d",
+    avgEc: 0.24,
+    soilEc: 0.7,
+    areaKm2: 247.0,
+    population: 280000,
+    polders: ["Raipur-Lakshmipur Polder"],
+    intakeRisk: "Eastern estuary floodplain; surface water largely fresh in early dry season.",
+    boroVulnerability: "Low to moderate; late dry season (April) capillary rise.",
+    sluiceAdvisory: "Conserve canal water by mid-March before tide height drops.",
+    recommendedCrops: ["Soybean (major national hub)", "Boro rice", "Betel nut", "Coconut"],
+    associatedStationIds: ["raipur-gw"],
+    bounds: [[22.95, 90.68], [23.12, 90.85]],
+    center: [23.03, 90.76],
+    coordinates: [
+      [23.10, 90.72], [23.12, 90.82], [22.98, 90.85], [22.96, 90.70], [23.02, 90.70], [23.10, 90.72]
+    ],
+    riverSalinityPpt: 0.15,
+    shallowGwSalinityPpt: 0.80,
+    deepGwSalinityPpt: 2.20,
+    aquiferDepthM: "Shallow: 25-55m | Deep: 220-280m",
+    drinkingSafety: "POTABLE: Shallow aquifer safe for agriculture, deep aquifer 2.2 ppt.",
+    hydrogeologySummary: "Lakshmipur coastal plain with moderate deep aquifer mineralization."
+  },
+  {
+    id: "lakshmipur",
+    name: "Lakshmipur Sadar",
+    bengaliName: "লক্ষ্মীপুর সদর",
+    riskTier: "Low",
+    color: "#65a30d",
+    fillColor: "#65a30d",
+    avgEc: 0.40,
+    soilEc: 1.1,
+    areaKm2: 514.0,
+    population: 685000,
+    polders: ["Lakshmipur Coastal Polder 36/1"],
+    intakeRisk: "Lower Meghna tidal interface. River water fresh in monsoon, rising to 0.4-0.8 dS/m in April.",
+    boroVulnerability: "Moderate; requires salt-tolerant crop selection in southern unions.",
+    sluiceAdvisory: "Close flap gates during spring tide surges.",
+    recommendedCrops: ["Soybean", "BRRI dhan67", "BINA dhan-10", "Chili"],
+    associatedStationIds: ["lakshmipur-sw"],
+    bounds: [[22.78, 90.70], [23.00, 90.92]],
+    center: [22.94, 90.82],
+    coordinates: [
+      [22.98, 90.70], [22.98, 90.85], [22.85, 90.92], [22.78, 90.78], [22.88, 90.72], [22.98, 90.70]
+    ],
+    riverSalinityPpt: 0.25,
+    shallowGwSalinityPpt: 1.40,
+    deepGwSalinityPpt: 2.50,
+    aquiferDepthM: "Shallow: 30-60m | Deep: 220-300m",
+    drinkingSafety: "ACCEPTABLE: Deep tube-wells provide potable water across urban core.",
+    hydrogeologySummary: "Eastern delta margin. Saline groundwaters in upper 40m, deeper aquifers semi-confined."
+  },
+  {
+    id: "wazirpur",
+    name: "Wazirpur",
+    bengaliName: "উজিরপুর",
+    riskTier: "Very Low",
+    color: "#15803d",
+    fillColor: "#15803d",
+    avgEc: 0.22,
+    soilEc: 0.5,
+    areaKm2: 248.0,
+    population: 240000,
+    polders: ["Sandhya River Embankment", "Barishal Polder 42"],
+    intakeRisk: "Northwest Barishal district along Sandhya river. Low salinity corridor (<0.2 ppt).",
+    boroVulnerability: "Low; abundant perennial fresh canal water.",
+    sluiceAdvisory: "Open gravity intake; excellent conditions for Boro rice.",
+    recommendedCrops: ["BRRI dhan28 / 29", "Guava (famous floating market)", "Betel Leaf"],
+    associatedStationIds: ["wazirpur-sw"],
+    bounds: [[22.72, 90.12], [22.95, 90.35]],
+    center: [22.81, 90.24],
+    coordinates: [
+      [22.95, 90.12], [22.92, 90.35], [22.75, 90.32], [22.72, 90.18], [22.82, 90.15], [22.95, 90.12]
+    ],
+    riverSalinityPpt: 0.14,
+    shallowGwSalinityPpt: 0.65,
+    deepGwSalinityPpt: 1.40,
+    aquiferDepthM: "Shallow: 20-50m | Deep: 180-240m",
+    drinkingSafety: "SAFE / POTABLE: Both surface rivers and aquifers suitable for direct consumption.",
+    hydrogeologySummary: "Central-western delta fluvial zone with high freshwater recharge rates."
+  },
+  {
+    id: "barishal",
+    name: "Barishal Sadar",
+    bengaliName: "বরিশাল সদর",
+    riskTier: "Low",
+    color: "#65a30d",
+    fillColor: "#65a30d",
+    avgEc: 0.35,
+    soilEc: 0.9,
+    areaKm2: 324.0,
+    population: 530000,
+    polders: ["Kirtonkhola Embankment", "Barishal Polder 43/1"],
+    intakeRisk: "Kirtonkhola river passes urban intake. Slightly brackish in late spring tide (0.2-0.4 ppt).",
+    boroVulnerability: "Low to moderate; core agricultural and trading hub of southern delta.",
+    sluiceAdvisory: "Regulate sluices during astronomical high tides in April.",
+    recommendedCrops: ["BRRI dhan29", "BRRI dhan67", "Paddy Nursery", "Vegetables"],
+    associatedStationIds: ["barishal-sw", "barishal-gw"],
+    bounds: [[22.56, 90.24], [22.80, 90.46]],
+    center: [22.70, 90.36],
+    coordinates: [
+      [22.78, 90.28], [22.80, 90.45], [22.58, 90.45], [22.56, 90.26], [22.70, 90.24], [22.78, 90.28]
+    ],
+    riverSalinityPpt: 0.22,
+    shallowGwSalinityPpt: 1.20,
+    deepGwSalinityPpt: 2.10,
+    aquiferDepthM: "Shallow: 25-60m | Deep: 200-280m",
+    drinkingSafety: "POTABLE: Deep tube-wells safely supply Barishal City Corporation.",
+    hydrogeologySummary: "Central deltaic floodplain. Pleistocene aquifers yield fresh water under thick clays."
+  },
+  {
+    id: "bhola",
+    name: "Bhola Sadar",
+    bengaliName: "ভোলা সদর",
+    riskTier: "Moderate",
+    color: "#eab308",
+    fillColor: "#eab308",
+    avgEc: 1.35,
+    soilEc: 2.2,
+    areaKm2: 413.0,
+    population: 430000,
+    polders: ["Bhola North Polder 56/1", "Tentulia River Embankment"],
+    intakeRisk: "Northern Bhola Island bounded by Tentulia (west) and Meghna (east). Salinity oscillates 0.8-1.5 ppt.",
+    boroVulnerability: "Moderate; groundwater pumping causes localized upconing.",
+    sluiceAdvisory: "Strict gate schedule; store Tentulia freshwater during ebb tide.",
+    recommendedCrops: ["BRRI dhan67", "BRRI dhan74", "Sunflower", "Mustard", "Watermelon"],
+    associatedStationIds: ["bhola-north-sw"],
+    bounds: [[22.48, 90.52], [22.88, 90.80]],
+    center: [22.68, 90.65],
+    coordinates: [
+      [22.85, 90.62], [22.88, 90.72], [22.65, 90.80], [22.50, 90.75], [22.48, 90.58], [22.65, 90.52], [22.85, 90.62]
+    ],
+    riverSalinityPpt: 0.85,
+    shallowGwSalinityPpt: 2.80,
+    deepGwSalinityPpt: 2.90,
+    aquiferDepthM: "Shallow: 30-70m | Deep: 220-300m",
+    drinkingSafety: "MODERATE RISK: Shallow aquifer brackish. Deep Pleistocene wellfields safe with regular EC testing.",
+    hydrogeologySummary: "Deltaic island aquifer system isolated by deep saline river channels."
+  },
+  {
+    id: "charfasson",
+    name: "Charfasson",
+    bengaliName: "চরফ্যাশন",
+    riskTier: "Very High",
+    color: "#dc2626",
+    fillColor: "#dc2626",
+    avgEc: 13.6,
+    soilEc: 12.4,
+    areaKm2: 1106.0,
+    population: 450000,
+    polders: ["Polder 54 (Charfasson)", "Kukri Mukri Island Embankment"],
+    intakeRisk: "Direct marine exposure to Bay of Bengal at southern tip of Bhola Island. Surface salinity 8.5-16.0 ppt.",
+    boroVulnerability: "Severe agricultural hazard; traditional Boro rice fails completely without deep tube-well irrigation.",
+    sluiceAdvisory: "All sea-facing sluice gates permanently locked against marine spring surge.",
+    recommendedCrops: ["BINA dhan-10", "BRRI dhan67 (with deep GW)", "Crab fattening", "Watermelon"],
+    associatedStationIds: ["charfasson-sw", "charfasson-deep-gw"],
+    bounds: [[21.75, 90.55], [22.48, 90.85]],
+    center: [22.18, 90.71],
+    coordinates: [
+      [22.48, 90.58], [22.50, 90.75], [22.40, 90.82], [22.15, 90.85], [21.85, 90.80], [21.82, 90.68], [22.10, 90.60], [22.38, 90.55], [22.48, 90.58]
+    ],
+    riverSalinityPpt: 8.50,
+    shallowGwSalinityPpt: 14.50,
+    deepGwSalinityPpt: 4.80,
+    aquiferDepthM: "Shallow: 30-80m | Deep: 280-380m",
+    drinkingSafety: "CRITICAL: Shallow groundwater completely saline (14.5 ppt). Drinking water strictly dependent on deep (>300m) confined aquifers.",
+    hydrogeologySummary: "Southern estuarine barrier island. Acute marine saltwater wedge penetrating shallow Holocene sands."
+  },
+  {
+    id: "mirzaganj",
+    name: "Mirzaganj",
+    bengaliName: "মির্জাগঞ্জ",
+    riskTier: "Moderate",
+    color: "#eab308",
+    fillColor: "#eab308",
+    avgEc: 2.85,
+    soilEc: 3.4,
+    areaKm2: 175.0,
+    population: 125000,
+    polders: ["Mirzaganj Polder 44"],
+    intakeRisk: "Payra-Bishkhali interfluvial plain. River salinity reaches 1.8-3.0 ppt during dry season.",
+    boroVulnerability: "Moderate to high; salt accumulation in topsoil during dry sunny spells.",
+    sluiceAdvisory: "Flush polder canals during lowest low tides to evacuate accumulated salts.",
+    recommendedCrops: ["BRRI dhan67", "BRRI dhan47", "Grasspea (Khesari)", "Chili"],
+    associatedStationIds: ["mirzaganj-sw"],
+    bounds: [[22.26, 90.15], [22.48, 90.30]],
+    center: [22.36, 90.24],
+    coordinates: [
+      [22.46, 90.18], [22.48, 90.30], [22.28, 90.30], [22.26, 90.18], [22.38, 90.15], [22.46, 90.18]
+    ],
+    riverSalinityPpt: 1.80,
+    shallowGwSalinityPpt: 4.50,
+    deepGwSalinityPpt: 3.10,
+    aquiferDepthM: "Shallow: 30-70m | Deep: 220-300m",
+    drinkingSafety: "WARNING: Shallow wells exceed drinking limits. Deep wells (250m) yield marginal to acceptable water (3.1 ppt).",
+    hydrogeologySummary: "Interfluvial delta plain with upward capillary salt flux from saline shallow groundwater."
+  },
+  {
+    id: "patuakhali",
+    name: "Patuakhali Sadar",
+    bengaliName: "পটুয়াখালী সদর",
+    riskTier: "High",
+    color: "#ea580c",
+    fillColor: "#ea580c",
+    avgEc: 6.0,
+    soilEc: 8.5,
+    areaKm2: 382.0,
+    population: 330000,
+    polders: ["Patuakhali Polder 45", "Laukathi River Embankment"],
+    intakeRisk: "Laukathi & Payra rivers carry significant brackish water (3.8-7.5 ppt in March-May).",
+    boroVulnerability: "High; severe root toxicity on conventional rice cultivars.",
+    sluiceAdvisory: "Strict prohibition of raw river intake during flood tides; utilize freshwater pond storage.",
+    recommendedCrops: ["BRRI dhan67", "BINA dhan-8", "Sunflower", "Watermelon", "Brackish Aquaculture"],
+    associatedStationIds: ["patuakhali-sw", "patuakhali-deep-gw"],
+    bounds: [[22.22, 90.25], [22.52, 90.46]],
+    center: [22.35, 90.35],
+    coordinates: [
+      [22.48, 90.30], [22.52, 90.45], [22.25, 90.44], [22.24, 90.30], [22.38, 90.28], [22.48, 90.30]
+    ],
+    riverSalinityPpt: 3.80,
+    shallowGwSalinityPpt: 12.00,
+    deepGwSalinityPpt: 4.50,
+    aquiferDepthM: "Shallow: 30-80m | Deep: 260-340m",
+    drinkingSafety: "HIGH RISK: Shallow aquifer hyper-saline (12 ppt). Deep municipal production wells required (>280m).",
+    hydrogeologySummary: "South-central delta zone. Semi-confined Pleistocene aquifer separated by regional clay layer."
+  },
+  {
+    id: "barguna",
+    name: "Barguna Sadar",
+    bengaliName: "বরগুনা সদর",
+    riskTier: "Very High",
+    color: "#dc2626",
+    fillColor: "#dc2626",
+    avgEc: 11.5,
+    soilEc: 10.2,
+    areaKm2: 454.0,
+    population: 275000,
+    polders: ["Polder 43/2", "Payra-Bishkhali Coastal Polder"],
+    intakeRisk: "Payra & Bishkhali estuarine confluence. Marine tidal surge penetrates deep inland (7.2-12.0 ppt).",
+    boroVulnerability: "Very High; agricultural soil salinization causes severe seedling withering.",
+    sluiceAdvisory: "Keep all coastal embankment sluices closed throughout spring tides.",
+    recommendedCrops: ["Salt-tolerant Boro (BRRI dhan67 / 97)", "Watermelon", "Shrimp / Crab", "Sunflower"],
+    associatedStationIds: ["barguna-sw", "barguna-gw"],
+    bounds: [[21.98, 90.00], [22.28, 90.20]],
+    center: [22.15, 90.12],
+    coordinates: [
+      [22.28, 90.05], [22.28, 90.20], [22.05, 90.20], [21.98, 90.08], [22.12, 90.02], [22.28, 90.05]
+    ],
+    riverSalinityPpt: 7.20,
+    shallowGwSalinityPpt: 13.50,
+    deepGwSalinityPpt: 5.20,
+    aquiferDepthM: "Shallow: 25-75m | Deep: 280-360m",
+    drinkingSafety: "VERY HIGH RISK: Shallow groundwater undrinkable (13.5 ppt). Rainwater harvesting and deep wells required.",
+    hydrogeologySummary: "Southwestern coastal delta. Direct marine saltwater intrusion into shallow aquifer; deep aquifer semi-saline."
+  },
+  {
+    id: "amtali",
+    name: "Amtali",
+    bengaliName: "আমতলী",
+    riskTier: "Very High",
+    color: "#dc2626",
+    fillColor: "#dc2626",
+    avgEc: 14.8,
+    soilEc: 11.8,
+    areaKm2: 720.0,
+    population: 270000,
+    polders: ["Amtali Coastal Polder 48", "Polder 47/2"],
+    intakeRisk: "Intense estuarine salinity from Payra river (9.5-15.0 ppt). River water totally unusable for irrigation.",
+    boroVulnerability: "Extreme; soil crusting and white salt deposits form on unmulched fields.",
+    sluiceAdvisory: "Permanently seal gravity intakes from river; store pond rainwater under shade.",
+    recommendedCrops: ["BRRI dhan97 / 99", "Watermelon (hybrid)", "Grasspea", "Bagda shrimp"],
+    associatedStationIds: ["amtali-sw", "amtali-gw"],
+    bounds: [[22.00, 90.15], [22.28, 90.40]],
+    center: [22.13, 90.25],
+    coordinates: [
+      [22.25, 90.20], [22.25, 90.40], [22.05, 90.38], [22.02, 90.20], [22.15, 90.18], [22.25, 90.20]
+    ],
+    riverSalinityPpt: 9.50,
+    shallowGwSalinityPpt: 14.00,
+    deepGwSalinityPpt: 4.80,
+    aquiferDepthM: "Shallow: 30-80m | Deep: 290-370m",
+    drinkingSafety: "CRITICAL: Surface water and upper aquifer hyper-saline. Severe potable water scarcity.",
+    hydrogeologySummary: "Southern coastal inter-tidal plain. Intense seawater seepage into permeable topsoil."
+  },
+  {
+    id: "kalapara",
+    name: "Kalapara (Kuakata Coastal Fringe)",
+    bengaliName: "কলাপাড়া (কুয়াকাটা উপকূল)",
+    riskTier: "Very High",
+    color: "#dc2626",
+    fillColor: "#dc2626",
+    avgEc: 16.8,
+    soilEc: 14.5,
+    areaKm2: 491.0,
+    population: 240000,
+    polders: ["Kalapara Polder 47/1", "Polder 48", "Kuakata Sea Dyke"],
+    intakeRisk: "Southernmost maritime tip of delta on Bay of Bengal. River and estuarine salinity peaks at 14.5-17.5 ppt.",
+    boroVulnerability: "Catastrophic if raw surface water used. Unique local occurrence of deep Pleistocene freshwater lens (2.4 ppt).",
+    sluiceAdvisory: "Reinforce coastal dykes; close all sluices against daily astronomical sea tides.",
+    recommendedCrops: ["Coastal Watermelon", "BINA dhan-10", "Marine Fish / Crab", "Betel Leaf (covered pan)"],
+    associatedStationIds: ["kalapara-marine-sw", "kalapara-fresh-lens-gw"],
+    bounds: [[21.80, 90.10], [22.10, 90.38]],
+    center: [21.98, 90.24],
+    coordinates: [
+      [22.05, 90.12], [22.05, 90.38], [21.82, 90.35], [21.82, 90.18], [21.85, 90.15], [22.05, 90.12]
+    ],
+    riverSalinityPpt: 14.50,
+    shallowGwSalinityPpt: 15.20,
+    deepGwSalinityPpt: 2.40,
+    aquiferDepthM: "Shallow: 20-80m | Deep: 300-400m",
+    drinkingSafety: "SPECIAL HYDROGEOLOGY: Surface (14.5 ppt) and shallow GW (15.2 ppt) completely saline; however, deep confined Pleistocene aquifer contains a localized FRESHWATER LENS (2.4 ppt) discovered by hydrogeologists.",
+    hydrogeologySummary: "Southern littoral delta fringe. Marine tidal wedge on top, but isolated ancient Pleistocene paleo-channel provides fresh water at >320m depth."
+  }
+];
+
+// Master unified list combining coastal delta and khulna regional basins
+export const ALL_STUDY_REGIONS: KhulnaRegion[] = [
+  ...COASTAL_DELTA_UPAZILAS,
+  ...KHULNA_UPAZILA_REGIONS,
 ];
 
 // -------------------------------------------------------------
@@ -1427,6 +1890,63 @@ export const KHULNA_RIVER_SYSTEM: HydroRiver[] = [
       [22.920, 89.530],
     ],
     labelCoord: [23.01, 89.49],
+  },
+  {
+    id: "meghna",
+    name: "Meghna Estuary",
+    bengaliName: "মেঘনা নদী ও মোহনা",
+    width: 7,
+    coordinates: [
+      [23.40, 90.60],
+      [23.25, 90.62],
+      [23.10, 90.65],
+      [22.85, 90.75],
+      [22.55, 90.88],
+      [22.20, 90.95],
+      [21.80, 90.90],
+    ],
+    labelCoord: [22.90, 90.72],
+  },
+  {
+    id: "tentulia",
+    name: "Tentulia River",
+    bengaliName: "তেঁতুলিয়া নদী",
+    width: 5,
+    coordinates: [
+      [22.80, 90.52],
+      [22.60, 90.54],
+      [22.35, 90.53],
+      [22.05, 90.55],
+      [21.80, 90.60],
+    ],
+    labelCoord: [22.45, 90.53],
+  },
+  {
+    id: "payra",
+    name: "Payra & Kirtonkhola River",
+    bengaliName: "পায়রা ও কীর্তনখোলা",
+    width: 4.5,
+    coordinates: [
+      [22.75, 90.37],
+      [22.55, 90.36],
+      [22.35, 90.33],
+      [22.10, 90.28],
+      [21.82, 90.22],
+    ],
+    labelCoord: [22.40, 90.35],
+  },
+  {
+    id: "bishkhali",
+    name: "Bishkhali River",
+    bengaliName: "বিষখালী নদী",
+    width: 4,
+    coordinates: [
+      [22.60, 90.22],
+      [22.40, 90.18],
+      [22.15, 90.12],
+      [21.90, 90.10],
+    ],
+    labelCoord: [22.25, 90.15],
   },
 ];
 

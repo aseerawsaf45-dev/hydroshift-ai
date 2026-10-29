@@ -12,6 +12,7 @@ import {
   CircleMarker,
   Tooltip,
   ScaleControl,
+  ImageOverlay,
   useMap,
   useMapEvents,
 } from "react-leaflet";
@@ -36,6 +37,9 @@ import {
   X,
   BookOpen,
   Maximize2,
+  Eye,
+  EyeOff,
+  Sliders,
 } from "lucide-react";
 
 export * from "./map-data";
@@ -58,6 +62,10 @@ import {
   convertPptToEc,
   convertEcToPpt,
   KHULNA_UPAZILA_REGIONS,
+  COASTAL_DELTA_UPAZILAS,
+  ALL_STUDY_REGIONS,
+  PUBLICATION_STUDY_BOUNDS,
+  PUBLICATION_STUDY_CENTER,
   KHULNA_DISTRICT_BOUNDS,
   RISK_TIERS_CONFIG,
   RiskTier,
@@ -214,18 +222,74 @@ export default function MapWrapper({
   onToggleUnit,
   compactLegend = false,
   standaloneTitle,
+  rasterOpacity = 0.85,
+  onOpacityChange,
+  showRasterOverlay = true,
+  onToggleRasterOverlay,
+  studyArea = "delta_publication",
+  onSelectStudyArea,
 }: MapWrapperProps) {
   const [mounted, setMounted] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const [sites, setSites] = useState<Site[]>(CANONICAL_KHULNA_STATIONS);
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
-  const [cursorCoords, setCursorCoords] = useState<[number, number]>([22.65, 89.56]);
+  const [cursorCoords, setCursorCoords] = useState<[number, number]>([22.45, 90.45]);
   const [internalBasemap, setInternalBasemap] = useState<"academic" | "satellite" | "dark" | "topo" | "osm">(basemap);
+  const [internalOpacity, setInternalOpacity] = useState(rasterOpacity);
+  const [internalShowRaster, setInternalShowRaster] = useState(showRasterOverlay);
+
+  useEffect(() => {
+    setInternalOpacity(rasterOpacity);
+  }, [rasterOpacity]);
+
+  useEffect(() => {
+    setInternalShowRaster(showRasterOverlay);
+  }, [showRasterOverlay]);
 
   const activeRegion = useMemo(() => {
     if (!selectedRegionId) return null;
-    return KHULNA_UPAZILA_REGIONS.find((r) => r.id === selectedRegionId) || null;
+    return ALL_STUDY_REGIONS.find((r) => r.id === selectedRegionId) || null;
   }, [selectedRegionId]);
+
+  const displayRegions = useMemo(() => {
+    if (studyArea === "delta_publication") {
+      return COASTAL_DELTA_UPAZILAS;
+    }
+    if (studyArea === "khulna_basin") {
+      return KHULNA_UPAZILA_REGIONS;
+    }
+    return ALL_STUDY_REGIONS;
+  }, [studyArea]);
+
+  // Continuous inverse-distance weighted salinity sampling at cursor
+  const sampledSalinity = useMemo(() => {
+    let num = 0;
+    let den = 0;
+    for (const reg of displayRegions) {
+      const dLat = cursorCoords[0] - reg.center[0];
+      const dLon = cursorCoords[1] - reg.center[1];
+      const distSq = dLat * dLat + dLon * dLon;
+      if (distSq < 0.0004) {
+        const directVal = getRegionDomainValue(reg, hydrologicDomain);
+        return salinityUnit === "ppt" ? directVal.toFixed(2) : convertPptToEc(directVal).toFixed(2);
+      }
+      const weight = 1.0 / (distSq * distSq);
+      num += weight * getRegionDomainValue(reg, hydrologicDomain);
+      den += weight;
+    }
+    if (den <= 0) return "0.00";
+    const interp = num / den;
+    return salinityUnit === "ppt" ? interp.toFixed(2) : convertPptToEc(interp).toFixed(2);
+  }, [cursorCoords, displayRegions, hydrologicDomain, salinityUnit]);
+
+  const hoveredRegion = useMemo(() => {
+    return displayRegions.find(r =>
+      cursorCoords[0] >= r.bounds[0][0] - 0.02 &&
+      cursorCoords[0] <= r.bounds[1][0] + 0.02 &&
+      cursorCoords[1] >= r.bounds[0][1] - 0.02 &&
+      cursorCoords[1] <= r.bounds[1][1] + 0.02
+    ) || null;
+  }, [cursorCoords, displayRegions]);
 
   // Sync external basemap prop
   useEffect(() => {
@@ -405,11 +469,11 @@ export default function MapWrapper({
               ? "bg-white/90 text-slate-800 border-slate-300 shadow-sm" 
               : "bg-black/60 text-zinc-300 border-white/10"
           }`}>
-            <span>89.20°E</span>
-            <span>89.35°E</span>
-            <span>89.50°E</span>
-            <span>89.65°E</span>
-            <span>89.80°E</span>
+            <span>90.00°E</span>
+            <span>90.25°E</span>
+            <span>90.50°E</span>
+            <span>90.75°E</span>
+            <span>91.00°E</span>
           </div>
 
           <div className={`absolute top-8 bottom-16 left-0 z-[490] pointer-events-none flex flex-col justify-between py-6 px-1 text-[9px] font-mono font-bold tracking-tight border-r ${
@@ -417,16 +481,16 @@ export default function MapWrapper({
               ? "bg-white/80 text-slate-800 border-slate-300" 
               : "bg-black/40 text-zinc-300 border-white/10"
           }`}>
-            <span>23.08°N</span>
-            <span>22.85°N</span>
-            <span>22.60°N</span>
-            <span>22.35°N</span>
-            <span>22.10°N</span>
+            <span>23.50°N</span>
+            <span>23.00°N</span>
+            <span>22.50°N</span>
+            <span>22.00°N</span>
+            <span>21.50°N</span>
           </div>
         </>
       )}
 
-      {/* 3. FLOATING BASEMAP & DOMAIN TOOLBAR (TOP-RIGHT) */}
+      {/* 3. FLOATING BASEMAP & REMOTE SENSING TOOLBAR (TOP-RIGHT) */}
       <div className="absolute top-7 right-3 z-[500] flex flex-col items-end gap-2 pointer-events-none">
         {/* Basemap Switcher */}
         <div className={`p-1 rounded-xl shadow-xl pointer-events-auto flex items-center gap-1 border ${
@@ -480,6 +544,46 @@ export default function MapWrapper({
             <Waves className="w-3 h-3" />
             <span>Topo</span>
           </button>
+        </div>
+
+        {/* Remote Sensing Raster Blend & Opacity Slider */}
+        <div className={`p-1.5 px-2.5 rounded-xl shadow-xl pointer-events-auto flex items-center gap-2.5 border text-xs ${
+          isAcademic ? "bg-white/95 border-slate-300 text-slate-800" : "bg-[#08131f]/95 border-white/15 text-white backdrop-blur-xl"
+        }`}>
+          <button
+            onClick={() => {
+              const next = !internalShowRaster;
+              setInternalShowRaster(next);
+              if (onToggleRasterOverlay) onToggleRasterOverlay();
+            }}
+            className={`p-1 rounded text-xs transition-colors cursor-pointer flex items-center gap-1 ${
+              internalShowRaster ? "text-sky-600 dark:text-sky-400 bg-sky-500/15" : "text-slate-400 hover:text-slate-200"
+            }`}
+            title={internalShowRaster ? "Hide remote sensing raster heatmap" : "Show remote sensing raster heatmap"}
+          >
+            {internalShowRaster ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            <span className="font-mono text-[10px] font-bold hidden sm:inline">Raster</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono text-muted-foreground hidden md:inline">Blend:</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={Math.round(internalOpacity * 100)}
+              onChange={(e) => {
+                const val = Number(e.target.value) / 100;
+                setInternalOpacity(val);
+                if (onOpacityChange) onOpacityChange(val);
+              }}
+              className="w-20 sm:w-24 h-1.5 accent-sky-500 rounded-lg cursor-pointer bg-slate-200 dark:bg-slate-700"
+              title={`Adjust remote sensing raster transparency: ${Math.round(internalOpacity * 100)}%`}
+            />
+            <span className="font-mono text-[10px] font-bold text-sky-600 dark:text-sky-400 w-7 text-right">
+              {Math.round(internalOpacity * 100)}%
+            </span>
+          </div>
         </div>
 
         {/* Publication Metric Scale & North Arrow (Top-Right of Reference) */}
@@ -538,7 +642,7 @@ export default function MapWrapper({
               onClick={() => onSelectRegion && onSelectRegion(null)}
               className="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-mono font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
             >
-              <span>View All Khulna</span>
+              <span>View All Regions</span>
               <X className="w-3 h-3" />
             </button>
           </div>
@@ -639,23 +743,31 @@ export default function MapWrapper({
           </span>
           <div className="h-3 w-px bg-slate-300 dark:bg-white/15" />
           <span className="text-muted-foreground">
-            Thalweg: <strong className="text-sky-600 dark:text-sky-300">{cursorChainageKm} km</strong>
+            Sampled: <strong className="text-sky-600 dark:text-sky-300">{sampledSalinity} {salinityUnit}</strong>
           </span>
+          {hoveredRegion && (
+            <>
+              <div className="h-3 w-px bg-slate-300 dark:bg-white/15" />
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                {hoveredRegion.name}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
       {/* 7. LEAFLET MAP CONTAINER */}
       <MapContainer
         key={`scientific-map-${mapKey}-${internalBasemap}-${hydrologicDomain}`}
-        center={[22.65, 89.52]}
-        zoom={10}
-        minZoom={9}
-        maxZoom={15}
+        center={activeRegion ? activeRegion.center : studyArea === "delta_publication" ? PUBLICATION_STUDY_CENTER : [22.68, 89.48]}
+        zoom={studyArea === "delta_publication" ? 9 : 10}
+        minZoom={7}
+        maxZoom={16}
         maxBounds={[
-          [21.40, 88.50],
-          [23.50, 90.50],
+          [20.80, 88.00],
+          [24.50, 92.00],
         ]}
-        maxBoundsViscosity={0.9}
+        maxBoundsViscosity={0.8}
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%", minHeight: "480px" }}
       >
@@ -689,36 +801,29 @@ export default function MapWrapper({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* A. CONTINUOUS ISOHALINE CONTOUR BANDS (SMOOTH INTERPOLATION)  */}
+        {/* A. CONTINUOUS REMOTE SENSING RASTER OVERLAY                   */}
+        {/* Georeferenced RBF continuous salinity field matching paper   */}
         {/* ------------------------------------------------------------- */}
-        {showIsohalines &&
-          DOMAIN_ISOHALINES[hydrologicDomain]?.map((band, idx) => {
-            return (
-              <Polygon
-                key={`isohaline-${hydrologicDomain}-${idx}`}
-                positions={band.coordinates}
-                pathOptions={{
-                  fillColor: band.fillColor,
-                  fillOpacity: isAcademic ? 0.65 : 0.45,
-                  color: isAcademic ? "#475569" : "#ffffff25",
-                  weight: 1,
-                  lineJoin: "round",
-                }}
-              >
-                <Tooltip sticky direction="top">
-                  <span className="font-serif font-bold text-xs">
-                    Isohaline Zone: {band.label}
-                  </span>
-                </Tooltip>
-              </Polygon>
-            );
-          })}
+        {internalShowRaster && (
+          <ImageOverlay
+            url={
+              hydrologicDomain === "river"
+                ? "/gis/salinity_river.png"
+                : hydrologicDomain === "shallow_gw"
+                ? "/gis/salinity_shallow_gw.png"
+                : "/gis/salinity_deep_gw.png"
+            }
+            bounds={PUBLICATION_STUDY_BOUNDS}
+            opacity={internalOpacity}
+            zIndex={100}
+          />
+        )}
 
         {/* ------------------------------------------------------------- */}
-        {/* B. KHULNA UPAZILA BOUNDARIES & REGIONAL RISK POLYGONS         */}
+        {/* B. UPAZILA VECTOR BOUNDARIES & INTERACTIVE DOSSIERS           */}
         {/* ------------------------------------------------------------- */}
         {showRiskChoropleth &&
-          KHULNA_UPAZILA_REGIONS.map((region) => {
+          displayRegions.map((region) => {
             const isSelected = selectedRegionId === region.id;
             const isAnySelected = Boolean(selectedRegionId);
             const isOptedOut = isAnySelected && !isSelected;
@@ -736,14 +841,18 @@ export default function MapWrapper({
                 key={region.id}
                 positions={region.coordinates}
                 pathOptions={{
-                  fillColor: isOptedOut ? (isAcademic ? "#f8fafc" : "#05070d") : domainColor,
-                  fillOpacity: isSelected ? 0.70 : isOptedOut ? 0.85 : 0.35,
+                  fillColor: isOptedOut 
+                    ? (isAcademic ? "#f8fafc" : "#05070d") 
+                    : isSelected 
+                    ? domainColor 
+                    : (internalShowRaster ? "transparent" : domainColor),
+                  fillOpacity: isSelected ? 0.35 : isOptedOut ? 0.88 : (internalShowRaster ? 0 : 0.35),
                   color: isSelected 
                     ? "#0284c7" 
                     : isOptedOut 
                     ? (isAcademic ? "#cbd5e1" : "#ffffff10") 
-                    : (isAcademic ? "#1e293b" : "#ffffff60"),
-                  weight: isSelected ? 3.5 : isOptedOut ? 1 : 1.8,
+                    : (isAcademic ? "#0f172a" : "#ffffff70"),
+                  weight: isSelected ? 3.5 : isOptedOut ? 1 : 1.5,
                   dashArray: isOptedOut ? "4, 4" : undefined,
                   lineJoin: "round",
                   lineCap: "round",
@@ -852,7 +961,7 @@ export default function MapWrapper({
         {/* D. PERMANENT UPAZILA LABELS (PRINTED ON LANDMASS LIKE PAPER)  */}
         {/* ------------------------------------------------------------- */}
         {showLabels &&
-          KHULNA_UPAZILA_REGIONS.map((region) => {
+          displayRegions.map((region) => {
             const isSelected = selectedRegionId === region.id;
             const isAnySelected = Boolean(selectedRegionId);
             const isOptedOut = isAnySelected && !isSelected;
@@ -896,7 +1005,7 @@ export default function MapWrapper({
         {/* E. SOUTHERN BAY OF BENGAL MARITIME LABEL                      */}
         {/* ------------------------------------------------------------- */}
         <Marker
-          position={BAY_OF_BENGAL_LOCATION}
+          position={studyArea === "delta_publication" ? [21.58, 90.45] : BAY_OF_BENGAL_LOCATION}
           icon={L.divIcon({
             className: "bay-of-bengal-label",
             html: `
@@ -950,9 +1059,9 @@ export default function MapWrapper({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* F. COASTAL POLDER CADASTRE & EMBANKMENTS                      */}
+        {/* F. COASTAL POLDER CADASTRE & EMBANKMENTS (KHULNA REGION)      */}
         {/* ------------------------------------------------------------- */}
-        {showPolders &&
+        {showPolders && studyArea !== "delta_publication" &&
           COASTAL_POLDERS.map((polder) => (
             <Polygon
               key={polder.id}
@@ -987,9 +1096,9 @@ export default function MapWrapper({
           ))}
 
         {/* ------------------------------------------------------------- */}
-        {/* G. PASSUR-RUPSHA CURVILINEAR THALWEG CENTERLINE               */}
+        {/* G. PASSUR-RUPSHA CURVILINEAR THALWEG CENTERLINE (KHULNA)      */}
         {/* ------------------------------------------------------------- */}
-        {showThalweg && (
+        {showThalweg && studyArea !== "delta_publication" && (
           <>
             <Polyline
               positions={PASSUR_RUPSHA_THALWEG}
@@ -1031,9 +1140,9 @@ export default function MapWrapper({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* H. POLDER SLUICE GATES                                        */}
+        {/* H. POLDER SLUICE GATES (KHULNA REGION)                         */}
         {/* ------------------------------------------------------------- */}
-        {POLDER_SLUICE_GATES.map((gate) => (
+        {studyArea !== "delta_publication" && POLDER_SLUICE_GATES.map((gate) => (
           <Marker
             key={gate.id}
             position={gate.coords}
@@ -1062,7 +1171,7 @@ export default function MapWrapper({
         {/* ------------------------------------------------------------- */}
         {/* I. NASA SWOT KA-BAND RADAR ORBIT FOOTPRINT                    */}
         {/* ------------------------------------------------------------- */}
-        {showSwot && (
+        {showSwot && studyArea !== "delta_publication" && (
           <>
             <Polygon
               positions={SWOT_LEFT_SWATH}
@@ -1129,7 +1238,7 @@ export default function MapWrapper({
         {/* ------------------------------------------------------------- */}
         {/* J. ESTUARINE SALINITY INGRESS CORRIDORS                       */}
         {/* ------------------------------------------------------------- */}
-        {showSalinityFront && (
+        {showSalinityFront && studyArea !== "delta_publication" && (
           <>
             <Polyline
               positions={PASSUR_MARINE_INGRESS_CORRIDOR}
@@ -1235,7 +1344,7 @@ export default function MapWrapper({
         {/* ------------------------------------------------------------- */}
         {/* K. GIS MONITORING STATIONS & SURFACE REACHES                  */}
         {/* ------------------------------------------------------------- */}
-        {khulnaSites.map((site) => {
+        {studyArea !== "delta_publication" && khulnaSites.map((site) => {
           const isSwot =
             site.category === "swot" ||
             site.id.startsWith("3124") ||
