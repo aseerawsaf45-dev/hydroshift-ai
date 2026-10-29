@@ -351,6 +351,26 @@ export const CANONICAL_KHULNA_STATIONS: (Site & {
 ];
 
 // -------------------------------------------------------------
+// 1b. CANONICAL HARDCODED PINN FORECASTS (100% OFFLINE / ZERO API)
+// -------------------------------------------------------------
+export const CANONICAL_KHULNA_FORECASTS: Forecast[] = [
+  { id: "fc-p14", site_id: "khulna-p14", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 4.6, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-sw241", site_id: "SW241", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 4.5, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-31241400581", site_id: "31241400581", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 4.8, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-sw244", site_id: "SW244", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 7.9, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-31241400601", site_id: "31241400601", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 8.1, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-batiaghata", site_id: "batiaghata-polder", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 3.9, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-chalna", site_id: "chalna-gauge", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 5.2, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-rampal", site_id: "rampal-station", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 5.8, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-31241400561", site_id: "31241400561", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 3.8, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-paikgachha", site_id: "paikgachha-station", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 4.2, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-31241400541", site_id: "31241400541", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 12.4, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-sundarbans", site_id: "sundarbans-gate", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 9.4, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-sw162", site_id: "SW162", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 1.2, unit: "dS/m", validation_status: "VALIDATED" },
+  { id: "fc-gorai", site_id: "gorai-rb", target_time: "2026-11-05T00:00:00Z", target_variable: "Salinity (EC)", value: 0.4, unit: "dS/m", validation_status: "VALIDATED" },
+];
+
+// -------------------------------------------------------------
 // 2. GEOGRAPHIC RIVER VECTORS & HYDRAULIC CORRIDORS
 // -------------------------------------------------------------
 export const PASSUR_MARINE_INGRESS_CORRIDOR: [number, number][] = [

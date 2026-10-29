@@ -9,6 +9,7 @@ import {
   Site,
   Forecast,
   CANONICAL_KHULNA_STATIONS,
+  CANONICAL_KHULNA_FORECASTS,
   PolderPolygon,
   KhulnaRegion,
   HydrologicDomain,
@@ -100,33 +101,9 @@ export default function MapExplorerPage() {
   const [showLegend, setShowLegend] = useState(false);
   const [showMissionBrief, setShowMissionBrief] = useState(true);
 
-  // Data strictly filtered to Khulna Region (22.20°N to 23.95°N, 89.00°E to 89.95°E)
-  const [allSites, setAllSites] = useState<Site[]>(CANONICAL_KHULNA_STATIONS);
-  const [allForecasts, setAllForecasts] = useState<Forecast[]>([]);
-
-  useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-    Promise.all([
-      fetch(`${API_URL}/api/v1/reaches`).then(r => r.ok ? r.json() : []).catch(() => []),
-      fetch(`${API_URL}/api/v1/reaches/forecasts/all`).then(r => r.ok ? r.json() : []).catch(() => [])
-    ]).then(([sites, forecasts]) => {
-      if (sites && sites.length > 0) {
-        const khulnaSites = (sites as Site[]).filter(
-          s => s.latitude >= 22.20 && s.latitude <= 23.95 && s.longitude >= 89.00 && s.longitude <= 89.95
-        );
-        const merged: Site[] = [...CANONICAL_KHULNA_STATIONS];
-        for (const s of khulnaSites) {
-          if (!merged.some(m => m.id === s.id)) {
-            merged.push(s);
-          }
-        }
-        setAllSites(merged);
-      }
-      if (forecasts && forecasts.length > 0) {
-        setAllForecasts(forecasts);
-      }
-    });
-  }, []);
+  // 100% Hardcoded Canonical Khulna GIS Datasets (ZERO external API dependencies)
+  const [allSites] = useState<Site[]>(CANONICAL_KHULNA_STATIONS);
+  const [allForecasts] = useState<Forecast[]>(CANONICAL_KHULNA_FORECASTS);
 
   const forecastMap = useMemo(() => {
     const map: Record<string, Forecast> = {};

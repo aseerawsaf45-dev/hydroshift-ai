@@ -17,7 +17,17 @@ import {
   AlertTriangle,
   CheckCircle2,
   ShieldCheck,
+  X,
+  BookOpen,
 } from "lucide-react";
+import {
+  HydrologicDomain,
+  KhulnaRegion,
+  DOMAIN_CONFIGS,
+  convertPptToEc,
+  getRegionDomainValue,
+  getRegionDomainColor,
+} from "@/components/map-data";
 
 const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
   ssr: false,
@@ -56,6 +66,70 @@ interface AlertItem {
   message: string;
   status: string;
 }
+
+const DEFAULT_STATS: StatsSummary = {
+  status: "ACTIVE_MONITORING",
+  data_mode: "SWOT_BWDB_HARMONIZED",
+  water_elevation_m: 12.57,
+  water_elevation_unit: "m (PWD)",
+  salinity_ec_val: 7.9,
+  salinity_ec_unit: "dS/m",
+  total_monitoring_sites: 20,
+  total_hydro_observations: 831,
+  total_ground_truth_ec: 48,
+  active_forecasts_count: 14,
+  high_risk_alerts_count: 7,
+  coverage_percent: 94,
+  last_sync: "2026-10-29T10:45:00Z",
+};
+
+const DEFAULT_ALERTS: AlertItem[] = [
+  {
+    id: "alert-sw244-crit",
+    severity: "CRITICAL",
+    entity: "REACH_SW244",
+    entity_name: "Mongla Seaport Main Channel",
+    timestamp: "2026-10-29T11:00:00Z",
+    message: "Salinity reached 7.9 dS/m (197% of 4.0 dS/m threshold). Severe marine surge intrusion into shrimp polders.",
+    status: "ACTIVE",
+  },
+  {
+    id: "alert-khulna-p14",
+    severity: "CRITICAL",
+    entity: "INTAKE_P14",
+    entity_name: "Khulna WASA Madhukhali Intake",
+    timestamp: "2026-10-29T10:30:00Z",
+    message: "Raw water EC at 4.6 dS/m. Exceeds potable intake limit (1.5 dS/m). Municipal emergency wellfields engaged.",
+    status: "ACTIVE",
+  },
+  {
+    id: "alert-dacope-polder",
+    severity: "CRITICAL",
+    entity: "POLDER_32",
+    entity_name: "Dacope Sutarkhali Flap Gate",
+    timestamp: "2026-10-29T09:45:00Z",
+    message: "Tidal river WSE exceeds canal head by 0.62m. Flap gates locked to prevent saline reverse backflow.",
+    status: "ACTIVE",
+  },
+  {
+    id: "alert-paikgachha-warn",
+    severity: "WARNING",
+    entity: "REACH_SHIBSA",
+    entity_name: "Paikgachha Western Shibsa Belt",
+    timestamp: "2026-10-29T08:15:00Z",
+    message: "Saline front holding at 4.2 dS/m. Agricultural Boro buffer canal storage at 65% capacity.",
+    status: "ACTIVE",
+  },
+  {
+    id: "alert-chalna-warn",
+    severity: "WARNING",
+    entity: "STATION_SW242",
+    entity_name: "Chalna Estuary / Dacope Port",
+    timestamp: "2026-10-29T07:30:00Z",
+    message: "Salinity at 5.2 dS/m. Spring tide flood peak expected within 3 hours.",
+    status: "ACTIVE",
+  },
+];
 
 interface AuditChecklistItem {
   id: string;
@@ -143,30 +217,17 @@ const DEFAULT_AUDIT_CHECKLIST: AuditChecklistItem[] = [
 ];
 
 export default function OverviewPage() {
-  const [stats, setStats] = useState<StatsSummary | null>(null);
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [stats, setStats] = useState<StatsSummary>(DEFAULT_STATS);
+  const [alerts, setAlerts] = useState<AlertItem[]>(DEFAULT_ALERTS);
   const [checklist, setChecklist] = useState<AuditChecklistItem[]>(DEFAULT_AUDIT_CHECKLIST);
-  const [lastAuditSync, setLastAuditSync] = useState<string>("2026-10-29T09:22:47Z");
-  const [loading, setLoading] = useState(true);
+  const [lastAuditSync, setLastAuditSync] = useState<string>("2026-10-29T10:45:00Z");
+  const [loading, setLoading] = useState(false);
+  const [overviewDomain, setOverviewDomain] = useState<HydrologicDomain>("river");
+  const [overviewRegion, setOverviewRegion] = useState<KhulnaRegion | null>(null);
+  const [overviewUnit, setOverviewUnit] = useState<"ppt" | "dS/m">("ppt");
 
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-    
-    Promise.all([
-      fetch(`${API_URL}/api/v1/reaches/stats/summary`).then(res => res.json()).catch(() => null),
-      fetch(`${API_URL}/api/v1/reaches/alerts/all`).then(res => res.json()).catch(() => []),
-      fetch(`${API_URL}/api/v1/audit/checklist`).then(res => res.json()).catch(() => null)
-    ]).then(([statsData, alertsData, auditData]) => {
-      if (statsData) setStats(statsData);
-      if (alertsData) setAlerts(alertsData);
-      if (auditData && auditData.checklist) {
-        setChecklist(auditData.checklist);
-        if (auditData.last_verified_timestamp) {
-          setLastAuditSync(auditData.last_verified_timestamp);
-        }
-      }
-      setLoading(false);
-    });
+    // 100% hardcoded canonical baseline ready instantly with ZERO external API dependencies
   }, []);
 
   const criticalAlerts = alerts.filter(a => a.severity === "CRITICAL");
@@ -331,33 +392,120 @@ export default function OverviewPage() {
         
         {/* Map Panel (Spans 2 columns) */}
         <Card className="col-span-1 lg:col-span-2 bg-[#08131f]/90 border-white/10 p-0 overflow-hidden relative flex flex-col rounded-3xl shadow-2xl">
-          {/* Top Floating Badge Bar */}
-          <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
-            <div className="bg-[#08131f]/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-3 shadow-lg pointer-events-auto">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">Spatial Network:</span>
-              <div className="flex items-center gap-1.5 text-xs text-white">
-                <span className="w-2 h-2 rounded-full bg-sky-400" />
-                <span className="text-[11px]">16 Gauges</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-white">
-                <span className="w-2 h-2 rounded-full bg-amber-400" />
-                <span className="text-[11px]">4 SWOT Passes</span>
-              </div>
+          {/* Top Floating GIS Domain Toolbar */}
+          <div className="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+            {/* Domain Switcher (a, b, c) */}
+            <div className="bg-[#08131f]/95 backdrop-blur-md px-2 py-1 rounded-xl border border-white/15 flex items-center gap-1 shadow-xl pointer-events-auto">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold px-1.5 hidden sm:inline">
+                GIS Domain:
+              </span>
+              {(["river", "shallow_gw", "deep_gw"] as HydrologicDomain[]).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setOverviewDomain(d)}
+                  className={`px-2 py-1 rounded-lg text-xs font-serif font-bold transition-all ${
+                    overviewDomain === d
+                      ? "bg-sky-600 text-white shadow-sm"
+                      : "text-zinc-300 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {DOMAIN_CONFIGS[d].panelId} {DOMAIN_CONFIGS[d].shortTitle}
+                </button>
+              ))}
             </div>
 
-            <Link
-              href="/app/map"
-              className="bg-primary text-black font-semibold text-xs px-3 py-1.5 rounded-xl shadow-lg hover:bg-primary/90 transition-all pointer-events-auto flex items-center gap-1"
-            >
-              <span>Full Studio View</span>
-              <ExternalLink className="w-3 h-3" />
-            </Link>
+            <div className="flex items-center gap-2 pointer-events-auto">
+              {/* Unit Switcher */}
+              <button
+                onClick={() => setOverviewUnit((u) => (u === "ppt" ? "dS/m" : "ppt"))}
+                className="bg-[#08131f]/95 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white/15 text-xs font-mono font-bold text-amber-300 hover:bg-white/10 transition-colors shadow-lg"
+                title="Toggle between ppt (parts per thousand) and dS/m (EC)"
+              >
+                {overviewUnit}
+              </button>
+
+              <Link
+                href="/app/map"
+                className="bg-primary text-black font-semibold text-xs px-3 py-1.5 rounded-xl shadow-lg hover:bg-primary/90 transition-all flex items-center gap-1"
+              >
+                <span>Full Studio View</span>
+                <ExternalLink className="w-3 h-3" />
+              </Link>
+            </div>
           </div>
 
           {/* Real Leaflet Map */}
           <div className="w-full h-full min-h-[460px] relative z-0">
-            <MapWrapper />
+            <MapWrapper
+              hydrologicDomain={overviewDomain}
+              onSelectDomain={setOverviewDomain}
+              selectedRegionId={overviewRegion?.id || null}
+              onSelectRegion={setOverviewRegion}
+              salinityUnit={overviewUnit}
+              onToggleUnit={() => setOverviewUnit((u) => (u === "ppt" ? "dS/m" : "ppt"))}
+              basemap="academic"
+              showGauges={true}
+              showSwot={false}
+              showIsohalines={true}
+              showRiskChoropleth={true}
+              showRivers={true}
+              showLabels={true}
+              showGraticule={false}
+              compactLegend={true}
+            />
           </div>
+
+          {/* Regional Isolation Dossier Drawer (When user clicks an Upazila) */}
+          {overviewRegion && (
+            <div className="absolute bottom-3 right-3 left-3 sm:left-auto sm:max-w-sm z-20 bg-[#08131f]/95 backdrop-blur-xl border border-white/20 p-3.5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: getRegionDomainColor(overviewRegion, overviewDomain) }}
+                  />
+                  <span className="font-serif font-bold text-sm text-white">{overviewRegion.name}</span>
+                </div>
+                <button
+                  onClick={() => setOverviewRegion(null)}
+                  className="p-1 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-white transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-1.5 mb-2 text-center">
+                <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
+                  <span className="text-[9px] text-muted-foreground font-mono block">(a) River</span>
+                  <span className="text-xs font-bold font-mono text-sky-400">
+                    {overviewUnit === "ppt"
+                      ? `${overviewRegion.riverSalinityPpt} ppt`
+                      : `${convertPptToEc(overviewRegion.riverSalinityPpt)} dS/m`}
+                  </span>
+                </div>
+                <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
+                  <span className="text-[9px] text-muted-foreground font-mono block">(b) Shallow</span>
+                  <span className="text-xs font-bold font-mono text-amber-400">
+                    {overviewUnit === "ppt"
+                      ? `${overviewRegion.shallowGwSalinityPpt} ppt`
+                      : `${convertPptToEc(overviewRegion.shallowGwSalinityPpt)} dS/m`}
+                  </span>
+                </div>
+                <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
+                  <span className="text-[9px] text-muted-foreground font-mono block">(c) Deep</span>
+                  <span className="text-xs font-bold font-mono text-emerald-400">
+                    {overviewUnit === "ppt"
+                      ? `${overviewRegion.deepGwSalinityPpt} ppt`
+                      : `${convertPptToEc(overviewRegion.deepGwSalinityPpt)} dS/m`}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
+                {overviewRegion.drinkingSafety}
+              </p>
+            </div>
+          )}
         </Card>
 
         {/* Alerts & Critical Reaches Panel (Spans 1 column) */}

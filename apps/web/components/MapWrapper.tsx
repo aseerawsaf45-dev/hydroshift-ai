@@ -62,6 +62,7 @@ import {
   RISK_TIERS_CONFIG,
   RiskTier,
   CANONICAL_KHULNA_STATIONS,
+  CANONICAL_KHULNA_FORECASTS,
   PASSUR_MARINE_INGRESS_CORRIDOR,
   PASSUR_TRANSITION_CORRIDOR,
   RUPSHA_FRESHWATER_DILUTION,
@@ -134,95 +135,51 @@ const createGisStationIcon = (
   risk: string,
   isSelected: boolean,
   displayValue: string,
-  stationCode: string,
-  showLabel: boolean
+  stationCode: string
 ) => {
   const isCrit = risk === "CRITICAL";
   const isWarn = risk === "WARNING";
 
   const fillColor = isCrit
-    ? "#d92526" // Red
+    ? "#d92526" // Crimson Red
     : isWarn
     ? "#f5a623" // Amber
     : category === "swot"
-    ? "#1b75bb" // Sky Blue
+    ? "#0284c7" // Sky Blue
     : category === "intake"
     ? "#7c3aed" // Violet
-    : "#7eb8a8"; // Sage Green
-
-  const pulseRing = isCrit
-    ? `<div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid #d92526;animation:gisPing 1.8s infinite;pointer-events:none;"></div>`
-    : "";
-
-  const iconGlyph =
-    category === "swot" ? (
-      `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8"><polygon points="12 2 22 12 12 22 2 12"/></svg>`
-    ) : category === "intake" ? (
-      `<svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`
-    ) : (
-      `<svg width="8" height="8" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="5"/></svg>`
-    );
+    : "#059669"; // Emerald
 
   const markerShape =
     category === "swot"
-      ? "border-radius: 4px; transform: rotate(45deg);"
+      ? "border-radius: 2px; transform: rotate(45deg);"
       : "border-radius: 50%;";
+
+  const diameter = isSelected ? 16 : 11;
+  const outerBox = diameter + 8;
 
   return L.divIcon({
     className: "custom-gis-station-marker",
     html: `
-      <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px;">
-        ${pulseRing}
+      <div style="position: relative; display: flex; align-items: center; justify-content: center; width: ${outerBox}px; height: ${outerBox}px;">
+        ${isSelected ? `<div style="position:absolute;inset:0px;border-radius:50%;border:2px solid #0284c7;animation:gisPing 1.8s infinite;pointer-events:none;"></div>` : ""}
         <div style="
-          width: 18px; 
-          height: 18px; 
+          width: ${diameter}px; 
+          height: ${diameter}px; 
           background-color: ${fillColor}; 
-          border: 2px solid ${isSelected ? "#ffffff" : "rgba(255,255,255,0.85)"}; 
+          border: 2px solid #ffffff; 
           ${markerShape}
           display: flex; 
           align-items: center; 
           justify-content: center;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.5);
           cursor: pointer;
         ">
-          <div style="${category === "swot" ? "transform: rotate(-45deg);" : ""}">
-            ${iconGlyph}
-          </div>
         </div>
-
-        ${
-          showLabel
-            ? `
-          <div style="
-            position: absolute;
-            left: 24px;
-            white-space: nowrap;
-            background: rgba(8, 19, 31, 0.90);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #f8fafc;
-            font-size: 10px;
-            font-weight: 700;
-            font-family: ui-monospace, monospace;
-            padding: 2px 6px;
-            border-radius: 4px;
-            pointer-events: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          ">
-            <span>${stationCode}</span>
-            <span style="color: ${fillColor};">&bull;</span>
-            <span>${displayValue}</span>
-          </div>
-        `
-            : ""
-        }
       </div>
     `,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    iconSize: [outerBox, outerBox],
+    iconAnchor: [outerBox / 2, outerBox / 2],
   });
 };
 
@@ -278,32 +235,9 @@ export default function MapWrapper({
   useEffect(() => {
     setMounted(true);
     setMapKey((k) => k + 1);
-    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-
-    Promise.all([
-      fetch(`${API_URL}/api/v1/reaches`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
-      fetch(`${API_URL}/api/v1/reaches/forecasts/all`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
-    ]).then(([loadedSites, loadedForecasts]) => {
-      if (loadedSites && loadedSites.length > 0) {
-        const merged = [...CANONICAL_KHULNA_STATIONS];
-        for (const s of loadedSites) {
-          if (!merged.some((m) => m.id === s.id)) {
-            merged.push({
-              ...s,
-              category: s.id.startsWith("3124") || s.id.toLowerCase().includes("swot") ? "swot" : "gauge",
-              river: "Estuary",
-              baselineEc: 4.2,
-              wsePwd: 2.1,
-              distanceKm: 50.0,
-            });
-          }
-        }
-        setSites(merged);
-      }
-      if (loadedForecasts && loadedForecasts.length > 0) {
-        setForecasts(loadedForecasts);
-      }
-    });
+    // 100% Hardcoded Canonical GIS Data - ZERO external API dependencies
+    setSites(CANONICAL_KHULNA_STATIONS);
+    setForecasts(CANONICAL_KHULNA_FORECASTS);
   }, []);
 
   const handleCursorMove = useCallback((lat: number, lng: number) => {
@@ -1329,8 +1263,7 @@ export default function MapWrapper({
             risk,
             isSelected,
             displayVal,
-            site.id,
-            showLabels
+            site.id
           );
 
           return (
@@ -1344,6 +1277,17 @@ export default function MapWrapper({
                 },
               }}
             >
+              <Tooltip sticky direction="top">
+                <div className="flex items-center gap-1.5 font-sans text-xs">
+                  <span className="font-serif font-bold text-slate-900 dark:text-white">{site.name}</span>
+                  <span
+                    className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-white shadow-sm"
+                    style={{ backgroundColor: risk === "CRITICAL" ? "#d92526" : risk === "WARNING" ? "#f5a623" : "#0284c7" }}
+                  >
+                    {displayVal}
+                  </span>
+                </div>
+              </Tooltip>
               <Popup className="custom-gis-popup">
                 <div className="flex flex-col space-y-2.5 p-1 min-w-[270px] text-foreground font-sans">
                   {/* Popup Header with Agency & Status Pill */}
