@@ -13,9 +13,9 @@ DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data")
 PWD_TO_MSL = -0.46          # Public Works Datum to Mean Sea Level (m)
 MSL_TO_EGM2008 = 0.0        # Local geoid offset between MSL and SWOT EGM2008
 
-# Canonical station distances from the Bay of Bengal mouth along the Passur-Rupsha centerline (km)
+# Canonical benchmark station distances (km)
 DEFAULT_STATION_X_KM = {
-    "SW244": 25.0,            # Mongla Port Gauge
+    "SW244": 25.0,            # Mongla Port Gauge (benchmark boundary station)
     "SW243": 25.0,            # Mongla
     "SW242": 45.0,            # Chalna Gauge (Dacope)
     "SW241": 78.0,            # Khulna Rupsha Gauge
@@ -26,6 +26,22 @@ DEFAULT_STATION_X_KM = {
     "31241400601": 25.0,
     "31241400561": 50.0,
     "31241000011": 45.0
+}
+
+# SWORD Curvilinear Thalweg Chainage (Phase 1 Precision Geodesy, km from Bay mouth)
+# Matches ml.data.geospatial.CurvilinearThalweg orthogonal projections
+THALWEG_STATION_X_KM = {
+    "SW244": 53.82,           # Mongla Port Gauge
+    "SW243": 53.82,           # Mongla
+    "SW242": 64.63,           # Chalna Gauge (Dacope)
+    "SW241": 80.68,           # Khulna Rupsha Gauge
+    "khulna-p14": 82.00,      # Khulna WASA Madhukhali Intake
+    "mongla-port": 53.82,     # Mongla Intake
+    "SWOT_REACH_DEMO_001": 55.0,
+    "31241400581": 80.68,
+    "31241400601": 53.82,
+    "31241400561": 58.00,
+    "31241000011": 64.63
 }
 
 def build_training_dataset(
