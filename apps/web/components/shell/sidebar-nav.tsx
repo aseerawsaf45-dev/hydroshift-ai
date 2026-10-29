@@ -33,25 +33,21 @@ export const navItems = [
   { name: "Reports", href: "/app/reports", icon: FileText },
 ];
 
+import { BrandLogo } from "@/components/ui/BrandLogo";
+
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
 
   return (
     <div className="flex flex-col h-full bg-[#08131f] text-foreground border-r border-white/10">
       {/* Brand */}
-      <div className="h-16 flex items-center justify-between px-5 border-b border-white/10 shrink-0">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-white/10 shrink-0">
         <Link 
           href="/" 
           onClick={onClose}
-          className="flex items-center gap-2.5 group"
+          className="flex items-center transition-opacity hover:opacity-95"
         >
-          <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center text-primary transition-all group-hover:scale-105 group-hover:bg-primary/25">
-            <Waves className="w-4 h-4 text-primary" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold tracking-tight text-foreground text-xs uppercase">SWOT / Khulna</span>
-            <span className="text-[10px] text-muted-foreground font-mono">Delta Hydro-AI</span>
-          </div>
+          <BrandLogo size="sm" variant="lockup" />
         </Link>
 
         {onClose && (
