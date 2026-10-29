@@ -24,6 +24,90 @@ export interface Forecast {
 
 export type RiskTier = "Very Low" | "Low" | "Moderate" | "High" | "Very High";
 
+export type HydrologicDomain = "river" | "shallow_gw" | "deep_gw";
+
+export interface SalinityTier {
+  min: number;
+  max: number;
+  label: string; // e.g. "0.10 to 0.11"
+  color: string; // Hex color matching reference paper
+  fillColor: string;
+  textColor?: string;
+}
+
+export interface DomainConfig {
+  id: HydrologicDomain;
+  panelId: "(a)" | "(b)" | "(c)";
+  title: string;
+  shortTitle: string;
+  unit: string;
+  description: string;
+  waterSource: string;
+  targetDepth: string;
+  implication: string;
+  tiers: SalinityTier[];
+}
+
+export const DOMAIN_CONFIGS: Record<HydrologicDomain, DomainConfig> = {
+  river: {
+    id: "river",
+    panelId: "(a)",
+    title: "Salinity in River Water",
+    shortTitle: "River Surface Water",
+    unit: "ppt",
+    description: "NASA SWOT Estuarine Hydrodynamics & Marine Tidal Surge",
+    waterSource: "Surface Rivers (Passur, Shibsa, Rupsha)",
+    targetDepth: "Surface water column (0 - 8m)",
+    implication: "Directly governs irrigation canal intake opening and municipal water extraction at Madhukhali Intake (P-14).",
+    tiers: [
+      { min: 0.10, max: 0.11, label: "0.10 to 0.11", color: "#1b75bb", fillColor: "#1b75bb", textColor: "#ffffff" },
+      { min: 0.11, max: 0.16, label: "0.11 to 0.16", color: "#7eb8a8", fillColor: "#7eb8a8", textColor: "#0f172a" },
+      { min: 0.16, max: 0.38, label: "0.16 to 0.38", color: "#fbf089", fillColor: "#fbf089", textColor: "#451a03" },
+      { min: 0.38, max: 1.20, label: "0.38 to 1.20", color: "#f5a623", fillColor: "#f5a623", textColor: "#ffffff" },
+      { min: 1.20, max: 4.45, label: "1.20 to 4.45", color: "#e65124", fillColor: "#e65124", textColor: "#ffffff" },
+      { min: 4.45, max: 17.20, label: "4.45 to 17.20", color: "#d92526", fillColor: "#d92526", textColor: "#ffffff" },
+    ],
+  },
+  shallow_gw: {
+    id: "shallow_gw",
+    panelId: "(b)",
+    title: "Salinity in Shallow Groundwater",
+    shortTitle: "Shallow Groundwater",
+    unit: "ppt",
+    description: "Upper Holocene Aquifer & Boro Rice Root Zone Capillary Rise",
+    waterSource: "Shallow Unconfined Aquifer",
+    targetDepth: "10 - 50 meters below ground level",
+    implication: "Saline shrimp gher seepage and dry season evaporation pull salts to root zones, causing acute Boro rice seedling toxicity.",
+    tiers: [
+      { min: 0.1, max: 0.5, label: "0.1 to 0.5", color: "#1b75bb", fillColor: "#1b75bb", textColor: "#ffffff" },
+      { min: 0.5, max: 1.0, label: "0.5 to 1", color: "#7eb8a8", fillColor: "#7eb8a8", textColor: "#0f172a" },
+      { min: 1.0, max: 2.0, label: "1 to 2", color: "#fbf089", fillColor: "#fbf089", textColor: "#451a03" },
+      { min: 2.0, max: 5.0, label: "2 to 5", color: "#f5a623", fillColor: "#f5a623", textColor: "#ffffff" },
+      { min: 5.0, max: 10.0, label: "5 to 10", color: "#e65124", fillColor: "#e65124", textColor: "#ffffff" },
+      { min: 10.0, max: 16.0, label: "10 to 16", color: "#d92526", fillColor: "#d92526", textColor: "#ffffff" },
+    ],
+  },
+  deep_gw: {
+    id: "deep_gw",
+    panelId: "(c)",
+    title: "Salinity in Deep Groundwater",
+    shortTitle: "Deep Aquifer",
+    unit: "ppt",
+    description: "Confined Pleistocene Aquifer & Municipal Drinking Wellfields",
+    waterSource: "Confined Pleistocene Aquifer",
+    targetDepth: "150 - 300 meters PWD",
+    implication: "Protected from surface saltwater by thick impermeable clay aquitards. Primary source of potable drinking water for Khulna WASA.",
+    tiers: [
+      { min: 0.4, max: 2.0, label: "0.4 to 2", color: "#1b75bb", fillColor: "#1b75bb", textColor: "#ffffff" },
+      { min: 2.0, max: 2.6, label: "2 to 2.6", color: "#7eb8a8", fillColor: "#7eb8a8", textColor: "#0f172a" },
+      { min: 2.6, max: 3.0, label: "2.6 to 3", color: "#fbf089", fillColor: "#fbf089", textColor: "#451a03" },
+      { min: 3.0, max: 4.0, label: "3 to 4", color: "#f5a623", fillColor: "#f5a623", textColor: "#ffffff" },
+      { min: 4.0, max: 5.0, label: "4 to 5", color: "#e65124", fillColor: "#e65124", textColor: "#ffffff" },
+      { min: 5.0, max: 10.0, label: "5 to 10", color: "#d92526", fillColor: "#d92526", textColor: "#ffffff" },
+    ],
+  },
+};
+
 export interface KhulnaRegion {
   id: string;
   name: string;
@@ -44,6 +128,14 @@ export interface KhulnaRegion {
   bounds: [[number, number], [number, number]]; // [SW, NE]
   center: [number, number];
   coordinates: [number, number][];
+
+  // 3-Domain Scientific Salinity Data (ppt)
+  riverSalinityPpt: number;
+  shallowGwSalinityPpt: number;
+  deepGwSalinityPpt: number;
+  aquiferDepthM: string;
+  drinkingSafety: string;
+  hydrogeologySummary: string;
 }
 
 export interface MapWrapperProps {
@@ -51,6 +143,8 @@ export interface MapWrapperProps {
   onSelectSite?: (site: Site | null) => void;
   selectedRegionId?: string | null;
   onSelectRegion?: (region: KhulnaRegion | null) => void;
+  hydrologicDomain?: HydrologicDomain;
+  onSelectDomain?: (domain: HydrologicDomain) => void;
   showRiskChoropleth?: boolean;
   showSwot?: boolean;
   showGauges?: boolean;
@@ -59,13 +153,19 @@ export interface MapWrapperProps {
   showPolders?: boolean;
   showThalweg?: boolean;
   showLabels?: boolean;
-  basemap?: "satellite" | "dark" | "topo" | "osm";
+  showRivers?: boolean;
+  showGraticule?: boolean;
+  basemap?: "academic" | "satellite" | "dark" | "topo" | "osm";
   horizon?: "now" | "7d" | "14d";
   searchQuery?: string;
   riskFilter?: "all" | "critical" | "warning" | "nominal";
   flyToCoords?: [number, number] | null;
   onSelectCorridor?: (corridorName: string) => void;
   onSelectPolder?: (polder: PolderPolygon | null) => void;
+  salinityUnit?: "ppt" | "dS/m";
+  onToggleUnit?: () => void;
+  compactLegend?: boolean;
+  standaloneTitle?: string;
 }
 
 // -------------------------------------------------------------
@@ -314,6 +414,14 @@ export const SWOT_NADIR_GROUND_TRACK: [number, number][] = [
 // 4. PROFESSIONAL GIS BASEMAP DEFINITIONS
 // -------------------------------------------------------------
 export const BASEMAP_TILES = {
+  academic: {
+    base: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    ref: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+    subdomains: "",
+    attribution: "Tiles &copy; Esri &mdash; Academic GIS Base",
+    name: "Scientific Academic",
+    description: "Clean publication white paper GIS cartography matching academic journals",
+  },
   satellite: {
     base: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     ref: "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
@@ -585,6 +693,12 @@ export const KHULNA_UPAZILA_REGIONS: KhulnaRegion[] = [
       [22.410, 89.270],
       [22.480, 89.300],
     ],
+    riverSalinityPpt: 14.8,
+    shallowGwSalinityPpt: 12.2,
+    deepGwSalinityPpt: 5.8,
+    aquiferDepthM: "Shallow: 15-35m | Deep: 220-280m",
+    drinkingSafety: "CRITICAL: Surface & shallow GW completely brackish (>12 ppt). Deep wellfields yield marginal brackish water (5.8 ppt). Managed Aquifer Recharge (MAR) required.",
+    hydrogeologySummary: "Coastal fringe estuary adjacent to Sundarbans. Semi-pervious upper aquitard subjected to daily marine tidal pulsing.",
   },
   {
     id: "dacope",
@@ -626,6 +740,12 @@ export const KHULNA_UPAZILA_REGIONS: KhulnaRegion[] = [
       [22.580, 89.480],
       [22.680, 89.520],
     ],
+    riverSalinityPpt: 8.4,
+    shallowGwSalinityPpt: 8.1,
+    deepGwSalinityPpt: 3.4,
+    aquiferDepthM: "Shallow: 20-45m | Deep: 240-300m",
+    drinkingSafety: "SEVERE HAZARD: Shallow GW exceeds 8 ppt due to shrimp gher infiltration. Deep Pleistocene aquifer potable at 3.4 ppt but requires desalination blending.",
+    hydrogeologySummary: "Passur-Shibsa inter-estuarine plain. Thick upper silt-clay cap (14m) overlies Holocene fine sand; confined Pleistocene deep aquifer at 250m PWD.",
   },
   {
     id: "paikgachha",
@@ -666,6 +786,12 @@ export const KHULNA_UPAZILA_REGIONS: KhulnaRegion[] = [
       [22.620, 89.220],
       [22.720, 89.320],
     ],
+    riverSalinityPpt: 6.2,
+    shallowGwSalinityPpt: 7.4,
+    deepGwSalinityPpt: 2.8,
+    aquiferDepthM: "Shallow: 18-40m | Deep: 210-270m",
+    drinkingSafety: "HIGH RISK: Upper aquifer contaminated by extensive brackish shrimp ponds. Deep aquifer potable (<3.0 ppt) with BWDB monitored wellfields.",
+    hydrogeologySummary: "Western Kobodak basin. Downward vertical seepage head from brackish surface waters into semi-confined upper sand aquifer.",
   },
   {
     id: "batiaghata",
@@ -705,6 +831,12 @@ export const KHULNA_UPAZILA_REGIONS: KhulnaRegion[] = [
       [22.780, 89.460],
       [22.820, 89.520],
     ],
+    riverSalinityPpt: 2.8,
+    shallowGwSalinityPpt: 3.5,
+    deepGwSalinityPpt: 1.8,
+    aquiferDepthM: "Shallow: 25-50m | Deep: 200-260m",
+    drinkingSafety: "MODERATE RISK: Shallow aquifer suitable for salt-tolerant Boro rice (3.5 ppt). Deep aquifer excellent drinking quality (<2.0 ppt).",
+    hydrogeologySummary: "Deltaic transition zone. Tidal salinity front advances past Alutala Sluice during March spring tides; freshwater recharge buffers north section.",
   },
   {
     id: "dumuria",
@@ -745,6 +877,12 @@ export const KHULNA_UPAZILA_REGIONS: KhulnaRegion[] = [
       [22.910, 89.290],
       [22.950, 89.360],
     ],
+    riverSalinityPpt: 0.85,
+    shallowGwSalinityPpt: 1.6,
+    deepGwSalinityPpt: 1.1,
+    aquiferDepthM: "Shallow: 20-55m | Deep: 180-240m",
+    drinkingSafety: "SAFE / NOMINAL: Shallow GW safe for general agriculture (1.6 ppt). Deep aquifer provides pristine drinking water (1.1 ppt).",
+    hydrogeologySummary: "Gorai-Madhumati freshwater flood basin. Strong upward hydraulic gradient prevents significant saltwater penetration.",
   },
   {
     id: "khulna-sadar",
@@ -782,6 +920,12 @@ export const KHULNA_UPAZILA_REGIONS: KhulnaRegion[] = [
       [22.850, 89.510],
       [22.930, 89.540],
     ],
+    riverSalinityPpt: 1.45,
+    shallowGwSalinityPpt: 1.2,
+    deepGwSalinityPpt: 0.8,
+    aquiferDepthM: "Shallow: 30-60m | Deep: 200-280m",
+    drinkingSafety: "POTABLE: Khulna WASA deep production tube-wells extract fresh Pleistocene water (0.8 ppt). Madhukhali surface intake monitored against 1.0 ppt threshold.",
+    hydrogeologySummary: "Major urban extraction center. Deep confined sand aquifer protected by regional 35m impervious clay aquitard.",
   },
   {
     id: "phultala",
@@ -821,6 +965,491 @@ export const KHULNA_UPAZILA_REGIONS: KhulnaRegion[] = [
       [23.020, 89.410],
       [23.080, 89.480],
     ],
+    riverSalinityPpt: 0.14,
+    shallowGwSalinityPpt: 0.35,
+    deepGwSalinityPpt: 0.45,
+    aquiferDepthM: "Shallow: 15-50m | Deep: 150-220m",
+    drinkingSafety: "PRISTINE: Both shallow and deep groundwater completely fresh (<0.5 ppt). Ideal for intensive year-round irrigation and direct consumption.",
+    hydrogeologySummary: "Upper deltaic alluvial plain. Direct fluvial recharge from Bhairab and Gorai distributaries maintains fresh hydraulic barrier.",
   },
 ];
+
+// -------------------------------------------------------------
+// 9. CONTINUOUS ISOHALINE CONTOUR GRADIENT BANDS (3 DOMAINS)
+// Replicating the scientific smooth spatial interpolation from the publication
+// -------------------------------------------------------------
+export interface IsohalineContourBand {
+  tierIndex: number;
+  label: string;
+  color: string;
+  fillColor: string;
+  coordinates: [number, number][];
+}
+
+export const DOMAIN_ISOHALINES: Record<HydrologicDomain, IsohalineContourBand[]> = {
+  // (a) Salinity in River Water (ppt)
+  river: [
+    {
+      tierIndex: 5,
+      label: "4.45 to 17.20 ppt",
+      color: "#d92526",
+      fillColor: "#d92526",
+      coordinates: [
+        [21.70, 89.15],
+        [21.70, 89.75],
+        [22.42, 89.75],
+        [22.46, 89.60],
+        [22.42, 89.45],
+        [22.40, 89.30],
+        [22.38, 89.15],
+        [21.70, 89.15],
+      ],
+    },
+    {
+      tierIndex: 4,
+      label: "1.20 to 4.45 ppt",
+      color: "#e65124",
+      fillColor: "#e65124",
+      coordinates: [
+        [22.38, 89.15],
+        [22.40, 89.30],
+        [22.42, 89.45],
+        [22.46, 89.60],
+        [22.42, 89.75],
+        [22.68, 89.75],
+        [22.65, 89.55],
+        [22.62, 89.35],
+        [22.60, 89.15],
+        [22.38, 89.15],
+      ],
+    },
+    {
+      tierIndex: 3,
+      label: "0.38 to 1.20 ppt",
+      color: "#f5a623",
+      fillColor: "#f5a623",
+      coordinates: [
+        [22.60, 89.15],
+        [22.62, 89.35],
+        [22.65, 89.55],
+        [22.68, 89.75],
+        [22.82, 89.75],
+        [22.78, 89.55],
+        [22.76, 89.35],
+        [22.74, 89.15],
+        [22.60, 89.15],
+      ],
+    },
+    {
+      tierIndex: 2,
+      label: "0.16 to 0.38 ppt",
+      color: "#fbf089",
+      fillColor: "#fbf089",
+      coordinates: [
+        [22.74, 89.15],
+        [22.76, 89.35],
+        [22.78, 89.55],
+        [22.82, 89.75],
+        [22.92, 89.75],
+        [22.90, 89.55],
+        [22.88, 89.35],
+        [22.86, 89.15],
+        [22.74, 89.15],
+      ],
+    },
+    {
+      tierIndex: 1,
+      label: "0.11 to 0.16 ppt",
+      color: "#7eb8a8",
+      fillColor: "#7eb8a8",
+      coordinates: [
+        [22.86, 89.15],
+        [22.88, 89.35],
+        [22.90, 89.55],
+        [22.92, 89.75],
+        [23.02, 89.75],
+        [23.00, 89.55],
+        [22.98, 89.35],
+        [22.96, 89.15],
+        [22.86, 89.15],
+      ],
+    },
+    {
+      tierIndex: 0,
+      label: "0.10 to 0.11 ppt",
+      color: "#1b75bb",
+      fillColor: "#1b75bb",
+      coordinates: [
+        [22.96, 89.15],
+        [22.98, 89.35],
+        [23.00, 89.55],
+        [23.02, 89.75],
+        [23.15, 89.75],
+        [23.15, 89.15],
+        [22.96, 89.15],
+      ],
+    },
+  ],
+
+  // (b) Salinity in Shallow Groundwater (ppt)
+  shallow_gw: [
+    {
+      tierIndex: 5,
+      label: "10 to 16 ppt",
+      color: "#d92526",
+      fillColor: "#d92526",
+      coordinates: [
+        [21.70, 89.15],
+        [21.70, 89.75],
+        [22.60, 89.75],
+        [22.62, 89.55],
+        [22.58, 89.35],
+        [22.55, 89.15],
+        [21.70, 89.15],
+      ],
+    },
+    {
+      tierIndex: 4,
+      label: "5 to 10 ppt",
+      color: "#e65124",
+      fillColor: "#e65124",
+      coordinates: [
+        [22.55, 89.15],
+        [22.58, 89.35],
+        [22.62, 89.55],
+        [22.60, 89.75],
+        [22.78, 89.75],
+        [22.75, 89.55],
+        [22.72, 89.35],
+        [22.70, 89.15],
+        [22.55, 89.15],
+      ],
+    },
+    {
+      tierIndex: 3,
+      label: "2 to 5 ppt",
+      color: "#f5a623",
+      fillColor: "#f5a623",
+      coordinates: [
+        [22.70, 89.15],
+        [22.72, 89.35],
+        [22.75, 89.55],
+        [22.78, 89.75],
+        [22.88, 89.75],
+        [22.86, 89.55],
+        [22.84, 89.35],
+        [22.82, 89.15],
+        [22.70, 89.15],
+      ],
+    },
+    {
+      tierIndex: 2,
+      label: "1 to 2 ppt",
+      color: "#fbf089",
+      fillColor: "#fbf089",
+      coordinates: [
+        [22.82, 89.15],
+        [22.84, 89.35],
+        [22.86, 89.55],
+        [22.88, 89.75],
+        [22.96, 89.75],
+        [22.95, 89.55],
+        [22.93, 89.35],
+        [22.92, 89.15],
+        [22.82, 89.15],
+      ],
+    },
+    {
+      tierIndex: 1,
+      label: "0.5 to 1 ppt",
+      color: "#7eb8a8",
+      fillColor: "#7eb8a8",
+      coordinates: [
+        [22.92, 89.15],
+        [22.93, 89.35],
+        [22.95, 89.55],
+        [22.96, 89.75],
+        [23.05, 89.75],
+        [23.04, 89.55],
+        [23.02, 89.35],
+        [23.00, 89.15],
+        [22.92, 89.15],
+      ],
+    },
+    {
+      tierIndex: 0,
+      label: "0.1 to 0.5 ppt",
+      color: "#1b75bb",
+      fillColor: "#1b75bb",
+      coordinates: [
+        [23.00, 89.15],
+        [23.02, 89.35],
+        [23.04, 89.55],
+        [23.05, 89.75],
+        [23.15, 89.75],
+        [23.15, 89.15],
+        [23.00, 89.15],
+      ],
+    },
+  ],
+
+  // (c) Salinity in Deep Groundwater (ppt)
+  deep_gw: [
+    {
+      tierIndex: 5,
+      label: "5 to 10 ppt",
+      color: "#d92526",
+      fillColor: "#d92526",
+      coordinates: [
+        [21.70, 89.15],
+        [21.70, 89.75],
+        [22.25, 89.75],
+        [22.24, 89.55],
+        [22.22, 89.35],
+        [22.20, 89.15],
+        [21.70, 89.15],
+      ],
+    },
+    {
+      tierIndex: 4,
+      label: "4 to 5 ppt",
+      color: "#e65124",
+      fillColor: "#e65124",
+      coordinates: [
+        [22.20, 89.15],
+        [22.22, 89.35],
+        [22.24, 89.55],
+        [22.25, 89.75],
+        [22.42, 89.75],
+        [22.40, 89.55],
+        [22.38, 89.35],
+        [22.36, 89.15],
+        [22.20, 89.15],
+      ],
+    },
+    {
+      tierIndex: 3,
+      label: "3 to 4 ppt",
+      color: "#f5a623",
+      fillColor: "#f5a623",
+      coordinates: [
+        [22.36, 89.15],
+        [22.38, 89.35],
+        [22.40, 89.55],
+        [22.42, 89.75],
+        [22.58, 89.75],
+        [22.56, 89.55],
+        [22.54, 89.35],
+        [22.52, 89.15],
+        [22.36, 89.15],
+      ],
+    },
+    {
+      tierIndex: 2,
+      label: "2.6 to 3 ppt",
+      color: "#fbf089",
+      fillColor: "#fbf089",
+      coordinates: [
+        [22.52, 89.15],
+        [22.54, 89.35],
+        [22.56, 89.55],
+        [22.58, 89.75],
+        [22.70, 89.75],
+        [22.68, 89.55],
+        [22.66, 89.35],
+        [22.65, 89.15],
+        [22.52, 89.15],
+      ],
+    },
+    {
+      tierIndex: 1,
+      label: "2 to 2.6 ppt",
+      color: "#7eb8a8",
+      fillColor: "#7eb8a8",
+      coordinates: [
+        [22.65, 89.15],
+        [22.66, 89.35],
+        [22.68, 89.55],
+        [22.70, 89.75],
+        [22.88, 89.75],
+        [22.86, 89.55],
+        [22.85, 89.35],
+        [22.84, 89.15],
+        [22.65, 89.15],
+      ],
+    },
+    {
+      tierIndex: 0,
+      label: "0.4 to 2 ppt",
+      color: "#1b75bb",
+      fillColor: "#1b75bb",
+      coordinates: [
+        [22.84, 89.15],
+        [22.85, 89.35],
+        [22.86, 89.55],
+        [22.88, 89.75],
+        [23.15, 89.75],
+        [23.15, 89.15],
+        [22.84, 89.15],
+      ],
+    },
+  ],
+};
+
+// -------------------------------------------------------------
+// 10. HYDROGRAPHIC RIVER WATER NETWORK (CRISP VECTOR CHANNELS)
+// -------------------------------------------------------------
+export interface HydroRiver {
+  id: string;
+  name: string;
+  bengaliName: string;
+  coordinates: [number, number][];
+  labelCoord: [number, number];
+  width: number;
+}
+
+export const KHULNA_RIVER_SYSTEM: HydroRiver[] = [
+  {
+    id: "passur",
+    name: "Passur River",
+    bengaliName: "পশুর নদী",
+    width: 6,
+    coordinates: [
+      [22.825, 89.575],
+      [22.808, 89.580],
+      [22.760, 89.575],
+      [22.710, 89.570],
+      [22.620, 89.578],
+      [22.560, 89.585],
+      [22.520, 89.595],
+      [22.464, 89.600],
+      [22.380, 89.605],
+      [22.320, 89.620],
+      [22.250, 89.610],
+      [22.120, 89.625],
+      [21.980, 89.610],
+      [21.850, 89.595],
+      [21.750, 89.580],
+    ],
+    labelCoord: [22.48, 89.61],
+  },
+  {
+    id: "shibsa",
+    name: "Shibsa River",
+    bengaliName: "শিবসা নদী",
+    width: 5,
+    coordinates: [
+      [22.730, 89.390],
+      [22.650, 89.410],
+      [22.580, 89.440],
+      [22.480, 89.455],
+      [22.380, 89.440],
+      [22.280, 89.410],
+      [22.180, 89.390],
+      [22.050, 89.370],
+      [21.800, 89.350],
+    ],
+    labelCoord: [22.42, 89.43],
+  },
+  {
+    id: "rupsha",
+    name: "Rupsha River",
+    bengaliName: "রূপসা নদী",
+    width: 4,
+    coordinates: [
+      [22.920, 89.530],
+      [22.870, 89.560],
+      [22.825, 89.575],
+      [22.808, 89.580],
+      [22.760, 89.575],
+    ],
+    labelCoord: [22.84, 89.58],
+  },
+  {
+    id: "kobodak",
+    name: "Kobodak River",
+    bengaliName: "কপোতাক্ষ নদ",
+    width: 3.5,
+    coordinates: [
+      [22.850, 89.260],
+      [22.750, 89.280],
+      [22.650, 89.240],
+      [22.520, 89.230],
+      [22.400, 89.260],
+      [22.280, 89.270],
+      [22.150, 89.280],
+    ],
+    labelCoord: [22.56, 89.23],
+  },
+  {
+    id: "kazibacha",
+    name: "Kazibacha River",
+    bengaliName: "কাজীবাছা নদী",
+    width: 3.5,
+    coordinates: [
+      [22.780, 89.510],
+      [22.750, 89.530],
+      [22.700, 89.540],
+      [22.660, 89.530],
+      [22.620, 89.560],
+    ],
+    labelCoord: [22.71, 89.535],
+  },
+  {
+    id: "bhairab",
+    name: "Bhairab River",
+    bengaliName: "ভৈরব নদী",
+    width: 4,
+    coordinates: [
+      [23.080, 89.460],
+      [23.020, 89.500],
+      [22.960, 89.520],
+      [22.920, 89.530],
+    ],
+    labelCoord: [23.01, 89.49],
+  },
+];
+
+// Southern Bay of Bengal label placement
+export const BAY_OF_BENGAL_LOCATION: [number, number] = [21.68, 89.46];
+
+// -------------------------------------------------------------
+// 11. HELPER FUNCTIONS FOR DOMAIN LOOKUP & CONVERSION
+// -------------------------------------------------------------
+export function getRegionDomainValue(region: KhulnaRegion, domain: HydrologicDomain): number {
+  switch (domain) {
+    case "river":
+      return region.riverSalinityPpt;
+    case "shallow_gw":
+      return region.shallowGwSalinityPpt;
+    case "deep_gw":
+      return region.deepGwSalinityPpt;
+    default:
+      return region.riverSalinityPpt;
+  }
+}
+
+export function getDomainTier(value: number, domain: HydrologicDomain): SalinityTier {
+  const config = DOMAIN_CONFIGS[domain];
+  for (let i = config.tiers.length - 1; i >= 0; i--) {
+    if (value >= config.tiers[i].min) {
+      return config.tiers[i];
+    }
+  }
+  return config.tiers[0];
+}
+
+export function getRegionDomainColor(region: KhulnaRegion, domain: HydrologicDomain): string {
+  const val = getRegionDomainValue(region, domain);
+  const tier = getDomainTier(val, domain);
+  return tier.fillColor;
+}
+
+export function convertPptToEc(ppt: number): number {
+  return Number((ppt * 1.5625).toFixed(2));
+}
+
+export function convertEcToPpt(ec: number): number {
+  return Number((ec * 0.64).toFixed(2));
+}
 

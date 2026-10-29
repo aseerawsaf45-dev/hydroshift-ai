@@ -11,6 +11,12 @@ import {
   CANONICAL_KHULNA_STATIONS,
   PolderPolygon,
   KhulnaRegion,
+  HydrologicDomain,
+  DOMAIN_CONFIGS,
+  convertPptToEc,
+  convertEcToPpt,
+  getRegionDomainValue,
+  getRegionDomainColor,
   KHULNA_UPAZILA_REGIONS,
   RISK_TIERS_CONFIG,
   KHULNA_DISTRICT_BOUNDS,
@@ -35,6 +41,10 @@ import {
   Compass,
   Satellite,
   Waves,
+  BookOpen,
+  Columns3,
+  Square,
+  Maximize2,
 } from "lucide-react";
 
 const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
@@ -43,7 +53,7 @@ const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
     <div className="w-full h-full bg-[#05070d] flex items-center justify-center text-muted-foreground text-xs">
       <div className="flex flex-col items-center gap-3">
         <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="font-mono text-xs text-muted-foreground">Initializing GIS Delta Cartography...</span>
+        <span className="font-mono text-xs text-muted-foreground">Initializing Scientific Delta Cartography...</span>
       </div>
     </div>
   ),
@@ -66,8 +76,13 @@ export default function MapExplorerPage() {
   const [showIsohalines, setShowIsohalines] = useState(true);
   const [showPolders, setShowPolders] = useState(true);
   const [showThalweg, setShowThalweg] = useState(true);
-  const [showLabels, setShowLabels] = useState(false);
-  const [basemap, setBasemap] = useState<"satellite" | "dark" | "topo" | "osm">("satellite");
+  const [showLabels, setShowLabels] = useState(true);
+  const [showRivers, setShowRivers] = useState(true);
+  const [showGraticule, setShowGraticule] = useState(true);
+  const [basemap, setBasemap] = useState<"academic" | "satellite" | "dark" | "topo" | "osm">("academic");
+  const [hydrologicDomain, setHydrologicDomain] = useState<HydrologicDomain>("river");
+  const [viewLayout, setViewLayout] = useState<"single" | "triptych">("single");
+  const [salinityUnit, setSalinityUnit] = useState<"ppt" | "dS/m">("ppt");
   const [horizon, setHorizon] = useState<"now" | "7d" | "14d">("now");
   const [riskFilter, setRiskFilter] = useState<"all" | "critical" | "warning" | "nominal">("all");
   const [currentMode, setCurrentMode] = useState<"all" | "salinity" | "gauges" | "swot">("all");
@@ -245,50 +260,96 @@ export default function MapExplorerPage() {
       {/* 1. TOP INTELLIGENT CONTROL DOCK */}
       <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 sm:p-2.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 shadow-xl shrink-0">
         
-        {/* Left: Mode Quick Selectors & Hotspot Pills */}
+        {/* Left: Scientific 3-Domain Regimes (a, b, c) & Comparative Triptych Mode */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-          {/* Preset Buttons */}
-          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5 shrink-0">
+          
+          {/* 3-Domain Scientific Selector (Matching Reference Publication) */}
+          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 shrink-0">
             <button
-              onClick={() => handleModePreset("all")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                currentMode === "all" ? "bg-primary text-black font-bold shadow-md shadow-primary/20" : "text-muted-foreground hover:text-white"
+              id="btn-domain-river"
+              onClick={() => {
+                setHydrologicDomain("river");
+                handleModePreset("salinity");
+              }}
+              className={`px-3 py-1.5 text-xs font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                hydrologicDomain === "river" && viewLayout === "single"
+                  ? "bg-sky-600 text-white shadow-md shadow-sky-600/30"
+                  : "text-muted-foreground hover:text-white"
               }`}
+              title="NASA SWOT Estuarine River Surface Water Salinity (0 - 17.2 ppt)"
             >
-              All Layers
+              <Waves className="w-3.5 h-3.5 text-sky-400" />
+              <span>(a) River Water</span>
             </button>
+
             <button
-              onClick={() => handleModePreset("salinity")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
-                currentMode === "salinity" ? "bg-rose-500/25 text-rose-300 font-bold border border-rose-500/40" : "text-muted-foreground hover:text-white"
+              id="btn-domain-shallow-gw"
+              onClick={() => {
+                setHydrologicDomain("shallow_gw");
+                handleModePreset("salinity");
+              }}
+              className={`px-3 py-1.5 text-xs font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                hydrologicDomain === "shallow_gw" && viewLayout === "single"
+                  ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
+                  : "text-muted-foreground hover:text-white"
               }`}
+              title="Upper Holocene Shallow Aquifer Salinity (0.1 - 16 ppt) & Boro Root Zone Capillary Rise"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
-              Salinity Hazard
+              <Droplets className="w-3.5 h-3.5 text-amber-400" />
+              <span>(b) Shallow GW</span>
             </button>
+
             <button
-              onClick={() => handleModePreset("gauges")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                currentMode === "gauges" ? "bg-primary text-black font-bold shadow-md shadow-primary/20" : "text-muted-foreground hover:text-white"
+              id="btn-domain-deep-gw"
+              onClick={() => {
+                setHydrologicDomain("deep_gw");
+                handleModePreset("salinity");
+              }}
+              className={`px-3 py-1.5 text-xs font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                hydrologicDomain === "deep_gw" && viewLayout === "single"
+                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                  : "text-muted-foreground hover:text-white"
               }`}
+              title="Lower Pleistocene Deep Confined Aquifer (0.4 - 10 ppt) & Khulna WASA Wellfields"
             >
-              River Gauges
-            </button>
-            <button
-              onClick={() => handleModePreset("swot")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                currentMode === "swot" ? "bg-primary text-black font-bold shadow-md shadow-primary/20" : "text-muted-foreground hover:text-white"
-              }`}
-            >
-              SWOT Passes
+              <ShieldAlert className="w-3.5 h-3.5 text-emerald-400" />
+              <span>(c) Deep GW</span>
             </button>
           </div>
+
+          {/* 3-Map Comparative Triptych View Mode Toggle */}
+          <button
+            id="btn-triptych-toggle"
+            onClick={() => setViewLayout(viewLayout === "single" ? "triptych" : "single")}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-serif font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+              viewLayout === "triptych"
+                ? "bg-primary text-black border-primary shadow-lg shadow-primary/20 font-extrabold"
+                : "bg-white/5 hover:bg-white/10 border-white/10 text-white"
+            }`}
+            title="Display all 3 scientific sub-maps side-by-side matching the publication figure"
+          >
+            <Columns3 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">3-Map Comparative View</span>
+            <span className="sm:hidden">(a,b,c)</span>
+          </button>
+
+          {/* Unit Switcher: ppt vs dS/m */}
+          <button
+            id="btn-unit-toggle"
+            onClick={() => setSalinityUnit(salinityUnit === "ppt" ? "dS/m" : "ppt")}
+            className="px-2.5 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-[11px] font-mono font-bold text-amber-300 transition-all shrink-0 flex items-center gap-1"
+            title="Toggle unit between ppt (parts per thousand) and dS/m (electrical conductivity)"
+          >
+            <span>Unit:</span>
+            <strong className="text-white underline">{salinityUnit}</strong>
+          </button>
 
           <div className="h-5 w-px bg-white/10 mx-1 hidden sm:block shrink-0" />
 
           {/* Quick Regional Upazila Focus / Opt-Out Pills */}
           <div className="flex items-center gap-1 shrink-0 overflow-x-auto py-0.5">
             <button
+              id="btn-all-khulna"
               onClick={() => {
                 setSelectedRegion(null);
                 setSelectedSite(null);
@@ -296,7 +357,7 @@ export default function MapExplorerPage() {
               }}
               className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 !selectedRegion
-                  ? "bg-primary text-black border-primary shadow-md shadow-primary/20"
+                  ? "bg-white/20 text-white border-white/40 shadow-sm"
                   : "bg-white/5 hover:bg-white/10 border-white/10 text-muted-foreground hover:text-white"
               }`}
               title="View full Khulna District (Opt in all regions)"
@@ -307,9 +368,12 @@ export default function MapExplorerPage() {
 
             {KHULNA_UPAZILA_REGIONS.map((region) => {
               const isSelected = selectedRegion?.id === region.id;
+              const val = getRegionDomainValue(region, hydrologicDomain);
+              const col = getRegionDomainColor(region, hydrologicDomain);
               return (
                 <button
                   key={region.id}
+                  id={`btn-upazila-${region.id}`}
                   onClick={() => {
                     if (isSelected) {
                       setSelectedRegion(null);
@@ -321,24 +385,24 @@ export default function MapExplorerPage() {
                   }}
                   className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-medium transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                     isSelected
-                      ? "bg-white/20 text-white border-white shadow-md ring-2 ring-white/30 font-bold"
+                      ? "bg-white/25 text-white border-white shadow-md ring-2 ring-white/30 font-bold"
                       : "bg-white/5 hover:bg-white/10 border-white/5 text-muted-foreground hover:text-white"
                   }`}
-                  title={`Narrow down to ${region.name} (${region.riskTier} - ${region.avgEc} dS/m)`}
+                  title={`Narrow down to ${region.name} (${val} ppt)`}
                 >
                   <span
                     className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: region.color }}
+                    style={{ backgroundColor: col }}
                   />
                   <span>{region.name.replace(" Upazila", "")}</span>
                   <span
                     className="text-[9px] font-mono px-1 py-0.2 rounded"
                     style={{
-                      backgroundColor: isSelected ? region.color : "rgba(255,255,255,0.06)",
+                      backgroundColor: isSelected ? col : "rgba(255,255,255,0.06)",
                       color: isSelected ? "#fff" : undefined,
                     }}
                   >
-                    {region.riskTier}
+                    {salinityUnit === "ppt" ? `${val} ppt` : `${convertPptToEc(val)} dS/m`}
                   </span>
                 </button>
               );
@@ -346,42 +410,41 @@ export default function MapExplorerPage() {
           </div>
         </div>
 
-        {/* Right: Workspace Toggle Buttons & Direct Basemap Switch */}
+        {/* Right: Basemap Selector & Directory Button */}
         <div className="flex items-center gap-2 justify-end shrink-0">
           
           {/* Quick Basemap Switcher */}
           <div className="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5 text-xs">
             <button
+              id="btn-basemap-academic"
+              onClick={() => setBasemap("academic")}
+              className={`px-2.5 py-1 rounded-lg font-serif text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                basemap === "academic" ? "bg-sky-600 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
+              }`}
+              title="Clean Paper GIS Cartography matching academic journal figure"
+            >
+              <BookOpen className="w-3 h-3" />
+              <span>ACADEMIC</span>
+            </button>
+            <button
+              id="btn-basemap-satellite"
               onClick={() => setBasemap("satellite")}
-              className={`px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
-                basemap === "satellite" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
+              className={`px-2.5 py-1 rounded-lg font-serif text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                basemap === "satellite" ? "bg-sky-600 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
               }`}
             >
-              SATELLITE
+              <Satellite className="w-3 h-3" />
+              <span>SATELLITE</span>
             </button>
             <button
+              id="btn-basemap-dark"
               onClick={() => setBasemap("dark")}
-              className={`px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
-                basemap === "dark" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
+              className={`px-2.5 py-1 rounded-lg font-serif text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                basemap === "dark" ? "bg-sky-600 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
               }`}
             >
-              DARK GIS
-            </button>
-            <button
-              onClick={() => setBasemap("topo")}
-              className={`px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
-                basemap === "topo" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
-              }`}
-            >
-              TOPO
-            </button>
-            <button
-              onClick={() => setBasemap("osm")}
-              className={`px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
-                basemap === "osm" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
-              }`}
-            >
-              STREET
+              <Layers className="w-3 h-3" />
+              <span>DARK GIS</span>
             </button>
           </div>
 
@@ -506,34 +569,128 @@ export default function MapExplorerPage() {
           </div>
         </div>
 
-        {/* Leaflet Map Canvas */}
-        <MapWrapper
-          selectedSiteId={selectedSite?.id || null}
-          onSelectSite={handleSelectSite}
-          selectedRegionId={selectedRegion?.id || null}
-          onSelectRegion={(reg) => {
-            setSelectedRegion(reg);
-            if (reg) {
-              setSelectedSite(null);
-              setSelectedPolder(null);
-            }
-          }}
-          showRiskChoropleth={showRiskChoropleth}
-          showSwot={showSwot}
-          showGauges={showGauges}
-          showSalinityFront={showSalinityFront}
-          showIsohalines={showIsohalines}
-          showPolders={showPolders}
-          showThalweg={showThalweg}
-          showLabels={showLabels}
-          basemap={basemap}
-          horizon={horizon}
-          searchQuery={searchQuery}
-          riskFilter={riskFilter}
-          flyToCoords={flyToCoords}
-          onSelectCorridor={handleSelectCorridor}
-          onSelectPolder={(polder) => setSelectedPolder(polder)}
-        />
+        {/* Leaflet Map Canvas: Single Interactive Mode or 3-Map Scientific Comparative Triptych */}
+        {viewLayout === "triptych" ? (
+          <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-2 p-2 bg-[#0c1824] overflow-hidden">
+            {/* Panel (a) River Surface Water Salinity */}
+            <div className="relative rounded-2xl overflow-hidden border border-white/15 h-full">
+              <MapWrapper
+                hydrologicDomain="river"
+                salinityUnit={salinityUnit}
+                onToggleUnit={() => setSalinityUnit(u => u === "ppt" ? "dS/m" : "ppt")}
+                standaloneTitle="(a) Salinity in River Water"
+                compactLegend={true}
+                selectedRegionId={selectedRegion?.id || null}
+                onSelectRegion={(reg) => {
+                  setSelectedRegion(reg);
+                  if (reg) { setSelectedSite(null); setSelectedPolder(null); }
+                }}
+                showRiskChoropleth={showRiskChoropleth}
+                showSwot={showSwot}
+                showGauges={showGauges}
+                showSalinityFront={showSalinityFront}
+                showIsohalines={showIsohalines}
+                showPolders={false}
+                showThalweg={true}
+                showLabels={showLabels}
+                showRivers={showRivers}
+                showGraticule={true}
+                basemap={basemap}
+                horizon={horizon}
+              />
+            </div>
+
+            {/* Panel (b) Shallow Groundwater Salinity */}
+            <div className="relative rounded-2xl overflow-hidden border border-white/15 h-full">
+              <MapWrapper
+                hydrologicDomain="shallow_gw"
+                salinityUnit={salinityUnit}
+                onToggleUnit={() => setSalinityUnit(u => u === "ppt" ? "dS/m" : "ppt")}
+                standaloneTitle="(b) Salinity in Shallow Groundwater"
+                compactLegend={true}
+                selectedRegionId={selectedRegion?.id || null}
+                onSelectRegion={(reg) => {
+                  setSelectedRegion(reg);
+                  if (reg) { setSelectedSite(null); setSelectedPolder(null); }
+                }}
+                showRiskChoropleth={showRiskChoropleth}
+                showSwot={false}
+                showGauges={false}
+                showSalinityFront={false}
+                showIsohalines={showIsohalines}
+                showPolders={false}
+                showThalweg={false}
+                showLabels={showLabels}
+                showRivers={showRivers}
+                showGraticule={true}
+                basemap={basemap}
+                horizon={horizon}
+              />
+            </div>
+
+            {/* Panel (c) Deep Groundwater Salinity */}
+            <div className="relative rounded-2xl overflow-hidden border border-white/15 h-full">
+              <MapWrapper
+                hydrologicDomain="deep_gw"
+                salinityUnit={salinityUnit}
+                onToggleUnit={() => setSalinityUnit(u => u === "ppt" ? "dS/m" : "ppt")}
+                standaloneTitle="(c) Salinity in Deep Groundwater"
+                compactLegend={true}
+                selectedRegionId={selectedRegion?.id || null}
+                onSelectRegion={(reg) => {
+                  setSelectedRegion(reg);
+                  if (reg) { setSelectedSite(null); setSelectedPolder(null); }
+                }}
+                showRiskChoropleth={showRiskChoropleth}
+                showSwot={false}
+                showGauges={false}
+                showSalinityFront={false}
+                showIsohalines={showIsohalines}
+                showPolders={false}
+                showThalweg={false}
+                showLabels={showLabels}
+                showRivers={showRivers}
+                showGraticule={true}
+                basemap={basemap}
+                horizon={horizon}
+              />
+            </div>
+          </div>
+        ) : (
+          <MapWrapper
+            selectedSiteId={selectedSite?.id || null}
+            onSelectSite={handleSelectSite}
+            selectedRegionId={selectedRegion?.id || null}
+            onSelectRegion={(reg) => {
+              setSelectedRegion(reg);
+              if (reg) {
+                setSelectedSite(null);
+                setSelectedPolder(null);
+              }
+            }}
+            hydrologicDomain={hydrologicDomain}
+            onSelectDomain={setHydrologicDomain}
+            salinityUnit={salinityUnit}
+            onToggleUnit={() => setSalinityUnit(u => u === "ppt" ? "dS/m" : "ppt")}
+            showRiskChoropleth={showRiskChoropleth}
+            showSwot={showSwot}
+            showGauges={showGauges}
+            showSalinityFront={showSalinityFront}
+            showIsohalines={showIsohalines}
+            showPolders={showPolders}
+            showThalweg={showThalweg}
+            showLabels={showLabels}
+            showRivers={showRivers}
+            showGraticule={showGraticule}
+            basemap={basemap}
+            horizon={horizon}
+            searchQuery={searchQuery}
+            riskFilter={riskFilter}
+            flyToCoords={flyToCoords}
+            onSelectCorridor={handleSelectCorridor}
+            onSelectPolder={(polder) => setSelectedPolder(polder)}
+          />
+        )}
 
         {/* 3. STUDIO WORKBENCH (DRAWER / BOTTOM SHEET) */}
         {activePanel && (
@@ -1185,32 +1342,95 @@ export default function MapExplorerPage() {
                   </div>
                 </div>
 
-                {/* Salinity & Hydrology KPIs */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
-                    <span className="text-[10px] text-muted-foreground block font-mono">River Water Salinity (EC)</span>
-                    <div className="flex items-baseline gap-1 mt-0.5">
-                      <span className="text-xl font-bold font-mono" style={{ color: selectedRegion.color }}>
-                        {selectedRegion.avgEc}
-                      </span>
-                      <span className="text-xs text-muted-foreground font-mono">dS/m</span>
-                    </div>
-                    <span className="text-[9px] text-muted-foreground block mt-0.5">
-                      Safe Boro Limit: 4.0 dS/m
-                    </span>
+                {/* 3-Domain Scientific Salinity Comparison KPIs */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px] font-mono font-bold text-muted-foreground uppercase">
+                    <span>3-Domain Hydrodynamic Profile</span>
+                    <span>Units: {salinityUnit}</span>
                   </div>
-
-                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
-                    <span className="text-[10px] text-muted-foreground block font-mono">Soil Salinity (ECe)</span>
-                    <div className="flex items-baseline gap-1 mt-0.5">
-                      <span className="text-xl font-bold text-white font-mono">
-                        {selectedRegion.soilEc}
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {/* Domain (a) River Water */}
+                    <div className={`p-2 rounded-xl border transition-all ${
+                      hydrologicDomain === "river" 
+                        ? "bg-sky-500/15 border-sky-500/50 ring-1 ring-sky-500/40" 
+                        : "bg-white/5 border-white/10"
+                    }`}>
+                      <span className="text-[9px] text-muted-foreground block font-serif truncate">(a) River</span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="text-base font-bold font-mono text-sky-400">
+                          {salinityUnit === "ppt" 
+                            ? selectedRegion.riverSalinityPpt 
+                            : convertPptToEc(selectedRegion.riverSalinityPpt)}
+                        </span>
+                        <span className="text-[9px] text-muted-foreground font-mono">{salinityUnit}</span>
+                      </div>
+                      <span className="text-[8px] text-muted-foreground block mt-0.5">
+                        {salinityUnit === "ppt" 
+                          ? `${convertPptToEc(selectedRegion.riverSalinityPpt)} dS/m` 
+                          : `${selectedRegion.riverSalinityPpt} ppt`}
                       </span>
-                      <span className="text-xs text-muted-foreground font-mono">dS/m</span>
                     </div>
-                    <span className="text-[9px] text-muted-foreground block mt-0.5">
-                      Pop. at risk: {selectedRegion.population.toLocaleString()}
-                    </span>
+
+                    {/* Domain (b) Shallow Groundwater */}
+                    <div className={`p-2 rounded-xl border transition-all ${
+                      hydrologicDomain === "shallow_gw" 
+                        ? "bg-amber-500/15 border-amber-500/50 ring-1 ring-amber-500/40" 
+                        : "bg-white/5 border-white/10"
+                    }`}>
+                      <span className="text-[9px] text-muted-foreground block font-serif truncate">(b) Shallow GW</span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="text-base font-bold font-mono text-amber-400">
+                          {salinityUnit === "ppt" 
+                            ? selectedRegion.shallowGwSalinityPpt 
+                            : convertPptToEc(selectedRegion.shallowGwSalinityPpt)}
+                        </span>
+                        <span className="text-[9px] text-muted-foreground font-mono">{salinityUnit}</span>
+                      </div>
+                      <span className="text-[8px] text-muted-foreground block mt-0.5">
+                        {salinityUnit === "ppt" 
+                          ? `${convertPptToEc(selectedRegion.shallowGwSalinityPpt)} dS/m` 
+                          : `${selectedRegion.shallowGwSalinityPpt} ppt`}
+                      </span>
+                    </div>
+
+                    {/* Domain (c) Deep Groundwater */}
+                    <div className={`p-2 rounded-xl border transition-all ${
+                      hydrologicDomain === "deep_gw" 
+                        ? "bg-emerald-500/15 border-emerald-500/50 ring-1 ring-emerald-500/40" 
+                        : "bg-white/5 border-white/10"
+                    }`}>
+                      <span className="text-[9px] text-muted-foreground block font-serif truncate">(c) Deep GW</span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="text-base font-bold font-mono text-emerald-400">
+                          {salinityUnit === "ppt" 
+                            ? selectedRegion.deepGwSalinityPpt 
+                            : convertPptToEc(selectedRegion.deepGwSalinityPpt)}
+                        </span>
+                        <span className="text-[9px] text-muted-foreground font-mono">{salinityUnit}</span>
+                      </div>
+                      <span className="text-[8px] text-muted-foreground block mt-0.5">
+                        {salinityUnit === "ppt" 
+                          ? `${convertPptToEc(selectedRegion.deepGwSalinityPpt)} dS/m` 
+                          : `${selectedRegion.deepGwSalinityPpt} ppt`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Aquifer Profile & Drinking Water Safety */}
+                <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-xs space-y-1">
+                  <div className="flex items-center justify-between font-bold text-sky-300">
+                    <div className="flex items-center gap-1.5">
+                      <Droplets className="w-3.5 h-3.5 text-sky-400" />
+                      <span>Aquifer Depth:</span>
+                    </div>
+                    <span className="font-mono text-[10px] text-sky-200">{selectedRegion.aquiferDepthM}</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-300 leading-snug">
+                    {selectedRegion.hydrogeologySummary}
+                  </p>
+                  <div className="pt-1 border-t border-sky-500/20 text-[10px] text-rose-300 font-mono">
+                    &bull; {selectedRegion.drinkingSafety}
                   </div>
                 </div>
 

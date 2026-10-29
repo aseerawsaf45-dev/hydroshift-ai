@@ -34,6 +34,8 @@ import {
   Crosshair,
   TrendingUp,
   X,
+  BookOpen,
+  Maximize2,
 } from "lucide-react";
 
 export * from "./map-data";
@@ -43,6 +45,18 @@ import {
   MapWrapperProps,
   PolderPolygon,
   KhulnaRegion,
+  HydrologicDomain,
+  SalinityTier,
+  DomainConfig,
+  DOMAIN_CONFIGS,
+  DOMAIN_ISOHALINES,
+  KHULNA_RIVER_SYSTEM,
+  BAY_OF_BENGAL_LOCATION,
+  getRegionDomainValue,
+  getDomainTier,
+  getRegionDomainColor,
+  convertPptToEc,
+  convertEcToPpt,
   KHULNA_UPAZILA_REGIONS,
   KHULNA_DISTRICT_BOUNDS,
   RISK_TIERS_CONFIG,
@@ -113,7 +127,7 @@ function MapController({
 }
 
 // -------------------------------------------------------------
-// 2. PROFESSIONAL GIS VECTOR STATION SYMBOLOGY (CLEAN & NON-OVERLAPPING)
+// 2. PROFESSIONAL GIS VECTOR STATION SYMBOLOGY
 // -------------------------------------------------------------
 const createGisStationIcon = (
   category: "swot" | "gauge" | "intake",
@@ -126,25 +140,20 @@ const createGisStationIcon = (
   const isCrit = risk === "CRITICAL";
   const isWarn = risk === "WARNING";
 
-  // GIS Symbology Color Standards
   const fillColor = isCrit
-    ? "#e11d48" // Rose 600 (High hazard >= 4.0 dS/m)
+    ? "#d92526" // Red
     : isWarn
-    ? "#d97706" // Amber 600 (Moderate 2.5 - 4.0 dS/m)
+    ? "#f5a623" // Amber
     : category === "swot"
-    ? "#0284c7" // Sky 600 (NASA SWOT Reach)
+    ? "#1b75bb" // Sky Blue
     : category === "intake"
-    ? "#7c3aed" // Violet 600 (Municipal WASA Intake)
-    : "#059669"; // Emerald 600 (Fresh / Nominal < 2.5 dS/m)
+    ? "#7c3aed" // Violet
+    : "#7eb8a8"; // Sage Green
 
   const pulseRing = isCrit
-    ? `<div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid #f43f5e;animation:gisPing 1.8s infinite;pointer-events:none;"></div>`
+    ? `<div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid #d92526;animation:gisPing 1.8s infinite;pointer-events:none;"></div>`
     : "";
 
-  // Category SVG glyphs:
-  // - Gauge: concentric sonar target
-  // - Intake: water droplet
-  // - SWOT Reach: satellite diamond
   const iconGlyph =
     category === "swot" ? (
       `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8"><polygon points="12 2 22 12 12 22 2 12"/></svg>`
@@ -158,50 +167,75 @@ const createGisStationIcon = (
     category === "swot"
       ? "border-radius: 4px; transform: rotate(45deg);"
       : "border-radius: 50%;";
-  const innerGlyphTransform = category === "swot" ? "transform: rotate(-45deg);" : "";
-
-  // Compact floating callout label (rendered above pin with down carrot)
-  const labelHtml =
-    showLabel || isSelected
-      ? `
-    <div style="position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(8,19,31,0.92);border:1px solid ${fillColor};color:#ffffff;font-family:ui-monospace,SFMono-Regular,monospace;font-size:10px;font-weight:700;padding:1.5px 5px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.7);pointer-events:none;z-index:20;">
-      <span>${displayValue}</span>
-      <div style="position:absolute;top:100%;left:50%;transform:translateX(-50%);border-width:4px 4px 0 4px;border-style:solid;border-color:rgba(8,19,31,0.92) transparent transparent transparent;"></div>
-    </div>
-  `
-      : "";
-
-  const selectedRing = isSelected
-    ? `box-shadow: 0 0 0 3px #ffffff, 0 0 16px ${fillColor}; transform: scale(1.18);`
-    : `box-shadow: 0 2px 8px rgba(0,0,0,0.7);`;
 
   return L.divIcon({
-    className: "gis-station-marker",
+    className: "custom-gis-station-marker",
     html: `
-      <div style="position:relative;display:flex;align-items:center;justify-content:center;width:24px;height:24px;cursor:pointer;">
+      <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px;">
         ${pulseRing}
-        ${labelHtml}
-        <div style="width:20px;height:20px;${markerShape}background:${fillColor};border:2px solid #ffffff;${selectedRing}display:flex;align-items:center;justify-content:center;transition:transform 0.15s ease;">
-          <div style="${innerGlyphTransform}display:flex;align-items:center;justify-content:center;">
+        <div style="
+          width: 18px; 
+          height: 18px; 
+          background-color: ${fillColor}; 
+          border: 2px solid ${isSelected ? "#ffffff" : "rgba(255,255,255,0.85)"}; 
+          ${markerShape}
+          display: flex; 
+          align-items: center; 
+          justify-content: center;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+          cursor: pointer;
+        ">
+          <div style="${category === "swot" ? "transform: rotate(-45deg);" : ""}">
             ${iconGlyph}
           </div>
         </div>
+
+        ${
+          showLabel
+            ? `
+          <div style="
+            position: absolute;
+            left: 24px;
+            white-space: nowrap;
+            background: rgba(8, 19, 31, 0.90);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #f8fafc;
+            font-size: 10px;
+            font-weight: 700;
+            font-family: ui-monospace, monospace;
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <span>${stationCode}</span>
+            <span style="color: ${fillColor};">&bull;</span>
+            <span>${displayValue}</span>
+          </div>
+        `
+            : ""
+        }
       </div>
     `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    popupAnchor: [0, -16],
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
   });
 };
 
 // -------------------------------------------------------------
-// 3. MAIN HIGH-PRECISION GIS MAP WRAPPER COMPONENT
+// 3. MAIN MAPWRAPPER COMPONENT
 // -------------------------------------------------------------
 export default function MapWrapper({
   selectedSiteId,
   onSelectSite,
   selectedRegionId = null,
   onSelectRegion,
+  hydrologicDomain = "river",
+  onSelectDomain,
   showRiskChoropleth = true,
   showSwot = true,
   showGauges = true,
@@ -209,21 +243,27 @@ export default function MapWrapper({
   showIsohalines = true,
   showPolders = true,
   showThalweg = true,
-  showLabels = false,
-  basemap = "satellite",
+  showLabels = true,
+  showRivers = true,
+  showGraticule = true,
+  basemap = "academic",
   horizon = "now",
   searchQuery = "",
   riskFilter = "all",
   flyToCoords = null,
   onSelectCorridor,
   onSelectPolder,
+  salinityUnit = "ppt",
+  onToggleUnit,
+  compactLegend = false,
+  standaloneTitle,
 }: MapWrapperProps) {
   const [mounted, setMounted] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const [sites, setSites] = useState<Site[]>(CANONICAL_KHULNA_STATIONS);
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
   const [cursorCoords, setCursorCoords] = useState<[number, number]>([22.65, 89.56]);
-  const [internalBasemap, setInternalBasemap] = useState<"satellite" | "dark" | "topo" | "osm">(basemap);
+  const [internalBasemap, setInternalBasemap] = useState<"academic" | "satellite" | "dark" | "topo" | "osm">(basemap);
 
   const activeRegion = useMemo(() => {
     if (!selectedRegionId) return null;
@@ -281,6 +321,11 @@ export default function MapWrapper({
     return map;
   }, [forecasts]);
 
+  // Active domain configuration
+  const currentDomainConfig = useMemo(() => {
+    return DOMAIN_CONFIGS[hydrologicDomain] || DOMAIN_CONFIGS.river;
+  }, [hydrologicDomain]);
+
   // Filter sites strictly to Khulna Geographic Envelope
   const khulnaSites = useMemo(() => {
     return sites.filter((site) => {
@@ -333,27 +378,28 @@ export default function MapWrapper({
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           <span className="font-mono text-xs uppercase tracking-wider text-primary">
-            Initializing GIS Delta Cartography...
+            Initializing Scientific Delta Cartography...
           </span>
         </div>
       </div>
     );
   }
 
-  const currentTileConfig = BASEMAP_TILES[internalBasemap] || BASEMAP_TILES.satellite;
+  const currentTileConfig = BASEMAP_TILES[internalBasemap] || BASEMAP_TILES.academic;
 
-  // Approximate estuarine chainage calculation from cursor latitude
   const cursorChainageKm = Math.max(
     0,
     Math.min(82.0, (cursorCoords[0] - 21.75) * (82.0 / (22.825 - 21.75)))
   ).toFixed(1);
+
+  const isAcademic = internalBasemap === "academic";
 
   return (
     <div className="w-full h-full relative z-0 min-h-[480px] overflow-hidden select-none">
       {/* 1. GIS CSS KEYFRAMES & POPUP THEME */}
       <style>{`
         .leaflet-container {
-          background-color: #0c1824 !important;
+          background-color: ${isAcademic ? "#dff0fa" : "#0c1824"} !important;
           font-family: inherit;
         }
 
@@ -364,133 +410,199 @@ export default function MapWrapper({
 
         /* High-Definition GIS Popups */
         .leaflet-popup-content-wrapper {
-          background: rgba(8, 19, 31, 0.96) !important;
-          color: #f1f6f8 !important;
-          border: 1px solid rgba(255, 255, 255, 0.18) !important;
+          background: ${isAcademic ? "rgba(255, 255, 255, 0.98)" : "rgba(8, 19, 31, 0.96)"} !important;
+          color: ${isAcademic ? "#0f172a" : "#f1f6f8"} !important;
+          border: 1px solid ${isAcademic ? "rgba(0,0,0,0.2)" : "rgba(255, 255, 255, 0.18)"} !important;
           backdrop-filter: blur(20px) !important;
-          box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.85) !important;
+          box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6) !important;
           border-radius: 16px !important;
           padding: 0 !important;
         }
         .leaflet-popup-tip {
-          background: rgba(8, 19, 31, 0.96) !important;
-          border: 1px solid rgba(255, 255, 255, 0.18) !important;
+          background: ${isAcademic ? "rgba(255, 255, 255, 0.98)" : "rgba(8, 19, 31, 0.96)"} !important;
+          border: 1px solid ${isAcademic ? "rgba(0,0,0,0.2)" : "rgba(255, 255, 255, 0.18)"} !important;
         }
         .leaflet-popup-content {
           margin: 12px 14px !important;
           line-height: 1.4 !important;
         }
         .leaflet-popup-close-button {
-          color: #94a3b8 !important;
+          color: ${isAcademic ? "#475569" : "#94a3b8"} !important;
           padding: 6px 8px !important;
           font-size: 16px !important;
-        }
-        .leaflet-popup-close-button:hover {
-          color: #ffffff !important;
         }
 
         /* Crisp GIS Tooltip */
         .leaflet-tooltip {
-          background: rgba(8, 19, 31, 0.94) !important;
-          color: #f8fafc !important;
-          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          background: ${isAcademic ? "rgba(255, 255, 255, 0.96)" : "rgba(8, 19, 31, 0.94)"} !important;
+          color: ${isAcademic ? "#0f172a" : "#f8fafc"} !important;
+          border: 1px solid ${isAcademic ? "rgba(0,0,0,0.2)" : "rgba(255, 255, 255, 0.2)"} !important;
           backdrop-filter: blur(12px) !important;
           border-radius: 8px !important;
           padding: 5px 8px !important;
           font-size: 11px !important;
           font-weight: 600 !important;
-          box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.7) !important;
-        }
-        .leaflet-tooltip-top:before {
-          border-top-color: rgba(8, 19, 31, 0.94) !important;
+          box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.4) !important;
         }
 
-        /* Scale Bar Styling */
-        .leaflet-control-scale-line {
-          background: rgba(8, 19, 31, 0.85) !important;
-          color: #f1f6f8 !important;
-          border: 2px solid rgba(255, 255, 255, 0.4) !important;
-          border-top: none !important;
-          font-family: ui-monospace, SFMono-Regular, monospace !important;
-          font-size: 10px !important;
-          font-weight: 700 !important;
-          padding: 2px 5px !important;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
+        /* Permanent Label Anti-Collision */
+        .upazila-permanent-label {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        .bay-of-bengal-label {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        .river-centerline-label {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
         }
       `}</style>
 
-      {/* 2. FLOATING GIS BASEMAP SELECTOR (TOP-RIGHT) */}
-      <div className="absolute top-3 right-3 z-[500] flex flex-col items-end gap-2 pointer-events-none">
-        <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 p-1 rounded-xl shadow-2xl pointer-events-auto flex items-center gap-1">
+      {/* 2. TOP COORDINATE GRATICULE TICKS (MATCHING REFERENCE FIGURE) */}
+      {showGraticule && (
+        <>
+          <div className={`absolute top-0 left-0 right-0 z-[490] pointer-events-none flex justify-between px-16 py-0.5 text-[9px] font-mono font-bold tracking-tight border-b ${
+            isAcademic 
+              ? "bg-white/90 text-slate-800 border-slate-300 shadow-sm" 
+              : "bg-black/60 text-zinc-300 border-white/10"
+          }`}>
+            <span>89.20°E</span>
+            <span>89.35°E</span>
+            <span>89.50°E</span>
+            <span>89.65°E</span>
+            <span>89.80°E</span>
+          </div>
+
+          <div className={`absolute top-8 bottom-16 left-0 z-[490] pointer-events-none flex flex-col justify-between py-6 px-1 text-[9px] font-mono font-bold tracking-tight border-r ${
+            isAcademic 
+              ? "bg-white/80 text-slate-800 border-slate-300" 
+              : "bg-black/40 text-zinc-300 border-white/10"
+          }`}>
+            <span>23.08°N</span>
+            <span>22.85°N</span>
+            <span>22.60°N</span>
+            <span>22.35°N</span>
+            <span>22.10°N</span>
+          </div>
+        </>
+      )}
+
+      {/* 3. FLOATING BASEMAP & DOMAIN TOOLBAR (TOP-RIGHT) */}
+      <div className="absolute top-7 right-3 z-[500] flex flex-col items-end gap-2 pointer-events-none">
+        {/* Basemap Switcher */}
+        <div className={`p-1 rounded-xl shadow-xl pointer-events-auto flex items-center gap-1 border ${
+          isAcademic ? "bg-white/95 border-slate-300" : "bg-[#08131f]/95 border-white/15 backdrop-blur-xl"
+        }`}>
+          <button
+            onClick={() => setInternalBasemap("academic")}
+            className={`px-2 py-1 rounded-lg text-[11px] font-serif font-bold transition-all flex items-center gap-1 ${
+              internalBasemap === "academic"
+                ? "bg-sky-600 text-white shadow-sm"
+                : isAcademic ? "text-slate-600 hover:text-black" : "text-zinc-400 hover:text-white"
+            }`}
+            title="Clean Paper GIS Cartography matching academic journal figure"
+          >
+            <BookOpen className="w-3 h-3" />
+            <span>Academic</span>
+          </button>
           <button
             onClick={() => setInternalBasemap("satellite")}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-2 py-1 rounded-lg text-[11px] font-serif font-bold transition-all flex items-center gap-1 ${
               internalBasemap === "satellite"
-                ? "bg-primary text-black shadow-md shadow-primary/20"
-                : "text-muted-foreground hover:text-white"
+                ? "bg-sky-600 text-white shadow-sm"
+                : isAcademic ? "text-slate-600 hover:text-black" : "text-zinc-400 hover:text-white"
             }`}
-            title="NASA Earth Data / Esri Satellite Imagery with Place Labels"
+            title="NASA Earth Data / Esri Satellite Imagery"
           >
             <Satellite className="w-3 h-3" />
             <span>Satellite</span>
           </button>
           <button
             onClick={() => setInternalBasemap("dark")}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-2 py-1 rounded-lg text-[11px] font-serif font-bold transition-all flex items-center gap-1 ${
               internalBasemap === "dark"
-                ? "bg-primary text-black shadow-md shadow-primary/20"
-                : "text-muted-foreground hover:text-white"
+                ? "bg-sky-600 text-white shadow-sm"
+                : isAcademic ? "text-slate-600 hover:text-black" : "text-zinc-400 hover:text-white"
             }`}
             title="CartoDB Dark GIS Cartography"
           >
             <Layers className="w-3 h-3" />
-            <span>Dark GIS</span>
+            <span>Dark</span>
           </button>
           <button
             onClick={() => setInternalBasemap("topo")}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-2 py-1 rounded-lg text-[11px] font-serif font-bold transition-all flex items-center gap-1 ${
               internalBasemap === "topo"
-                ? "bg-primary text-black shadow-md shadow-primary/20"
-                : "text-muted-foreground hover:text-white"
+                ? "bg-sky-600 text-white shadow-sm"
+                : isAcademic ? "text-slate-600 hover:text-black" : "text-zinc-400 hover:text-white"
             }`}
-            title="Hydrographic Topographic Contours"
+            title="Topographic River Elevation"
           >
             <Waves className="w-3 h-3" />
             <span>Topo</span>
           </button>
-          <button
-            onClick={() => setInternalBasemap("osm")}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 ${
-              internalBasemap === "osm"
-                ? "bg-primary text-black shadow-md shadow-primary/20"
-                : "text-muted-foreground hover:text-white"
-            }`}
-            title="OpenStreetMap Street Infrastructure"
-          >
-            <Compass className="w-3 h-3" />
-            <span>Street</span>
-          </button>
+        </div>
+
+        {/* Publication Metric Scale & North Arrow (Top-Right of Reference) */}
+        <div className={`px-3 py-1.5 rounded-xl shadow-lg border flex items-center gap-3 ${
+          isAcademic ? "bg-white/95 border-slate-300 text-slate-900" : "bg-[#08131f]/90 border-white/15 text-white"
+        }`}>
+          {/* North Arrow */}
+          <div className="flex flex-col items-center">
+            <span className="font-serif font-bold text-[11px] leading-tight">N</span>
+            <svg width="14" height="18" viewBox="0 0 24 28" fill="none">
+              <polygon points="12,2 18,22 12,17 6,22" fill={isAcademic ? "#0f172a" : "#ffffff"} stroke="#000" strokeWidth="1" />
+              <polygon points="12,2 12,17 6,22" fill={isAcademic ? "#64748b" : "#94a3b8"} />
+            </svg>
+          </div>
+
+          <div className="h-6 w-px bg-slate-300 dark:bg-white/20" />
+
+          {/* Metric Scale Bar 0 - 10 - 20 - 40 Km */}
+          <div className="flex flex-col items-center font-serif text-[10px]">
+            <div className="flex justify-between w-24 text-[9px] font-mono font-bold leading-none mb-0.5">
+              <span>0</span>
+              <span>10</span>
+              <span>20</span>
+              <span>40 Km</span>
+            </div>
+            <div className="w-24 h-2 border border-slate-800 dark:border-white flex overflow-hidden">
+              <div className="w-1/4 bg-slate-900 dark:bg-white h-full" />
+              <div className="w-1/4 bg-white dark:bg-black h-full" />
+              <div className="w-1/4 bg-slate-900 dark:bg-white h-full" />
+              <div className="w-1/4 bg-white dark:bg-black h-full" />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 3. FOCUSED REGION BANNER (WHEN REGION IS ISOLATED) */}
+      {/* 4. FOCUSED REGION BANNER (WHEN REGION IS ISOLATED) */}
       {activeRegion && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[600] pointer-events-none flex justify-center animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-2xl shadow-2xl pointer-events-auto flex items-center gap-3 text-xs">
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-[600] pointer-events-none flex justify-center animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className={`px-4 py-2 rounded-2xl shadow-2xl pointer-events-auto flex items-center gap-3 text-xs border ${
+            isAcademic ? "bg-white/95 border-slate-400 text-slate-900" : "bg-[#08131f]/95 border-white/20 text-white backdrop-blur-xl"
+          }`}>
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full animate-ping" style={{ backgroundColor: activeRegion.color }} />
-              <span className="font-bold text-white font-sans text-sm">{activeRegion.name}</span>
+              <span className="w-3 h-3 rounded-full animate-ping" style={{ backgroundColor: getRegionDomainColor(activeRegion, hydrologicDomain) }} />
+              <span className="font-bold font-serif text-sm">{activeRegion.name}</span>
               <span
                 className="text-[10px] font-mono font-bold px-2 py-0.5 rounded text-white shadow"
-                style={{ backgroundColor: activeRegion.color }}
+                style={{ backgroundColor: getRegionDomainColor(activeRegion, hydrologicDomain) }}
               >
-                {activeRegion.riskTier} ({activeRegion.avgEc} dS/m)
+                {salinityUnit === "ppt" 
+                  ? `${getRegionDomainValue(activeRegion, hydrologicDomain)} ppt` 
+                  : `${convertPptToEc(getRegionDomainValue(activeRegion, hydrologicDomain))} dS/m`}
               </span>
             </div>
             <span className="text-muted-foreground text-[11px] hidden md:inline">| Other regions opted out</span>
             <button
               onClick={() => onSelectRegion && onSelectRegion(null)}
-              className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-cyan-300 text-[11px] font-mono font-bold transition-colors cursor-pointer flex items-center gap-1 border border-white/10"
+              className="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-mono font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
             >
               <span>View All Khulna</span>
               <X className="w-3 h-3" />
@@ -499,103 +611,123 @@ export default function MapWrapper({
         </div>
       )}
 
-      {/* 4. AUTHENTIC 5-TIER RISK LEGEND & NORTH ARROW (MATCHING USER GRAPHIC) */}
-      {!activeRegion && (
-        <div className="absolute bottom-12 right-4 z-[500] pointer-events-none flex flex-col items-end space-y-2 animate-in fade-in duration-300">
-          <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/20 p-3 rounded-2xl shadow-2xl pointer-events-auto flex flex-col space-y-2 min-w-[150px]">
-            {/* Title */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-1">
-              <span className="font-serif font-bold text-white text-sm tracking-wide">Risk</span>
-              <span className="text-[9px] font-mono text-muted-foreground uppercase">Khulna</span>
+      {/* 5. SCIENTIFIC PUBLICATION SALINITY LEGEND CARD (EXACT REPLICATION OF PAPER FIGURE) */}
+      <div className={`absolute bottom-3 ${compactLegend ? "left-3" : "left-3 md:left-6"} z-[500] pointer-events-none animate-in fade-in duration-300`}>
+        <div className={`p-3 rounded-xl shadow-2xl pointer-events-auto border transition-all ${
+          isAcademic
+            ? "bg-white/98 text-slate-900 border-slate-400 shadow-slate-500/20"
+            : "bg-[#08131f]/95 text-white border-white/20 backdrop-blur-xl"
+        }`}>
+          {/* Card Title Matching Academic Figure Header */}
+          <div className="flex items-center justify-between gap-3 border-b pb-1.5 mb-2 border-slate-300 dark:border-white/10">
+            <div className="flex items-center gap-1.5">
+              <span className="font-serif font-bold text-xs sm:text-sm tracking-wide">
+                {standaloneTitle || `${currentDomainConfig.title} (${salinityUnit})`}
+              </span>
             </div>
 
-            {/* 5-Tier Items */}
-            <div className="flex flex-col space-y-1">
-              {RISK_TIERS_CONFIG.map((tier) => {
-                return (
-                  <div
-                    key={tier.tier}
-                    className="flex items-center gap-2 px-1 py-0.5 rounded hover:bg-white/10 transition-colors cursor-pointer"
-                    onClick={() => {
-                      const match = KHULNA_UPAZILA_REGIONS.find((r) => r.riskTier === tier.tier);
-                      if (match && onSelectRegion) {
-                        onSelectRegion(match);
-                      }
-                    }}
-                    title={`Click to focus: ${tier.label} (${tier.range})`}
+            {/* Quick 3-Domain Switcher (a, b, c) */}
+            {onSelectDomain && (
+              <div className="flex items-center gap-1">
+                {(["river", "shallow_gw", "deep_gw"] as HydrologicDomain[]).map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => onSelectDomain(d)}
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-serif font-bold transition-all ${
+                      hydrologicDomain === d
+                        ? "bg-sky-600 text-white shadow-sm"
+                        : isAcademic 
+                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300" 
+                        : "bg-white/10 hover:bg-white/20 text-zinc-300"
+                    }`}
+                    title={DOMAIN_CONFIGS[d].title}
                   >
-                    <span
-                      className="w-3.5 h-3.5 rounded-sm shrink-0 border border-black/40 shadow-sm"
-                      style={{ backgroundColor: tier.color }}
-                    />
-                    <div className="flex items-baseline justify-between flex-1 gap-2">
-                      <span className="text-[11px] font-serif text-white font-medium">{tier.label}</span>
-                      <span className="text-[9px] font-mono text-muted-foreground">{tier.range}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    {DOMAIN_CONFIGS[d].panelId}
+                  </button>
+                ))}
 
-            {/* North Arrow & Scale (Matching User Graphic) */}
-            <div className="pt-2 border-t border-white/10 flex flex-col items-center justify-center space-y-1 text-white">
-              <div className="flex flex-col items-center">
-                <span className="font-serif font-bold text-xs tracking-widest">N</span>
-                <svg width="18" height="22" viewBox="0 0 24 28" fill="none" className="drop-shadow">
-                  <polygon points="12,2 18,22 12,17 6,22" fill="#ffffff" stroke="#000" strokeWidth="1" />
-                  <polygon points="12,2 12,17 6,22" fill="#94a3b8" />
-                </svg>
+                {onToggleUnit && (
+                  <button
+                    onClick={onToggleUnit}
+                    className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 hover:bg-amber-500/30"
+                    title="Toggle between ppt (parts per thousand) and dS/m (electrical conductivity)"
+                  >
+                    {salinityUnit === "ppt" ? "dS/m" : "ppt"}
+                  </button>
+                )}
               </div>
-              <div className="flex items-center gap-1.5 text-[9px] font-mono text-muted-foreground">
-                <span>0</span>
-                <span>5</span>
-                <span>10</span>
-                <span>20 Miles</span>
-              </div>
-            </div>
+            )}
+          </div>
+
+          {/* 2-Column x 3-Row Grid Matching User's Publication Graphic */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 font-serif text-xs">
+            {currentDomainConfig.tiers.map((tier) => {
+              const minVal = salinityUnit === "ppt" ? tier.min : convertPptToEc(tier.min);
+              const maxVal = salinityUnit === "ppt" ? tier.max : convertPptToEc(tier.max);
+              const displayLabel =
+                salinityUnit === "ppt"
+                  ? tier.label
+                  : `${minVal.toFixed(2)} to ${maxVal.toFixed(2)}`;
+
+              return (
+                <div key={tier.label} className="flex items-center gap-2">
+                  <span
+                    className="w-5 h-3.5 rounded-none shrink-0 border border-slate-800 shadow-sm"
+                    style={{ backgroundColor: tier.fillColor }}
+                  />
+                  <span className="font-serif text-[11px] font-medium tracking-tight">
+                    {displayLabel}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Depth and Context Footnote */}
+          <div className="mt-2 pt-1.5 border-t border-slate-300 dark:border-white/10 flex items-center justify-between text-[9px] font-mono text-muted-foreground">
+            <span>{currentDomainConfig.waterSource}</span>
+            <span>Depth: {currentDomainConfig.targetDepth}</span>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* 5. GIS CURSOR & COORDINATES HUD (BOTTOM-LEFT) */}
-      <div className="absolute bottom-4 left-4 z-[500] pointer-events-none flex flex-col space-y-1">
-        <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-xl shadow-2xl pointer-events-auto flex items-center gap-3 text-[11px] font-mono text-white/90">
-          <div className="flex items-center gap-1.5 text-primary font-bold">
+      {/* 6. GIS CURSOR & COORDINATES HUD (BOTTOM-RIGHT) */}
+      <div className="absolute bottom-3 right-4 z-[500] pointer-events-none hidden sm:flex flex-col space-y-1">
+        <div className={`px-3 py-1.5 rounded-xl shadow-xl pointer-events-auto flex items-center gap-3 text-[11px] font-mono border ${
+          isAcademic ? "bg-white/95 text-slate-800 border-slate-300" : "bg-[#08131f]/95 text-white/90 border-white/15 backdrop-blur-xl"
+        }`}>
+          <div className="flex items-center gap-1.5 text-sky-600 dark:text-sky-400 font-bold">
             <Crosshair className="w-3.5 h-3.5" />
             <span>WGS84:</span>
           </div>
           <span>
             {cursorCoords[0].toFixed(4)}°N, {cursorCoords[1].toFixed(4)}°E
           </span>
-          <div className="h-3 w-px bg-white/15" />
+          <div className="h-3 w-px bg-slate-300 dark:bg-white/15" />
           <span className="text-muted-foreground">
-            Thalweg: <strong className="text-sky-300">{cursorChainageKm} km</strong>
-          </span>
-          <div className="h-3 w-px bg-white/15 hidden sm:block" />
-          <span className="text-muted-foreground hidden sm:inline">
-            Datum: <strong className="text-emerald-300">PWD (+0.46m)</strong>
+            Thalweg: <strong className="text-sky-600 dark:text-sky-300">{cursorChainageKm} km</strong>
           </span>
         </div>
       </div>
 
-      {/* 6. LEAFLET MAP CONTAINER */}
+      {/* 7. LEAFLET MAP CONTAINER */}
       <MapContainer
-        key={`gis-map-v${mapKey}-${internalBasemap}`}
-        center={[22.65, 89.56]}
-        zoom={11}
+        key={`scientific-map-${mapKey}-${internalBasemap}-${hydrologicDomain}`}
+        center={[22.65, 89.52]}
+        zoom={10}
         minZoom={9}
-        maxZoom={16}
+        maxZoom={15}
         maxBounds={[
-          [21.50, 88.50],
-          [24.20, 90.50],
+          [21.40, 88.50],
+          [23.50, 90.50],
         ]}
         maxBoundsViscosity={0.9}
         scrollWheelZoom={true}
-        style={{ height: "100%", width: "100%", minHeight: "480px", background: "#0c1824" }}
+        style={{ height: "100%", width: "100%", minHeight: "480px" }}
       >
         <MapController
           coords={flyToCoords}
-          zoom={12}
+          zoom={11}
           regionBounds={activeRegion ? activeRegion.bounds : null}
           onCursorMove={handleCursorMove}
         />
@@ -607,23 +739,49 @@ export default function MapWrapper({
           attribution={currentTileConfig.attribution}
           url={currentTileConfig.base}
           subdomains={currentTileConfig.subdomains || "abc"}
-          maxZoom={19}
+          maxZoom={18}
         />
 
-        {/* Reference Labels & Hydrography Layer (Satellite Hybrid) */}
+        {/* Reference Labels Layer */}
         {currentTileConfig.ref && (
           <TileLayer
             key={`tile-ref-${currentTileConfig.ref}`}
             attribution=""
             url={currentTileConfig.ref}
             maxZoom={18}
-            opacity={0.9}
+            opacity={0.85}
             pane="overlayPane"
           />
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* 5. KHULNA 5-TIER SALINITY RISK CHOROPLETH REGIONS            */}
+        {/* A. CONTINUOUS ISOHALINE CONTOUR BANDS (SMOOTH INTERPOLATION)  */}
+        {/* ------------------------------------------------------------- */}
+        {showIsohalines &&
+          DOMAIN_ISOHALINES[hydrologicDomain]?.map((band, idx) => {
+            return (
+              <Polygon
+                key={`isohaline-${hydrologicDomain}-${idx}`}
+                positions={band.coordinates}
+                pathOptions={{
+                  fillColor: band.fillColor,
+                  fillOpacity: isAcademic ? 0.65 : 0.45,
+                  color: isAcademic ? "#475569" : "#ffffff25",
+                  weight: 1,
+                  lineJoin: "round",
+                }}
+              >
+                <Tooltip sticky direction="top">
+                  <span className="font-serif font-bold text-xs">
+                    Isohaline Zone: {band.label}
+                  </span>
+                </Tooltip>
+              </Polygon>
+            );
+          })}
+
+        {/* ------------------------------------------------------------- */}
+        {/* B. KHULNA UPAZILA BOUNDARIES & REGIONAL RISK POLYGONS         */}
         {/* ------------------------------------------------------------- */}
         {showRiskChoropleth &&
           KHULNA_UPAZILA_REGIONS.map((region) => {
@@ -631,15 +789,27 @@ export default function MapWrapper({
             const isAnySelected = Boolean(selectedRegionId);
             const isOptedOut = isAnySelected && !isSelected;
 
+            const domainValPpt = getRegionDomainValue(region, hydrologicDomain);
+            const domainColor = getRegionDomainColor(region, hydrologicDomain);
+            const domainTier = getDomainTier(domainValPpt, hydrologicDomain);
+            const domainValDisplay =
+              salinityUnit === "ppt"
+                ? `${domainValPpt.toFixed(2)} ppt`
+                : `${convertPptToEc(domainValPpt).toFixed(2)} dS/m`;
+
             return (
               <Polygon
                 key={region.id}
                 positions={region.coordinates}
                 pathOptions={{
-                  fillColor: isOptedOut ? "#05070d" : region.fillColor,
-                  fillOpacity: isSelected ? 0.65 : isOptedOut ? 0.72 : 0.40,
-                  color: isSelected ? "#ffffff" : isOptedOut ? "#ffffff10" : region.color,
-                  weight: isSelected ? 3.5 : isOptedOut ? 1 : 2,
+                  fillColor: isOptedOut ? (isAcademic ? "#f8fafc" : "#05070d") : domainColor,
+                  fillOpacity: isSelected ? 0.70 : isOptedOut ? 0.85 : 0.35,
+                  color: isSelected 
+                    ? "#0284c7" 
+                    : isOptedOut 
+                    ? (isAcademic ? "#cbd5e1" : "#ffffff10") 
+                    : (isAcademic ? "#1e293b" : "#ffffff60"),
+                  weight: isSelected ? 3.5 : isOptedOut ? 1 : 1.8,
                   dashArray: isOptedOut ? "4, 4" : undefined,
                   lineJoin: "round",
                   lineCap: "round",
@@ -653,26 +823,35 @@ export default function MapWrapper({
                 }}
               >
                 <Tooltip sticky direction="center">
-                  <div className="flex flex-col space-y-1 p-1 min-w-[200px] text-foreground font-sans">
-                    <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-1">
+                  <div className="flex flex-col space-y-1.5 p-1 min-w-[220px] text-foreground font-sans">
+                    <div className="flex items-center justify-between gap-2 border-b border-black/10 dark:border-white/10 pb-1">
                       <div className="flex flex-col">
-                        <span className="font-bold text-xs text-white">{region.name}</span>
+                        <span className="font-serif font-bold text-sm text-slate-900 dark:text-white">
+                          {region.name}
+                        </span>
                         <span className="text-[10px] text-muted-foreground">{region.bengaliName}</span>
                       </div>
                       <span
                         className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded text-white shadow-sm"
-                        style={{ backgroundColor: region.color }}
+                        style={{ backgroundColor: domainColor }}
                       >
-                        {region.riskTier}
+                        {domainValDisplay}
                       </span>
                     </div>
-                    <div className="text-[10px] text-zinc-300 font-mono">
-                      Avg Salinity: <strong className="text-white">{region.avgEc} dS/m</strong> &bull; Soil: <strong className="text-white">{region.soilEc} dS/m</strong>
+
+                    <div className="text-[11px] font-serif font-medium text-slate-700 dark:text-zinc-200">
+                      {currentDomainConfig.title}: <strong className="text-sky-600 dark:text-sky-400">{domainValDisplay}</strong> ({domainTier.label})
                     </div>
-                    <div className="text-[10px] text-amber-300 line-clamp-2">
-                      {region.boroVulnerability}
+
+                    <div className="text-[10px] text-muted-foreground font-mono">
+                      Aquifer: <span className="font-sans text-slate-800 dark:text-zinc-200">{region.aquiferDepthM}</span>
                     </div>
-                    <div className="text-[9px] text-cyan-300 font-mono pt-1 border-t border-white/10">
+
+                    <div className="text-[10px] text-rose-600 dark:text-rose-300 font-medium leading-snug">
+                      {region.drinkingSafety}
+                    </div>
+
+                    <div className="text-[9px] text-sky-600 dark:text-sky-300 font-mono pt-1 border-t border-black/10 dark:border-white/10">
                       {isSelected ? "Click to deselect (View All)" : "Click to narrow down & opt out others"}
                     </div>
                   </div>
@@ -681,24 +860,155 @@ export default function MapWrapper({
             );
           })}
 
+        {/* ------------------------------------------------------------- */}
+        {/* C. HYDROGRAPHIC RIVERS (PASSUR, SHIBSA, RUPSHA, KOBODAK)      */}
+        {/* ------------------------------------------------------------- */}
+        {showRivers &&
+          KHULNA_RIVER_SYSTEM.map((river) => (
+            <div key={river.id}>
+              <Polyline
+                positions={river.coordinates}
+                pathOptions={{
+                  color: isAcademic ? "#0284c7" : "#38bdf8",
+                  weight: river.width,
+                  opacity: isAcademic ? 0.95 : 0.85,
+                  lineCap: "round",
+                  lineJoin: "round",
+                }}
+              >
+                <Tooltip sticky>
+                  <span className="font-serif font-bold text-xs text-sky-600 dark:text-sky-300">
+                    {river.name} ({river.bengaliName})
+                  </span>
+                </Tooltip>
+              </Polyline>
+
+              {/* River Centerline Text Label */}
+              <Marker
+                position={river.labelCoord}
+                icon={L.divIcon({
+                  className: "river-centerline-label",
+                  html: `
+                    <div style="
+                      font-family: Georgia, 'Times New Roman', serif;
+                      font-style: italic;
+                      font-size: 10px;
+                      font-weight: 700;
+                      letter-spacing: 0.05em;
+                      color: ${isAcademic ? "#0369a1" : "#bae6fd"};
+                      text-shadow: ${isAcademic 
+                        ? "0 0 3px #ffffff, 0 0 6px #ffffff" 
+                        : "0 0 4px #000000, 0 0 8px #000000"};
+                      white-space: nowrap;
+                      transform: translate(-50%, -50%) rotate(-25deg);
+                      pointer-events: none;
+                    ">
+                      ${river.name}
+                    </div>
+                  `,
+                  iconSize: [80, 18],
+                  iconAnchor: [40, 9],
+                })}
+                interactive={false}
+              />
+            </div>
+          ))}
+
+        {/* ------------------------------------------------------------- */}
+        {/* D. PERMANENT UPAZILA LABELS (PRINTED ON LANDMASS LIKE PAPER)  */}
+        {/* ------------------------------------------------------------- */}
+        {showLabels &&
+          KHULNA_UPAZILA_REGIONS.map((region) => {
+            const isSelected = selectedRegionId === region.id;
+            const isAnySelected = Boolean(selectedRegionId);
+            const isOptedOut = isAnySelected && !isSelected;
+            if (isOptedOut) return null;
+
+            const labelHtml = `
+              <div style="
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-weight: 800;
+                font-size: 11px;
+                letter-spacing: 0.04em;
+                color: ${isAcademic ? "#0f172a" : "#ffffff"};
+                text-shadow: ${isAcademic 
+                  ? "0 0 4px #ffffff, 0 0 6px #ffffff, 0 1px 2px rgba(255,255,255,0.9)" 
+                  : "0 0 4px #000000, 0 0 8px #000000, 0 1px 3px rgba(0,0,0,0.9)"};
+                pointer-events: none;
+                white-space: nowrap;
+                text-align: center;
+                transform: translate(-50%, -50%);
+              ">
+                <span>${region.name.replace(" Upazila", "")}</span>
+              </div>
+            `;
+
+            return (
+              <Marker
+                key={`label-${region.id}`}
+                position={region.center}
+                icon={L.divIcon({
+                  className: "upazila-permanent-label",
+                  html: labelHtml,
+                  iconSize: [90, 20],
+                  iconAnchor: [45, 10],
+                })}
+                interactive={false}
+              />
+            );
+          })}
+
+        {/* ------------------------------------------------------------- */}
+        {/* E. SOUTHERN BAY OF BENGAL MARITIME LABEL                      */}
+        {/* ------------------------------------------------------------- */}
+        <Marker
+          position={BAY_OF_BENGAL_LOCATION}
+          icon={L.divIcon({
+            className: "bay-of-bengal-label",
+            html: `
+              <div style="
+                font-family: Georgia, 'Times New Roman', serif;
+                font-style: italic;
+                font-size: 16px;
+                font-weight: 700;
+                letter-spacing: 0.18em;
+                color: ${isAcademic ? "#1e3a5f" : "#7dd3fc"};
+                text-shadow: ${isAcademic 
+                  ? "0 0 6px rgba(255,255,255,0.9)" 
+                  : "0 0 8px rgba(0,0,0,0.9)"};
+                white-space: nowrap;
+                text-align: center;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+              ">
+                Bay of Bengal
+              </div>
+            `,
+            iconSize: [180, 30],
+            iconAnchor: [90, 15],
+          })}
+          interactive={false}
+        />
+
         {/* Active Region Center Pin */}
         {activeRegion && (
           <CircleMarker
             center={activeRegion.center}
-            radius={7}
+            radius={8}
             pathOptions={{
               color: "#ffffff",
-              fillColor: activeRegion.color,
+              fillColor: getRegionDomainColor(activeRegion, hydrologicDomain),
               fillOpacity: 1,
               weight: 3,
             }}
           >
             <Tooltip permanent direction="top" offset={[0, -10]}>
-              <div className="flex items-center gap-1.5 font-bold font-mono text-xs text-white bg-black/90 px-2 py-1 rounded-lg border border-white/30 shadow-2xl">
-                <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: activeRegion.color }} />
+              <div className="flex items-center gap-1.5 font-bold font-serif text-xs text-white bg-slate-900/95 px-2.5 py-1 rounded-lg border border-white/30 shadow-2xl">
                 <span>{activeRegion.name}</span>
-                <span className="text-[10px] px-1 py-0.2 rounded text-white" style={{ backgroundColor: activeRegion.color }}>
-                  {activeRegion.riskTier}
+                <span className="text-[10px] font-mono px-1 rounded text-white" style={{ backgroundColor: getRegionDomainColor(activeRegion, hydrologicDomain) }}>
+                  {salinityUnit === "ppt" 
+                    ? `${getRegionDomainValue(activeRegion, hydrologicDomain)} ppt` 
+                    : `${convertPptToEc(getRegionDomainValue(activeRegion, hydrologicDomain))} dS/m`}
                 </span>
               </div>
             </Tooltip>
@@ -706,7 +1016,7 @@ export default function MapWrapper({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* 6. COASTAL POLDER BOUNDARIES (GIS CADASTRE & EMBANKMENTS)     */}
+        {/* F. COASTAL POLDER CADASTRE & EMBANKMENTS                      */}
         {/* ------------------------------------------------------------- */}
         {showPolders &&
           COASTAL_POLDERS.map((polder) => (
@@ -714,10 +1024,10 @@ export default function MapWrapper({
               key={polder.id}
               positions={polder.coordinates}
               pathOptions={{
-                color: polder.color,
+                color: isAcademic ? "#047857" : polder.color,
                 fillColor: polder.color,
                 fillOpacity: polder.id === "sundarbans-boundary" ? 0.08 : 0.16,
-                weight: polder.id === "sundarbans-boundary" ? 1.5 : 2.5,
+                weight: polder.id === "sundarbans-boundary" ? 1.5 : 2,
                 dashArray: polder.id === "sundarbans-boundary" ? "4, 4" : undefined,
               }}
               eventHandlers={{
@@ -725,17 +1035,16 @@ export default function MapWrapper({
               }}
             >
               <Tooltip sticky>
-                <div className="flex flex-col space-y-1 p-0.5">
-                  <div className="flex items-center gap-1.5 font-bold font-mono text-xs text-white">
-                    <ShieldAlert className="w-3.5 h-3.5" style={{ color: polder.color }} />
+                <div className="flex flex-col space-y-1 p-0.5 font-sans">
+                  <div className="flex items-center gap-1.5 font-bold font-serif text-xs">
+                    <ShieldAlert className="w-3.5 h-3.5 text-emerald-600" />
                     <span>{polder.name}</span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground">
-                    Upazila: <span className="text-white">{polder.upazila}</span> &bull; Area:{" "}
-                    <span className="text-white">{polder.areaKm2} km²</span> &bull; Elev:{" "}
-                    <span className="text-white">{polder.elevationM}m PWD</span>
+                  <div className="text-[10px] text-muted-foreground font-mono">
+                    Upazila: <span className="font-sans font-medium text-foreground">{polder.upazila}</span> &bull; Elev:{" "}
+                    <span className="font-sans font-medium text-foreground">{polder.elevationM}m PWD</span>
                   </div>
-                  <div className="text-[10px] text-amber-300 font-medium">
+                  <div className="text-[10px] text-amber-600 dark:text-amber-300 font-medium">
                     {polder.salinityRisk}
                   </div>
                 </div>
@@ -744,33 +1053,32 @@ export default function MapWrapper({
           ))}
 
         {/* ------------------------------------------------------------- */}
-        {/* 7. PASSUR-RUPSHA CURVILINEAR THALWEG CENTERLINE & MILEPOSTS   */}
+        {/* G. PASSUR-RUPSHA CURVILINEAR THALWEG CENTERLINE               */}
         {/* ------------------------------------------------------------- */}
         {showThalweg && (
           <>
             <Polyline
               positions={PASSUR_RUPSHA_THALWEG}
               pathOptions={{
-                color: "#38bdf8",
-                weight: 4,
+                color: isAcademic ? "#0369a1" : "#38bdf8",
+                weight: 3.5,
                 opacity: 0.9,
                 lineCap: "round",
                 lineJoin: "round",
               }}
             >
               <Tooltip sticky>
-                <span className="font-mono text-sky-300 font-bold text-xs">
+                <span className="font-mono text-sky-600 dark:text-sky-300 font-bold text-xs">
                   Passur-Rupsha Curvilinear Thalweg (SWORD Centerline: 0 - 82 km)
                 </span>
               </Tooltip>
             </Polyline>
 
-            {/* Thalweg Chainage Milestones */}
             {THALWEG_MILESTONES.map((m) => (
               <CircleMarker
                 key={m.label}
                 center={m.coords}
-                radius={4}
+                radius={3.5}
                 pathOptions={{
                   color: "#ffffff",
                   fillColor: "#0284c7",
@@ -779,7 +1087,7 @@ export default function MapWrapper({
                 }}
               >
                 <Tooltip permanent={false}>
-                  <span className="font-mono text-[10px] font-bold text-sky-200">
+                  <span className="font-mono text-[10px] font-bold text-sky-700 dark:text-sky-200">
                     Chainage: {m.label}
                   </span>
                 </Tooltip>
@@ -789,7 +1097,7 @@ export default function MapWrapper({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* 8. POLDER SLUICE FLAP-GATES (GRAVITY DRAINAGE HYDRAULICS)    */}
+        {/* H. POLDER SLUICE GATES                                        */}
         {/* ------------------------------------------------------------- */}
         {POLDER_SLUICE_GATES.map((gate) => (
           <Marker
@@ -798,19 +1106,19 @@ export default function MapWrapper({
             icon={L.divIcon({
               className: "sluice-gate-icon",
               html: `
-                <div style="width:18px;height:18px;background:#f59e0b;border:2px solid #ffffff;border-radius:4px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.7);cursor:pointer;" title="${gate.name}">
-                  <div style="width:6px;height:6px;background:#05070d;border-radius:1px;"></div>
+                <div style="width:16px;height:16px;background:#f59e0b;border:2px solid #ffffff;border-radius:3px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.5);cursor:pointer;" title="${gate.name}">
+                  <div style="width:5px;height:5px;background:#05070d;border-radius:1px;"></div>
                 </div>
               `,
-              iconSize: [18, 18],
-              iconAnchor: [9, 9],
+              iconSize: [16, 16],
+              iconAnchor: [8, 8],
             })}
           >
             <Tooltip sticky>
-              <div className="flex flex-col space-y-0.5 text-xs">
-                <span className="font-mono font-bold text-amber-400">{gate.name}</span>
-                <span className="text-[10px] text-muted-foreground">
-                  {gate.polder} &bull; Status: <strong className="text-white">{gate.status}</strong>
+              <div className="flex flex-col space-y-0.5 text-xs font-sans">
+                <span className="font-serif font-bold text-amber-600 dark:text-amber-400">{gate.name}</span>
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  {gate.polder} &bull; Status: <strong className="text-foreground">{gate.status}</strong>
                 </span>
               </div>
             </Tooltip>
@@ -818,24 +1126,23 @@ export default function MapWrapper({
         ))}
 
         {/* ------------------------------------------------------------- */}
-        {/* 9. NASA SWOT 120-KM WIDE-SWATH KA-BAND RADAR ORBIT FOOTPRINT  */}
+        {/* I. NASA SWOT KA-BAND RADAR ORBIT FOOTPRINT                    */}
         {/* ------------------------------------------------------------- */}
         {showSwot && (
           <>
-            {/* Left KaRIn 50km Radar Swath */}
             <Polygon
               positions={SWOT_LEFT_SWATH}
               pathOptions={{
                 color: "#06b6d4",
                 fillColor: "#06b6d4",
-                fillOpacity: 0.12,
+                fillOpacity: isAcademic ? 0.08 : 0.12,
                 weight: 1.5,
                 dashArray: "6, 8",
               }}
             >
               <Tooltip sticky>
-                <div className="flex flex-col space-y-0.5">
-                  <span className="font-bold text-cyan-400 font-mono">
+                <div className="flex flex-col space-y-0.5 font-sans">
+                  <span className="font-bold text-cyan-600 dark:text-cyan-400 font-mono">
                     NASA SWOT KaRIn Swath (West Channel - 50 km)
                   </span>
                   <span className="text-[10px] text-muted-foreground">
@@ -845,20 +1152,19 @@ export default function MapWrapper({
               </Tooltip>
             </Polygon>
 
-            {/* Right KaRIn 50km Radar Swath */}
             <Polygon
               positions={SWOT_RIGHT_SWATH}
               pathOptions={{
                 color: "#06b6d4",
                 fillColor: "#06b6d4",
-                fillOpacity: 0.12,
+                fillOpacity: isAcademic ? 0.08 : 0.12,
                 weight: 1.5,
                 dashArray: "6, 8",
               }}
             >
               <Tooltip sticky>
-                <div className="flex flex-col space-y-0.5">
-                  <span className="font-bold text-cyan-400 font-mono">
+                <div className="flex flex-col space-y-0.5 font-sans">
+                  <span className="font-bold text-cyan-600 dark:text-cyan-400 font-mono">
                     NASA SWOT KaRIn Swath (East Channel - 50 km)
                   </span>
                   <span className="text-[10px] text-muted-foreground">
@@ -868,7 +1174,6 @@ export default function MapWrapper({
               </Tooltip>
             </Polygon>
 
-            {/* Sub-Satellite Nadir Ground Track */}
             <Polyline
               positions={SWOT_NADIR_GROUND_TRACK}
               pathOptions={{
@@ -879,7 +1184,7 @@ export default function MapWrapper({
               }}
             >
               <Tooltip sticky>
-                <span className="font-mono text-cyan-300 font-bold">
+                <span className="font-mono text-cyan-600 dark:text-cyan-300 font-bold">
                   SWOT Sub-Satellite Nadir Ground Track (Orbit #22)
                 </span>
               </Tooltip>
@@ -888,16 +1193,15 @@ export default function MapWrapper({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* 10. ESTUARINE SALINITY INGRESS CORRIDORS                      */}
+        {/* J. ESTUARINE SALINITY INGRESS CORRIDORS                       */}
         {/* ------------------------------------------------------------- */}
         {showSalinityFront && (
           <>
-            {/* Marine Tidal Ingress Vector: Bay of Bengal -> Mongla Port (>7.0 dS/m) */}
             <Polyline
               positions={PASSUR_MARINE_INGRESS_CORRIDOR}
               pathOptions={{
-                color: "#f43f5e",
-                weight: 5.5,
+                color: "#d92526",
+                weight: 4.5,
                 opacity: 0.95,
                 lineCap: "round",
               }}
@@ -906,10 +1210,10 @@ export default function MapWrapper({
               }}
             >
               <Tooltip sticky>
-                <div className="flex flex-col space-y-0.5">
+                <div className="flex flex-col space-y-0.5 font-sans">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                    <span className="font-bold text-rose-400 font-mono">
+                    <span className="font-bold text-rose-600 dark:text-rose-400 font-mono">
                       Passur Hyper-Saline Marine Front (&gt;7.0 dS/m)
                     </span>
                   </div>
@@ -920,12 +1224,11 @@ export default function MapWrapper({
               </Tooltip>
             </Polyline>
 
-            {/* Transitional Salinity Front: Mongla -> Rampal -> Khulna City (4.0 - 7.0 dS/m) */}
             <Polyline
               positions={PASSUR_TRANSITION_CORRIDOR}
               pathOptions={{
-                color: "#f59e0b",
-                weight: 4.5,
+                color: "#f5a623",
+                weight: 4,
                 opacity: 0.95,
                 lineCap: "round",
               }}
@@ -934,10 +1237,10 @@ export default function MapWrapper({
               }}
             >
               <Tooltip sticky>
-                <div className="flex flex-col space-y-0.5">
+                <div className="flex flex-col space-y-0.5 font-sans">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-amber-400" />
-                    <span className="font-bold text-amber-400 font-mono">
+                    <span className="font-bold text-amber-600 dark:text-amber-400 font-mono">
                       Rupsha Salinity Hazard Transition (4.0 - 7.0 dS/m)
                     </span>
                   </div>
@@ -948,19 +1251,18 @@ export default function MapWrapper({
               </Tooltip>
             </Polyline>
 
-            {/* Northern Gorai Dilution Flush (<2.5 dS/m) */}
             <Polyline
               positions={RUPSHA_FRESHWATER_DILUTION}
               pathOptions={{
                 color: "#10b981",
-                weight: 4,
+                weight: 3.5,
                 opacity: 0.85,
                 lineCap: "round",
               }}
             >
               <Tooltip sticky>
-                <div className="flex flex-col space-y-0.5">
-                  <span className="font-bold text-emerald-400 font-mono">
+                <div className="flex flex-col space-y-0.5 font-sans">
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                     Freshwater Dilution Head (&lt;2.5 dS/m)
                   </span>
                   <span className="text-[10px] text-muted-foreground">
@@ -970,12 +1272,11 @@ export default function MapWrapper({
               </Tooltip>
             </Polyline>
 
-            {/* Western Shibsa Estuarine Corridor */}
             <Polyline
               positions={SHIBSA_WESTERN_CORRIDOR}
               pathOptions={{
-                color: "#38bdf8",
-                weight: 4,
+                color: "#0284c7",
+                weight: 3.5,
                 opacity: 0.9,
                 lineCap: "round",
               }}
@@ -984,8 +1285,8 @@ export default function MapWrapper({
               }}
             >
               <Tooltip sticky>
-                <div className="flex flex-col space-y-0.5">
-                  <span className="font-bold text-sky-400 font-mono">
+                <div className="flex flex-col space-y-0.5 font-sans">
+                  <span className="font-bold text-sky-600 dark:text-sky-400 font-mono">
                     Western Shibsa Tidal Channel (~4.2 dS/m)
                   </span>
                   <span className="text-[10px] text-muted-foreground">
@@ -998,35 +1299,7 @@ export default function MapWrapper({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* 11. 4.0 dS/m BORO RICE AGRICULTURAL HAZARD ISOHALINE          */}
-        {/* ------------------------------------------------------------- */}
-        {showIsohalines && (
-          <Circle
-            center={[22.58, 89.58]}
-            radius={8500}
-            pathOptions={{
-              color: "#f59e0b",
-              fillColor: "#f59e0b",
-              fillOpacity: 0.08,
-              weight: 2,
-              dashArray: "5, 8",
-            }}
-          >
-            <Tooltip sticky>
-              <div className="flex flex-col space-y-0.5">
-                <span className="font-bold text-amber-400 font-mono">
-                  4.0 dS/m Agricultural Danger Isohaline
-                </span>
-                <span className="text-[10px] text-muted-foreground">
-                  Inundation of polders inside this zone causes severe Boro rice sterilization
-                </span>
-              </div>
-            </Tooltip>
-          </Circle>
-        )}
-
-        {/* ------------------------------------------------------------- */}
-        {/* 12. GIS STATION MARKERS & SATELLITE REACH BEACONS             */}
+        {/* K. GIS MONITORING STATIONS & SURFACE REACHES                  */}
         {/* ------------------------------------------------------------- */}
         {khulnaSites.map((site) => {
           const isSwot =
@@ -1072,16 +1345,16 @@ export default function MapWrapper({
               }}
             >
               <Popup className="custom-gis-popup">
-                <div className="flex flex-col space-y-3 p-1 min-w-[270px] text-foreground font-sans">
+                <div className="flex flex-col space-y-2.5 p-1 min-w-[270px] text-foreground font-sans">
                   {/* Popup Header with Agency & Status Pill */}
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-2">
                     <div className="flex items-center gap-1.5">
                       {isSwot ? (
-                        <Satellite className="w-3.5 h-3.5 text-cyan-400" />
+                        <Satellite className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
                       ) : isIntake ? (
-                        <Droplets className="w-3.5 h-3.5 text-pink-400" />
+                        <Droplets className="w-3.5 h-3.5 text-purple-600 dark:text-pink-400" />
                       ) : (
-                        <Radio className="w-3.5 h-3.5 text-sky-400" />
+                        <Radio className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
                       )}
                       <span className="font-mono text-[10px] tracking-wider uppercase font-bold text-muted-foreground">
                         {isSwot
@@ -1095,10 +1368,10 @@ export default function MapWrapper({
                     <span
                       className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border ${
                         risk === "CRITICAL"
-                          ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                          ? "bg-rose-500/20 text-rose-600 dark:text-rose-300 border-rose-500/40"
                           : risk === "WARNING"
-                          ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                          : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                          ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40"
+                          : "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40"
                       }`}
                     >
                       {risk}
@@ -1107,36 +1380,28 @@ export default function MapWrapper({
 
                   {/* Station Name & Coordinates */}
                   <div className="flex flex-col space-y-0.5">
-                    <h4 className="font-bold text-white text-sm leading-snug">
+                    <h4 className="font-serif font-bold text-slate-900 dark:text-white text-sm leading-snug">
                       {site.name}
                     </h4>
                     <span className="text-[10px] text-muted-foreground font-mono">
                       ID: {site.id} &bull; River: {site.river || "Khulna Estuary"} &bull; {site.distanceKm || 50} km to Sea
                     </span>
-                    <span className="text-[9px] text-muted-foreground/75 font-mono">
-                      GPS: {site.latitude.toFixed(4)}°N, {site.longitude.toFixed(4)}°E
-                    </span>
                   </div>
 
                   {/* Telemetry KPI Box */}
-                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 flex flex-col space-y-2">
+                  <div className="bg-slate-100 dark:bg-white/5 p-2 rounded-xl border border-slate-200 dark:border-white/10 flex flex-col space-y-1.5">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] text-muted-foreground font-mono">
                         {forecast ? "PINN Forward Forecast:" : "Baseline Salinity (EC):"}
                       </span>
-                      <span className="font-mono text-base font-bold text-white">
+                      <span className="font-mono text-base font-bold text-slate-900 dark:text-white">
                         {displayVal}
                       </span>
                     </div>
 
                     {/* Hazard Meter Bar vs 4.0 dS/m Limit */}
                     <div className="flex flex-col space-y-1">
-                      <div className="flex justify-between text-[9px] font-mono text-muted-foreground">
-                        <span>Safe (&lt;2.5)</span>
-                        <span className="text-amber-400">Hazard: 4.0</span>
-                        <span className="text-rose-400">Acute (&gt;7.0)</span>
-                      </div>
-                      <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div className="w-full h-1.5 rounded-full bg-slate-300 dark:bg-white/10 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
                             currentVal >= 4.0
@@ -1153,27 +1418,23 @@ export default function MapWrapper({
 
                   {/* Advisory Notice */}
                   {site.intakeHazard && (
-                    <div className="p-2 rounded-lg bg-rose-500/15 border border-rose-500/30 text-[10px] text-rose-300 font-mono">
+                    <div className="p-2 rounded-lg bg-rose-500/15 border border-rose-500/30 text-[10px] text-rose-700 dark:text-rose-300 font-mono">
                       &bull; {site.intakeHazard}
                     </div>
                   )}
 
-                  <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
-                    {site.description}
-                  </p>
-
                   {/* Action Shortcuts */}
-                  <div className="flex items-center justify-between pt-1 border-t border-white/10">
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-white/10">
                     <button
                       onClick={() => onSelectSite && onSelectSite(site)}
-                      className="text-xs font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1"
+                      className="text-xs font-serif font-bold text-sky-600 dark:text-primary hover:underline cursor-pointer flex items-center gap-1"
                     >
                       <span>GIS Feature Dossier</span>
                       <ChevronRight className="w-3 h-3" />
                     </button>
                     <a
                       href={`/app/reaches/${site.id}`}
-                      className="text-[10px] text-muted-foreground hover:text-white flex items-center gap-1"
+                      className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1"
                     >
                       <span>Sluice &amp; Hydraulics</span>
                       <ExternalLink className="w-2.5 h-2.5" />
