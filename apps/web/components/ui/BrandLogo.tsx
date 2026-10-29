@@ -48,15 +48,15 @@ export function BrandLogoMark({
       >
         <defs>
           <linearGradient id="blGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#38bdf8" />
-            <stop offset="40%" stopColor="#06b6d4" />
-            <stop offset="100%" stopColor="#10b981" />
+            <stop offset="0%" style={{ stopColor: "#38bdf8" }} />
+            <stop offset="40%" style={{ stopColor: "#06b6d4" }} />
+            <stop offset="100%" style={{ stopColor: "#10b981" }} />
           </linearGradient>
 
           <linearGradient id="blGrad2" x1="100%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" stopColor="#10b981" />
-            <stop offset="50%" stopColor="#22d3ee" />
-            <stop offset="100%" stopColor="#0284c7" />
+            <stop offset="0%" style={{ stopColor: "#10b981" }} />
+            <stop offset="50%" style={{ stopColor: "#22d3ee" }} />
+            <stop offset="100%" style={{ stopColor: "#0284c7" }} />
           </linearGradient>
 
           {glow && (
