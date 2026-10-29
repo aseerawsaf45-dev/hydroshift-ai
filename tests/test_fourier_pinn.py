@@ -67,3 +67,48 @@ def test_fourier_pinn_tidal_components():
         # Salinity should fluctuate under tidal oscillation
         assert out1.shape == (1, 1)
         assert out2.shape == (1, 1)
+
+
+def test_spatially_varying_dispersion():
+    """Verify Phase 5: D(x) is positive and expands seaward (D_mouth > 5 * D_intake)."""
+    model = FourierPINN(L_km=82.0, T_days=120.0)
+    x_mouth = torch.tensor([[0.0]])   # Sea mouth (Bay of Bengal)
+    x_mid = torch.tensor([[41.0]])     # Mid estuary (Chalna)
+    x_intake = torch.tensor([[82.0]])  # Upstream intake (Khulna)
+
+    with torch.no_grad():
+        d_mouth = model.dispersion(x_mouth)
+        d_mid = model.dispersion(x_mid)
+        d_intake = model.dispersion(x_intake)
+
+    # 1. Strictly positive everywhere
+    assert d_mouth.item() > 0.0
+    assert d_mid.item() > 0.0
+    assert d_intake.item() > 0.0
+
+    # 2. Monotonically increases toward the sea mouth due to tidal mixing
+    assert d_mouth.item() > d_mid.item() > d_intake.item()
+
+    # 3. Ratio D_mouth / D_intake > 5.0 (capturing exponential tidal prism expansion)
+    ratio = d_mouth.item() / d_intake.item()
+    assert ratio >= 5.0, f"Expected D_mouth / D_intake >= 5.0, got {ratio:.2f}"
+
+
+def test_width_constrained_velocity():
+    """Verify Phase 5: Advective velocity concentrates in narrower upstream river channel."""
+    model = FourierPINN(L_km=82.0, T_days=120.0)
+    x_mouth = torch.tensor([[0.0]])   # 2,400m wide mouth
+    x_intake = torch.tensor([[82.0]])  # 420m narrow upstream channel
+
+    with torch.no_grad():
+        v_mouth = model.velocity(x_mouth)
+        v_intake = model.velocity(x_intake)
+
+    # Net velocity is negative (seaward flushing)
+    assert v_intake.item() < 0.0
+    assert v_mouth.item() < 0.0
+
+    # Magnitude of velocity is significantly higher in narrow upstream channel (conservation of mass)
+    assert abs(v_intake.item()) > abs(v_mouth.item())
+    assert abs(v_intake.item()) / abs(v_mouth.item()) >= 4.0
+

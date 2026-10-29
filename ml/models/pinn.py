@@ -89,16 +89,44 @@ class FourierPINN(nn.Module):
         # Physics parameters (learnable). v0 < 0 means net seaward transport (km/day)
         self.v0 = nn.Parameter(torch.tensor(-0.5))              # km/day
         self.v_q = nn.Parameter(torch.tensor(0.0))              # Sensitivity of v to conditioning discharge q
-        self.logD = nn.Parameter(torch.tensor(math.log(20.0)))   # km^2/day
+        self.logD = nn.Parameter(torch.tensor(math.log(20.0)))   # km^2/day (upstream river baseline D_0)
+        self.alpha_disp = nn.Parameter(torch.tensor(1.8))       # Seaward estuarine dispersion expansion coefficient
+        self.beta_width = nn.Parameter(torch.tensor(1.79))      # Seaward channel widening coefficient
 
     @property
     def D(self):
+        """Upstream freshwater river dispersion D_0 (km^2/day)."""
         return torch.exp(self.logD)
 
-    def velocity(self, cond=None):
-        if cond is None or self.cond_dim == 0:
-            return self.v0
-        return self.v0 + self.v_q * cond[:, :1]
+    def dispersion(self, x_km: torch.Tensor) -> torch.Tensor:
+        """
+        Spatially-varying estuarine dispersion: D(x) = D_0 * exp(alpha * (L - x) / L).
+        Captures turbulent tidal mixing expansion near the Bay of Bengal mouth:
+        - x = 0 (sea mouth): D(0) = D_0 * exp(alpha) (~6x higher dispersion)
+        - x = L (Khulna intake): D(L) = D_0 (freshwater river dispersion)
+        """
+        xn = (self.L - x_km) / self.L
+        alpha = torch.clamp(self.alpha_disp, 0.5, 3.0)
+        return self.D * torch.exp(alpha * xn)
+
+    def velocity(self, x_km=None, cond=None):
+        """
+        Width-constrained advective velocity:
+        v(x, cond) = (v0 + v_q * cond) * (W_0 / W(x))
+        ensuring cross-sectional mass conservation as the river channel widens
+        seaward from 420m at Khulna to 2,400m at Mongla/mouth.
+        """
+        base_v = self.v0
+        if cond is not None and self.cond_dim > 0:
+            base_v = base_v + self.v_q * cond[:, :1]
+
+        if x_km is None:
+            return base_v
+
+        xn = (self.L - x_km) / self.L
+        beta = torch.clamp(self.beta_width, 0.5, 2.5)
+        width_ratio = torch.exp(-beta * xn)  # W_0 / W(x) in [exp(-beta), 1.0]
+        return base_v * width_ratio
 
     def forward(self, x_km: torch.Tensor, t_days: torch.Tensor, cond=None):
         import math
@@ -119,12 +147,14 @@ class FourierPINN(nn.Module):
 
     def pde_residual(self, x_km: torch.Tensor, t_days: torch.Tensor, cond=None):
         """
-        Calculates 1D Advection-Dispersion Equation residual.
+        Calculates conservative divergence form of 1D Advection-Dispersion Equation residual:
+        R_ADE = du/dt + d(v(x, cond)*u)/dx - d(D(x)*du/dx)/dx = 0
+
         Dimensional verification:
-          x is in km  => u_x has units [1/km], u_xx has units [1/km^2]
+          x is in km  => u_x has units [1/km]
           t is in days => u_t has units [1/day]
-          velocity v has units [km/day] => v * u_x has units [1/day]
-          dispersion D has units [km^2/day] => D * u_xx has units [1/day]
+          v(x) has units [km/day] => d(v*u)/dx has units [1/day]
+          D(x) has units [km^2/day] => d(D*du/dx)/dx has units [1/day]
         All terms strictly match physical dimension [1/day].
         """
         x = x_km.clone().requires_grad_(True)
@@ -133,8 +163,18 @@ class FourierPINN(nn.Module):
         g = lambda y, z: torch.autograd.grad(y, z, torch.ones_like(y), create_graph=True)[0]
         u_t = g(u, t)
         u_x = g(u, x)
-        u_xx = g(u_x, x)
-        return u_t + self.velocity(cond) * u_x - self.D * u_xx
+
+        # Spatially-varying dispersion flux
+        D_x = self.dispersion(x)
+        diff_flux = D_x * u_x
+        diff_term = g(diff_flux, x)
+
+        # Width-conserving advective flux
+        v_x = self.velocity(x, cond)
+        adv_flux = v_x * u
+        adv_term = g(adv_flux, x)
+
+        return u_t + adv_term - diff_term
 
 
 class PINNEnsemble(nn.Module):

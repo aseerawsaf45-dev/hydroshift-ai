@@ -12,10 +12,10 @@
   },
   "chronological_test": {
     "fourier_pinn": {
-      "rmse": 7.077,
-      "mae": 5.228,
-      "peak_mae": 6.052,
-      "r2": -1.352,
+      "rmse": 7.687,
+      "mae": 5.486,
+      "peak_mae": 5.912,
+      "r2": -1.775,
       "samples": 288
     },
     "plain_mlp_no_physics": {
@@ -44,10 +44,10 @@
     "held_out_station_x_km": 55.0,
     "held_out_samples": 480,
     "fourier_pinn": {
-      "rmse": 7.46,
-      "mae": 5.3,
-      "peak_mae": 10.979,
-      "r2": -0.708,
+      "rmse": 6.784,
+      "mae": 4.643,
+      "peak_mae": 10.48,
+      "r2": -0.413,
       "samples": 480
     },
     "plain_mlp_no_physics": {
@@ -75,12 +75,12 @@
   "ensemble_uncertainty": {
     "ensemble_size": 5,
     "uncalibrated_gaussian_cov_95": 0.667,
-    "conformal_calibration_factor_q90": 4.51,
-    "conformal_calibration_factor_q95": 7.3,
+    "conformal_calibration_factor_q90": 4.68,
+    "conformal_calibration_factor_q95": 7.64,
     "calibrated_coverage_90": 0.681,
-    "calibrated_coverage_95": 0.913,
-    "mean_ci_width_dsm": 72.9,
-    "mean_epistemic_std_dsm": 11.49,
+    "calibrated_coverage_95": 0.903,
+    "mean_ci_width_dsm": 73.61,
+    "mean_epistemic_std_dsm": 11.21,
     "risk_bound_type": "One-sided 95th-percentile (mu + 1.645*std)"
   },
   "provenance_segregation": {
