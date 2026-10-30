@@ -34,15 +34,15 @@ When data is acquired via CSV export, it must be mapped to the `data/field_ec_te
 
 ## Status of Acquired Datasets
 
-The acquisition pipeline has been operationalized via [`scripts/fetch_project_data.py`](file:///c:/Users/PC/Downloads/Codebases/swot-khulna-master/scripts/fetch_project_data.py). The following real-world and harmonized data assets are now stored in `data/`:
+The acquisition pipeline has been operationalized via [`swot-khulna/scripts/fetch_project_data.py`](swot-khulna/scripts/fetch_project_data.py). The following real-world and harmonized data assets are now stored in `data/`:
 
 | Dataset File | Description | Record Count | Source |
 | :--- | :--- | :--- | :--- |
-| [`data/bwdb_stations_khulna.json`](file:///c:/Users/PC/Downloads/Codebases/swot-khulna-master/data/bwdb_stations_khulna.json) | Metadata for 10 BWDB monitoring stations across Khulna, Rupsha, Passur, Mongla, Kobadak, and Gorai rivers. | 10 stations | BWDB / FFWC API |
-| [`data/bwdb_water_levels_khulna.csv`](file:///c:/Users/PC/Downloads/Codebases/swot-khulna-master/data/bwdb_water_levels_khulna.csv) | 3-hourly tidal river stage observations (PWD datum) across Khulna coastal stations. | 500 records | BWDB / FFWC API |
-| [`data/swot_hydrocron_reaches.csv`](file:///c:/Users/PC/Downloads/Codebases/swot-khulna-master/data/swot_hydrocron_reaches.csv) | NASA PO.DAAC Hydrocron SWOT satellite telemetry (WSE, river width, slope). | 331 passes | NASA SWOT (Reaches `31241400581`, `31241400601`, etc.) |
-| [`data/khulna_field_ec_harmonized.csv`](file:///c:/Users/PC/Downloads/Codebases/swot-khulna-master/data/khulna_field_ec_harmonized.csv) | In-situ Field Salinity (EC) time series matching `field_ec_template.csv` format, harmonized with Deltares / SRDI empirical ranges (0.3 to 30 dS/m). | 1,440 records | Harmonized In-Situ Baseline |
-| [`data/ground_truth_upload_ready.csv`](file:///c:/Users/PC/Downloads/Codebases/swot-khulna-master/data/ground_truth_upload_ready.csv) | Ready-to-upload ground truth measurements for the `/api/v1/data/upload/csv` endpoint. | 1,440 records | Harmonized Pipeline |
+| [`swot-khulna/data/bwdb_stations_khulna.json`](swot-khulna/data/bwdb_stations_khulna.json) | Metadata for 10 BWDB monitoring stations across Khulna, Rupsha, Passur, Mongla, Kobadak, and Gorai rivers. | 10 stations | BWDB / FFWC API |
+| [`swot-khulna/data/bwdb_water_levels_khulna.csv`](swot-khulna/data/bwdb_water_levels_khulna.csv) | 3-hourly tidal river stage observations (PWD datum) across Khulna coastal stations. | 500 records | BWDB / FFWC API |
+| [`swot-khulna/data/swot_hydrocron_reaches.csv`](swot-khulna/data/swot_hydrocron_reaches.csv) | NASA PO.DAAC Hydrocron SWOT satellite telemetry (WSE, river width, slope). | 331 passes | NASA SWOT (Reaches `31241400581`, `31241400601`, etc.) |
+| [`swot-khulna/data/khulna_field_ec_harmonized.csv`](swot-khulna/data/khulna_field_ec_harmonized.csv) | In-situ Field Salinity (EC) time series matching `field_ec_template.csv` format, harmonized with Deltares / SRDI empirical ranges (0.3 to 30 dS/m). | 1,440 records | Harmonized In-Situ Baseline |
+| [`swot-khulna/data/ground_truth_upload_ready.csv`](swot-khulna/data/ground_truth_upload_ready.csv) | Ready-to-upload ground truth measurements for the `/api/v1/data/upload/csv` endpoint. | 1,440 records | Harmonized Pipeline |
 
 ### Automated Fetch Execution
 To re-fetch or refresh live data at any time:
