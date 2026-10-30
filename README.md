@@ -90,6 +90,15 @@ python scripts/package_submission.py
 
 ---
 
+## Engineering Checklists & Technical Guides
+
+Detailed role-specific guidelines and audit protocols for platform development:
+- **[Sector-Specific Technical Checklists](docs/SECTOR_SPECIFIC_INSPECTION_CHECKLISTS.md)**: In-depth instructions and audit protocols for **Backend & API Developers**, **NASA Data & Remote Sensing Specialists**, and **ML Engineers**.
+- **[Build & Deployment Guide](docs/BUILD_GUIDE.md)**: Complete environment configuration, dependency installation, and local development workflow.
+- **[Problem Resolution Roadmap](docs/PROBLEM_RESOLUTION_ROADMAP.md)**: Scientific audit specifications, mathematical formulas, and verification criteria.
+
+---
+
 ## System Classification
 
 > **Research Prototype Notice:** This platform is an academic research prototype and decision support system for agricultural planning. It is **not** certified as an operational life-safety flood warning system without in-situ ground sensors. Scenario sliders simulate hydrodynamic sensitivity stress-tests rather than deterministic forecasts.
