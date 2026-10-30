@@ -241,3 +241,4 @@ Before any production deployment or Space Apps submission release, all three dom
 | **Fail-Closed Integrity** | ML + Backend | Trigger training job without ground chemistry target | Job blocked immediately with `Forecast Blocked` alert modal |
 | **Background Map Contrast** | Remote Sensing + Backend | Inspect Leaflet canvas in Academic & Dark modes | Bangladesh national background rendered at low opacity ($0.16 - 0.22$) without obscuring Khulna |
 | **Full Production Build** | All Leads | `pnpm --filter web build && .venv\Scripts\pytest tests/ -v` | **17/17 Next.js routes compiled** and **44/44 backend unit tests passed** |
+
