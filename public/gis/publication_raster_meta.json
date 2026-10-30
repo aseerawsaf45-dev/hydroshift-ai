@@ -1,0 +1,31 @@
+{
+  "bounds": [
+    [
+      21.4,
+      89.9
+    ],
+    [
+      23.55,
+      90.95
+    ]
+  ],
+  "width": 1000,
+  "height": 1200,
+  "layers": {
+    "river": {
+      "file": "/gis/salinity_river.png",
+      "min_val": 0.05,
+      "max_val": 18.0
+    },
+    "shallow_gw": {
+      "file": "/gis/salinity_shallow_gw.png",
+      "min_val": 0.05,
+      "max_val": 16.197199747193125
+    },
+    "deep_gw": {
+      "file": "/gis/salinity_deep_gw.png",
+      "min_val": 0.607326514062641,
+      "max_val": 5.81119912696362
+    }
+  }
+}

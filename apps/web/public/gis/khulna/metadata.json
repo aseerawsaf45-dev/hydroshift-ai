@@ -1,54 +1,106 @@
 {
-  "title": "Offline Khulna GIS & Remote Sensing Geographic Suite",
+  "title": "Offline Khulna Soil Salinity & Hydrological GIS",
   "region": "Khulna District, Southwestern Coastal Delta, Bangladesh",
+  "spatial_reference": {
+    "horizontal_crs": "EPSG:4326 (WGS 84 / Geographic Latitude-Longitude)",
+    "projected_crs": "EPSG:32645 (WGS 84 / UTM Zone 45N for metric analysis)",
+    "vertical_datum": "PWD Datum (Public Works Department, Bangladesh, +0.46m above MSL)",
+    "rfc_standard": "RFC 7946 GeoJSON Standard"
+  },
   "study_area_bounds": {
     "southwest": [
       22.18,
-      89.2
+      89.22
     ],
     "northeast": [
       23.08,
       89.74
     ],
     "centroid": [
-      22.68,
-      89.48
+      22.63,
+      89.47999999999999
     ]
   },
-  "spatial_reference": {
-    "horizontal_crs": "EPSG:4326 (WGS 84 / Geographic Latitude-Longitude)",
-    "vertical_datum": "PWD Datum (Public Works Department, Bangladesh, +0.46m above MSL)",
-    "rfc_standard": "RFC 7946 GeoJSON Standard"
-  },
-  "measurement_integrity": {
-    "primary_unit": "Electrical Conductivity (EC) in dS/m (deciSiemens per meter at 25°C)",
-    "secondary_unit": "Salinity in ppt (parts per thousand), conversion factor: 1 ppt = 1.5625 dS/m",
-    "agricultural_thresholds": {
-      "potable_drinking": "< 1.5 dS/m (Khulna WASA target)",
-      "boro_rice_safe": "< 2.5 dS/m (BRRI dhan28 / 29)",
-      "boro_rice_tolerance_limit": "4.0 dS/m (BRRI dhan67 salt-tolerant threshold)",
-      "crop_sterilization": "> 8.0 dS/m (acute seedling death)"
+  "classification_standard": "UNESCO / FAO / SRDI Bangladesh Standard Soil Salinity Classification",
+  "salinity_classes": [
+    {
+      "class": "S0",
+      "range": "< 2.0 dS/m",
+      "description": "Non-saline"
     },
-    "ground_truth_sources": [
-      "Bangladesh Water Development Board (BWDB) Hydrology Division",
-      "Soil Resource Development Institute (SRDI) Salinity Surveys",
-      "NASA PO.DAAC Hydrocron SWOT KaRIn High-Rate Reach Telemetry",
-      "Khulna Water Supply and Sewerage Authority (Khulna WASA) Madhukhali Intake Monitoring",
-      "Center for Environmental and Geographic Information Services (CEGIS) Polder Database"
-    ]
+    {
+      "class": "S1",
+      "range": "2.0 - 4.0 dS/m",
+      "description": "Slightly saline"
+    },
+    {
+      "class": "S2",
+      "range": "4.0 - 8.0 dS/m",
+      "description": "Moderately saline"
+    },
+    {
+      "class": "S3",
+      "range": "8.0 - 12.0 dS/m",
+      "description": "Highly saline"
+    },
+    {
+      "class": "S4",
+      "range": ">= 12.0 dS/m",
+      "description": "Very highly saline"
+    }
+  ],
+  "datasets": {
+    "boundary.geojson": {
+      "title": "Khulna District Study Area Boundary",
+      "source": "Survey of Bangladesh (SoB) & CEGIS National Cadastre",
+      "crs": "EPSG:4326",
+      "feature_count": 1,
+      "validation": "Valid MultiPolygon, closed outer ring"
+    },
+    "salinity_period1.geojson": {
+      "title": "Soil Salinity Period 1: Post-Monsoon Flushing (November)",
+      "source": "SRDI Soil Salinity Survey & BWDB Estuarine Telemetry",
+      "crs": "EPSG:4326",
+      "feature_count": 10,
+      "unit": "dS/m",
+      "validation": "10 Upazila administrative polygons with verified EC attributes"
+    },
+    "salinity_period2.geojson": {
+      "title": "Soil Salinity Period 2: Mid-Dry Season / Boro Stage (February)",
+      "source": "SRDI Soil Salinity Survey & BWDB Estuarine Telemetry",
+      "crs": "EPSG:4326",
+      "feature_count": 10,
+      "unit": "dS/m",
+      "validation": "10 Upazila administrative polygons with verified EC attributes"
+    },
+    "salinity_period3.geojson": {
+      "title": "Soil Salinity Period 3: Peak Dry Season / Marine Surge (April)",
+      "source": "SRDI Soil Salinity Survey & BWDB Estuarine Telemetry",
+      "crs": "EPSG:4326",
+      "feature_count": 10,
+      "unit": "dS/m",
+      "validation": "10 Upazila administrative polygons with verified EC attributes"
+    },
+    "rivers.geojson": {
+      "title": "Khulna Estuarine River Network",
+      "source": "NASA SWOT SWORD Database (v16) & BWDB River Network Survey",
+      "crs": "EPSG:4326",
+      "feature_count": 6,
+      "validation": "6 connected curvilinear river centerlines (Passur, Shibsa, Rupsha, Kobodak, Bhairab, Kazibacha)"
+    },
+    "observation_stations.geojson": {
+      "title": "Ground Truth Hydrometric Stations & Telemetry Reaches",
+      "source": "BWDB Hydrology, Khulna WASA & NASA SWOT KaRIn Telemetry",
+      "crs": "EPSG:4326",
+      "feature_count": 8,
+      "unit": "dS/m (EC) and m PWD (Water Surface Elevation)",
+      "validation": "Point geometries with empirical min, mean, max EC and observation counts"
+    }
   },
-  "offline_architecture": {
-    "mode": "100% Offline-First / Zero Remote API Requests",
-    "external_tile_servers": "Disabled / None required",
-    "external_geocoding": "Disabled / None required",
-    "remote_api_keys": "None required",
-    "local_assets": [
-      "boundary.geojson",
-      "districts.geojson",
-      "salinity.geojson",
-      "rivers.geojson",
-      "polders.geojson",
-      "stations.geojson"
-    ]
+  "offline_verification": {
+    "external_tile_servers": "Disabled / 0 requests",
+    "external_geocoding": "Disabled / 0 requests",
+    "external_map_apis": "Disabled / 0 requests",
+    "local_storage_mode": "100% offline local GeoJSON assets"
   }
 }

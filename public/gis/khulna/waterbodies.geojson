@@ -1,0 +1,204 @@
+{
+  "type": "FeatureCollection",
+  "name": "Khulna_Coastal_Polders_and_Embankments",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "polder-30",
+      "properties": {
+        "id": "polder-30",
+        "name": "Polder 30 (Batiaghata)",
+        "upazila": "Batiaghata",
+        "area_km2": 95.0,
+        "embankment_km": 38.0,
+        "elevation_m_pwd": 1.8,
+        "status": "Protected",
+        "salinity_risk": "Moderate salinity ingress; freshwater canal buffers early Boro"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              89.5,
+              22.78
+            ],
+            [
+              89.565,
+              22.79
+            ],
+            [
+              89.575,
+              22.73
+            ],
+            [
+              89.545,
+              22.69
+            ],
+            [
+              89.495,
+              22.7
+            ],
+            [
+              89.5,
+              22.78
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "polder-31",
+      "properties": {
+        "id": "polder-31",
+        "name": "Polder 31 (Dacope / Bajua)",
+        "upazila": "Dacope",
+        "area_km2": 84.5,
+        "embankment_km": 42.0,
+        "elevation_m_pwd": 1.4,
+        "status": "At Risk",
+        "salinity_risk": "Severe Boro Rice hazard during pre-monsoon dry season (>4.0 dS/m)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              89.49,
+              22.68
+            ],
+            [
+              89.54,
+              22.685
+            ],
+            [
+              89.56,
+              22.645
+            ],
+            [
+              89.54,
+              22.585
+            ],
+            [
+              89.485,
+              22.58
+            ],
+            [
+              89.475,
+              22.63
+            ],
+            [
+              89.49,
+              22.68
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "polder-32",
+      "properties": {
+        "id": "polder-32",
+        "name": "Polder 32 (Sutarkhali / Kamarkhola)",
+        "upazila": "Dacope",
+        "area_km2": 67.2,
+        "embankment_km": 48.5,
+        "elevation_m_pwd": 1.2,
+        "status": "Critical",
+        "salinity_risk": "Hyper-saline tidal exposure (>7.0 dS/m); vulnerable to overtopping"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              89.48,
+              22.57
+            ],
+            [
+              89.535,
+              22.575
+            ],
+            [
+              89.545,
+              22.51
+            ],
+            [
+              89.525,
+              22.45
+            ],
+            [
+              89.47,
+              22.445
+            ],
+            [
+              89.455,
+              22.51
+            ],
+            [
+              89.48,
+              22.57
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "sundarbans-boundary",
+      "properties": {
+        "id": "sundarbans-boundary",
+        "name": "Sundarbans Biosphere Mangrove Zone",
+        "upazila": "Protected Forest Reserve",
+        "area_km2": 6017.0,
+        "embankment_km": 0.0,
+        "elevation_m_pwd": 0.8,
+        "status": "Protected",
+        "salinity_risk": "Natural mangrove tidal buffer; saline intrusion tolerance limit 15 dS/m"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              89.2,
+              22.45
+            ],
+            [
+              89.7,
+              22.45
+            ],
+            [
+              89.65,
+              22.38
+            ],
+            [
+              89.63,
+              22.25
+            ],
+            [
+              89.4,
+              22.2
+            ],
+            [
+              89.2,
+              22.3
+            ],
+            [
+              89.2,
+              22.45
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

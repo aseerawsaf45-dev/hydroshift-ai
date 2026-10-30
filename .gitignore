@@ -9,4 +9,7 @@ khulna.db
 *.egg-info/
 .next/
 *.png
+!apps/web/public/gis/*.png
+!public/gis/*.png
+!soil-salinity-gis/output/*.png
 *.zip

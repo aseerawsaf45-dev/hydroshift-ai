@@ -1,6 +1,6 @@
 {
   "type": "FeatureCollection",
-  "name": "Khulna_Arterial_River_Hydrography",
+  "name": "rivers",
   "crs": {
     "type": "name",
     "properties": {
@@ -10,25 +10,17 @@
   "features": [
     {
       "type": "Feature",
-      "id": "passur",
       "properties": {
         "id": "passur",
         "name": "Passur River",
         "bengali_name": "পশুর নদী",
         "width_m": 880,
-        "salinity_regime": "Hyper-saline estuarine channel (8.0 - 14.5 dS/m)"
+        "salinity_regime": "Hyper-saline estuarine channel (8.0 - 14.5 dS/m)",
+        "flow_direction": "North to South (Estuarine Flushing)"
       },
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            89.575,
-            22.825
-          ],
-          [
-            89.58,
-            22.808
-          ],
           [
             89.575,
             22.76
@@ -38,61 +30,37 @@
             22.71
           ],
           [
-            89.578,
-            22.62
+            89.56,
+            22.66
           ],
           [
-            89.585,
-            22.56
+            89.57,
+            22.605
           ],
           [
-            89.595,
-            22.52
+            89.58,
+            22.55
           ],
           [
             89.6,
             22.464
           ],
           [
-            89.605,
-            22.38
-          ],
-          [
-            89.62,
-            22.32
-          ],
-          [
-            89.61,
-            22.25
-          ],
-          [
-            89.625,
-            22.12
-          ],
-          [
-            89.61,
-            21.98
-          ],
-          [
             89.595,
-            21.85
-          ],
-          [
-            89.58,
-            21.75
+            22.43
           ]
         ]
       }
     },
     {
       "type": "Feature",
-      "id": "shibsa",
       "properties": {
         "id": "shibsa",
         "name": "Shibsa River",
         "bengali_name": "শিবসা নদী",
         "width_m": 1120,
-        "salinity_regime": "Western estuarine channel (4.2 - 8.5 dS/m)"
+        "salinity_regime": "Western estuarine channel (4.2 - 8.5 dS/m)",
+        "flow_direction": "North to South (Estuarine Mixing)"
       },
       "geometry": {
         "type": "LineString",
@@ -107,44 +75,36 @@
           ],
           [
             89.44,
-            22.58
+            22.585
           ],
           [
             89.455,
             22.48
           ],
           [
-            89.44,
+            89.43,
             22.38
           ],
           [
-            89.41,
-            22.28
+            89.38,
+            22.3
           ],
           [
-            89.39,
-            22.18
-          ],
-          [
-            89.37,
-            22.05
-          ],
-          [
-            89.35,
-            21.8
+            89.34,
+            22.24
           ]
         ]
       }
     },
     {
       "type": "Feature",
-      "id": "rupsha",
       "properties": {
         "id": "rupsha",
         "name": "Rupsha River",
         "bengali_name": "রূপসা নদী",
         "width_m": 420,
-        "salinity_regime": "Transitional urban mixing reach (2.5 - 4.6 dS/m)"
+        "salinity_regime": "Transitional urban mixing reach (2.5 - 4.6 dS/m)",
+        "flow_direction": "North to South (Flushing Reach)"
       },
       "geometry": {
         "type": "LineString",
@@ -154,8 +114,8 @@
             22.92
           ],
           [
-            89.56,
-            22.87
+            89.555,
+            22.875
           ],
           [
             89.575,
@@ -174,13 +134,13 @@
     },
     {
       "type": "Feature",
-      "id": "kobodak",
       "properties": {
         "id": "kobodak",
         "name": "Kobodak River",
         "bengali_name": "কপোতাক্ষ নদ",
         "width_m": 260,
-        "salinity_regime": "Western boundary freshwater-brackish channel"
+        "salinity_regime": "Western boundary freshwater-brackish channel",
+        "flow_direction": "North to South"
       },
       "geometry": {
         "type": "LineString",
@@ -207,20 +167,24 @@
           ],
           [
             89.24,
-            22.2
+            22.22
+          ],
+          [
+            89.27,
+            22.19
           ]
         ]
       }
     },
     {
       "type": "Feature",
-      "id": "bhairab",
       "properties": {
         "id": "bhairab",
         "name": "Bhairab River",
         "bengali_name": "ভৈরব নদ",
         "width_m": 310,
-        "salinity_regime": "Upstream fluvial flushing lifeline (<1.0 dS/m)"
+        "salinity_regime": "Upstream fluvial flushing lifeline (<1.0 dS/m)",
+        "flow_direction": "Northwest to Southeast"
       },
       "geometry": {
         "type": "LineString",
@@ -230,8 +194,16 @@
             23.05
           ],
           [
-            89.47,
-            22.98
+            89.45,
+            23.01
+          ],
+          [
+            89.48,
+            22.97
+          ],
+          [
+            89.51,
+            22.94
           ],
           [
             89.53,
@@ -246,13 +218,13 @@
     },
     {
       "type": "Feature",
-      "id": "kazibacha",
       "properties": {
         "id": "kazibacha",
         "name": "Kazibacha River",
         "bengali_name": "কাজীবাছা নদী",
         "width_m": 350,
-        "salinity_regime": "Polder drainage confluence (3.8 dS/m)"
+        "salinity_regime": "Polder drainage confluence (3.8 dS/m)",
+        "flow_direction": "East to Southwest (Polder Drainage)"
       },
       "geometry": {
         "type": "LineString",
@@ -272,6 +244,14 @@
           [
             89.51,
             22.66
+          ],
+          [
+            89.47,
+            22.63
+          ],
+          [
+            89.44,
+            22.585
           ]
         ]
       }

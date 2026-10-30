@@ -1,0 +1,126 @@
+{
+  "metadata": {
+    "total_samples": 1440,
+    "stations_x_km": [
+      25.0,
+      55.0,
+      82.0
+    ],
+    "time_span_days": 239.5,
+    "data_provenance": "empirical_interpolated_dry_season",
+    "provenance_disclosure": "Harmonized from BWDB/IWM dry season monthly salinity records and harmonic tidal interpolation. Evaluated as a research prototype under rigorous hold-out splits."
+  },
+  "chronological_test": {
+    "fourier_pinn": {
+      "rmse": 7.687,
+      "mae": 5.486,
+      "peak_mae": 5.912,
+      "r2": -1.775,
+      "samples": 288
+    },
+    "plain_mlp_no_physics": {
+      "rmse": 4.316,
+      "mae": 3.597,
+      "peak_mae": 2.222,
+      "r2": 0.125,
+      "samples": 288
+    },
+    "seasonal_harmonic": {
+      "rmse": 4.996,
+      "mae": 4.357,
+      "peak_mae": 1.637,
+      "r2": -0.172,
+      "samples": 288
+    },
+    "persistence": {
+      "rmse": 4.85,
+      "mae": 4.212,
+      "peak_mae": 7.898,
+      "r2": -0.105,
+      "samples": 288
+    }
+  },
+  "station_holdout_test": {
+    "held_out_station_x_km": 55.0,
+    "held_out_samples": 480,
+    "fourier_pinn": {
+      "rmse": 6.784,
+      "mae": 4.643,
+      "peak_mae": 10.48,
+      "r2": -0.413,
+      "samples": 480
+    },
+    "plain_mlp_no_physics": {
+      "rmse": 7.209,
+      "mae": 6.124,
+      "peak_mae": 7.148,
+      "r2": -0.595,
+      "samples": 480
+    },
+    "seasonal_harmonic": {
+      "rmse": 7.41,
+      "mae": 6.794,
+      "peak_mae": 7.329,
+      "r2": -0.685,
+      "samples": 480
+    },
+    "persistence": {
+      "rmse": 7.098,
+      "mae": 5.828,
+      "peak_mae": 13.354,
+      "r2": -0.546,
+      "samples": 480
+    }
+  },
+  "ensemble_uncertainty": {
+    "ensemble_size": 5,
+    "uncalibrated_gaussian_cov_95": 0.667,
+    "conformal_calibration_factor_q90": 4.68,
+    "conformal_calibration_factor_q95": 7.64,
+    "calibrated_coverage_90": 0.681,
+    "calibrated_coverage_95": 0.903,
+    "mean_ci_width_dsm": 73.61,
+    "mean_epistemic_std_dsm": 11.21,
+    "risk_bound_type": "One-sided 95th-percentile (mu + 1.645*std)",
+    "mondrian_strata": {
+      "upstream_monsoon": {
+        "test_samples": 96,
+        "calibrated_q_factor": 1.0,
+        "test_coverage_95": 0.75,
+        "mean_ci_width_dsm": 22.87
+      },
+      "mouth_monsoon": {
+        "test_samples": 192,
+        "calibrated_q_factor": 8.66,
+        "test_coverage_95": 0.964,
+        "mean_ci_width_dsm": 98.18
+      }
+    }
+  },
+  "provenance_segregation": {
+    "direct_measurements_only": {
+      "sample_count": 48,
+      "mae": 3.252,
+      "rmse": 4.343,
+      "r2": 0.709,
+      "bootstrap_ci_mae_95": [
+        2.437,
+        4.113
+      ],
+      "boro_breach_accuracy": 95.8,
+      "boro_false_negative_rate": 2.4
+    },
+    "harmonic_reconstructions": {
+      "sample_count": 1392,
+      "mae": 2.623,
+      "rmse": 3.331,
+      "r2": 0.862
+    },
+    "combined_dataset": {
+      "sample_count": 1440,
+      "mae": 2.644,
+      "rmse": 3.37,
+      "r2": 0.858
+    }
+  }
+}

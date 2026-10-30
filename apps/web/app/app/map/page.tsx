@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { Badge } from "@/components/ui/badge";
 import { ForecastChart } from "@/components/ForecastChart";
 import {
   Site,
@@ -13,18 +13,7 @@ import {
   PolderPolygon,
   KhulnaRegion,
   HydrologicDomain,
-  DOMAIN_CONFIGS,
   convertPptToEc,
-  convertEcToPpt,
-  getRegionDomainValue,
-  getRegionDomainColor,
-  KHULNA_UPAZILA_REGIONS,
-  COASTAL_DELTA_UPAZILAS,
-  ALL_STUDY_REGIONS,
-  PUBLICATION_STUDY_BOUNDS,
-  PUBLICATION_STUDY_CENTER,
-  RISK_TIERS_CONFIG,
-  KHULNA_DISTRICT_BOUNDS,
 } from "@/components/map-data";
 import {
   Layers,
@@ -32,25 +21,20 @@ import {
   Search,
   Filter,
   ShieldAlert,
-  Info,
   X,
   ExternalLink,
-  ChevronDown,
-  ChevronUp,
   Activity,
-  CheckCircle2,
   Droplets,
   AlertTriangle,
   GitCompare,
   Clock,
   Compass,
-  Satellite,
   Waves,
   BookOpen,
   Columns3,
-  Square,
-  Maximize2,
   Zap,
+  Gauge,
+  ShieldCheck,
 } from "lucide-react";
 
 const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
@@ -89,17 +73,67 @@ export default function MapExplorerPage() {
   const [showThalweg, setShowThalweg] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
   const [showRivers, setShowRivers] = useState(true);
-  const [showGraticule, setShowGraticule] = useState(true);
-  const [basemap, setBasemap] = useState<"radar" | "academic" | "topo">("radar");
+  const [showBangladeshContext, setShowBangladeshContext] = useState(true);
+  const [showGraticule] = useState(true);
+  const [basemap, setBasemap] = useState<"radar" | "academic" | "topo">("academic");
   const [hydrologicDomain, setHydrologicDomain] = useState<HydrologicDomain>("river");
   const [viewLayout, setViewLayout] = useState<"single" | "triptych">("single");
   const [salinityUnit, setSalinityUnit] = useState<"ppt" | "dS/m">("ppt");
   const [horizon, setHorizon] = useState<"now" | "7d" | "14d">("now");
   const [riskFilter, setRiskFilter] = useState<"all" | "critical" | "warning" | "nominal">("all");
-  const [currentMode, setCurrentMode] = useState<"all" | "salinity" | "gauges" | "swot">("all");
+  const [, setCurrentMode] = useState<"all" | "salinity" | "gauges" | "swot">("all");
   const [selectedBasin, setSelectedBasin] = useState<"all" | "Passur" | "Shibsa" | "Rupsha">("all");
   const [selectedRegion, setSelectedRegion] = useState<KhulnaRegion | null>(null);
   const [selectedPolder, setSelectedPolder] = useState<PolderPolygon | null>(null);
+
+  // Hydrodynamic Stress Parameters (Gorai Flow, Tidal Surge, Polder Flap-Gates)
+  const [goraiFlowDelta, setGoraiFlowDelta] = useState<number>(0); // -80% to +50%
+  const [tidalSurge, setTidalSurge] = useState<number>(0.0); // 0.0m to 2.5m
+  const [sluiceDefense, setSluiceDefense] = useState<"closed" | "open" | "breached">("closed");
+  const [activeScenarioPreset, setActiveScenarioPreset] = useState<string>("baseline");
+
+  // Dynamic factor calculations
+  const computedFrontKm = useMemo(() => {
+    const base = 55.0;
+    const flowImpact = -goraiFlowDelta * 0.18;
+    const surgeImpact = tidalSurge * 6.5;
+    const breachImpact = sluiceDefense === "breached" ? 4.5 : 0;
+    return Number((base + flowImpact + surgeImpact + breachImpact).toFixed(1));
+  }, [goraiFlowDelta, tidalSurge, sluiceDefense]);
+
+  const computedMonglaSalinity = useMemo(() => {
+    const base = 7.9;
+    const flowImpact = -goraiFlowDelta * 0.04;
+    const surgeImpact = tidalSurge * 2.8;
+    const breachImpact = sluiceDefense === "breached" ? 1.5 : 0;
+    return Number(Math.max(1.2, base + flowImpact + surgeImpact + breachImpact).toFixed(1));
+  }, [goraiFlowDelta, tidalSurge, sluiceDefense]);
+
+  const computedP14Salinity = useMemo(() => {
+    if (computedFrontKm < 68.0) return 1.0;
+    return Number((1.0 + (computedFrontKm - 68.0) * 0.22).toFixed(1));
+  }, [computedFrontKm]);
+
+  const applyScenarioPreset = (preset: "baseline" | "drought" | "surge" | "flushing") => {
+    setActiveScenarioPreset(preset);
+    if (preset === "baseline") {
+      setGoraiFlowDelta(0);
+      setTidalSurge(0.0);
+      setSluiceDefense("closed");
+    } else if (preset === "drought") {
+      setGoraiFlowDelta(-65);
+      setTidalSurge(0.3);
+      setSluiceDefense("closed");
+    } else if (preset === "surge") {
+      setGoraiFlowDelta(-20);
+      setTidalSurge(1.8);
+      setSluiceDefense("breached");
+    } else if (preset === "flushing") {
+      setGoraiFlowDelta(45);
+      setTidalSurge(0.0);
+      setSluiceDefense("open");
+    }
+  };
 
   // Workbench & Drawer states
   const [activePanel, setActivePanel] = useState<"directory" | "layers" | "guide" | null>(null);
@@ -128,7 +162,7 @@ export default function MapExplorerPage() {
   const criticalCount = useMemo(() => {
     return allSites.filter(s => {
       const f = forecastMap[s.id];
-      const val = f?.value ?? (s as any).baselineEc ?? 3.5;
+      const val = f?.value ?? s.baselineEc ?? 3.5;
       return val >= 4.0;
     }).length;
   }, [allSites, forecastMap]);
@@ -136,7 +170,7 @@ export default function MapExplorerPage() {
   const warningCount = useMemo(() => {
     return allSites.filter(s => {
       const f = forecastMap[s.id];
-      const val = f?.value ?? (s as any).baselineEc ?? 3.5;
+      const val = f?.value ?? s.baselineEc ?? 3.5;
       return val >= 2.5 && val < 4.0;
     }).length;
   }, [allSites, forecastMap]);
@@ -156,7 +190,7 @@ export default function MapExplorerPage() {
     return allSites.filter(site => {
       // Basin filter
       if (selectedBasin !== "all") {
-        const text = `${site.name} ${site.description} ${site.id} ${(site as any).river || ""}`.toLowerCase();
+        const text = `${site.name} ${site.description} ${site.id} ${site.river || ""}`.toLowerCase();
         if (!text.includes(selectedBasin.toLowerCase())) {
           return false;
         }
@@ -172,7 +206,7 @@ export default function MapExplorerPage() {
 
       // Risk filter
       const forecast = forecastMap[site.id];
-      const val = forecast?.value ?? (site as any).baselineEc ?? 3.5;
+      const val = forecast?.value ?? site.baselineEc ?? 3.5;
       if (riskFilter === "critical" && val < 4.0) return false;
       if (riskFilter === "warning" && (val < 2.5 || val >= 4.0)) return false;
       if (riskFilter === "nominal" && val >= 2.5) return false;
@@ -244,253 +278,445 @@ export default function MapExplorerPage() {
   return (
     <div className="flex flex-col space-y-2.5 h-[calc(100dvh-4.25rem)] select-none">
       
-      {/* 1. TOP INTELLIGENT CONTROL DOCK */}
-      <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 sm:p-2.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 shadow-xl shrink-0">
+      {/* 1. TOP FACTORS & PARAMETERS CONTROL DOCK (DIRECTLY ABOVE FIXED KHULNA MAP) */}
+      <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-3 shadow-2xl flex flex-col gap-2.5 shrink-0">
         
-        {/* Left: Scientific 3-Domain Regimes (a, b, c) & Comparative Triptych Mode */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+        {/* ROW 1: PRIMARY FACTORS (Target Variable, Season, Presets & Basemap) */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
           
-          {/* 3-Domain Scientific Selector (Matching Reference Publication) */}
-          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 shrink-0">
+          {/* Left: Target Hydrologic Factor (a, b, c, d) */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground mr-1 flex items-center gap-1">
+              <Activity className="w-3 h-3 text-sky-400" />
+              <span>Target Factor:</span>
+            </span>
+
+            <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
+              <button
+                id="btn-domain-river"
+                onClick={() => {
+                  setHydrologicDomain("river");
+                  handleModePreset("salinity");
+                }}
+                className={`px-2.5 py-1 text-xs font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                  hydrologicDomain === "river" && viewLayout === "single"
+                    ? "bg-sky-600 text-white shadow-md shadow-sky-600/30"
+                    : "text-muted-foreground hover:text-white"
+                }`}
+                title="Surface Estuarine River Salinity (Passur-Rupsha Corridor)"
+              >
+                <Waves className="w-3.5 h-3.5 text-sky-400" />
+                <span>(a) River Water</span>
+              </button>
+
+              <button
+                id="btn-domain-shallow-gw"
+                onClick={() => {
+                  setHydrologicDomain("shallow_gw");
+                  handleModePreset("salinity");
+                }}
+                className={`px-2.5 py-1 text-xs font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                  hydrologicDomain === "shallow_gw" && viewLayout === "single"
+                    ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
+                    : "text-muted-foreground hover:text-white"
+                }`}
+                title="Upper Holocene Shallow Aquifer (15-35m) & Boro Crop Root Zone"
+              >
+                <Droplets className="w-3.5 h-3.5 text-amber-400" />
+                <span>(b) Shallow GW</span>
+              </button>
+
+              <button
+                id="btn-domain-deep-gw"
+                onClick={() => {
+                  setHydrologicDomain("deep_gw");
+                  handleModePreset("salinity");
+                }}
+                className={`px-2.5 py-1 text-xs font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                  hydrologicDomain === "deep_gw" && viewLayout === "single"
+                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                    : "text-muted-foreground hover:text-white"
+                }`}
+                title="Lower Pleistocene Deep Confined Aquifer (220-280m) & Khulna WASA Wellfields"
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-purple-400" />
+                <span>(c) Deep GW</span>
+              </button>
+
+              <button
+                id="btn-domain-risk"
+                onClick={() => {
+                  setHydrologicDomain("risk");
+                  handleModePreset("salinity");
+                }}
+                className={`px-2.5 py-1 text-xs font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                  hydrologicDomain === "risk" && viewLayout === "single"
+                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                    : "text-muted-foreground hover:text-white"
+                }`}
+                title="Soil Salinity Risk Cadastre (SRDI / CEGIS April Peak Hazard)"
+              >
+                <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                <span>(d) Soil Salinity Risk</span>
+              </button>
+            </div>
+
+            {/* 3-Map Comparative View Toggle */}
             <button
-              id="btn-domain-river"
-              onClick={() => {
-                setHydrologicDomain("river");
-                handleModePreset("salinity");
-              }}
-              className={`px-3 py-1.5 text-xs font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 ${
-                hydrologicDomain === "river" && viewLayout === "single"
-                  ? "bg-sky-600 text-white shadow-md shadow-sky-600/30"
-                  : "text-muted-foreground hover:text-white"
+              id="btn-triptych-toggle"
+              onClick={() => setViewLayout(viewLayout === "single" ? "triptych" : "single")}
+              className={`px-2.5 py-1 rounded-xl border text-xs font-serif font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+                viewLayout === "triptych"
+                  ? "bg-primary text-black border-primary shadow-lg shadow-primary/20 font-extrabold"
+                  : "bg-white/5 hover:bg-white/10 border-white/10 text-white"
               }`}
-              title="NASA SWOT Estuarine River Surface Water Salinity (0 - 17.2 ppt)"
+              title="Display all 3 scientific sub-maps side-by-side matching the publication figure"
             >
-              <Waves className="w-3.5 h-3.5 text-sky-400" />
-              <span>(a) River Water</span>
+              <Columns3 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">3-Map View</span>
+              <span className="sm:hidden">(a,b,c)</span>
             </button>
 
-            <button
-              id="btn-domain-shallow-gw"
-              onClick={() => {
-                setHydrologicDomain("shallow_gw");
-                handleModePreset("salinity");
-              }}
-              className={`px-3 py-1.5 text-xs font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 ${
-                hydrologicDomain === "shallow_gw" && viewLayout === "single"
-                  ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
-                  : "text-muted-foreground hover:text-white"
-              }`}
-              title="Upper Holocene Shallow Aquifer Salinity (0.1 - 16 ppt) & Boro Root Zone Capillary Rise"
-            >
-              <Droplets className="w-3.5 h-3.5 text-amber-400" />
-              <span>(b) Shallow GW</span>
-            </button>
-
-            <button
-              id="btn-domain-deep-gw"
-              onClick={() => {
-                setHydrologicDomain("deep_gw");
-                handleModePreset("salinity");
-              }}
-              className={`px-3 py-1.5 text-xs font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 ${
-                hydrologicDomain === "deep_gw" && viewLayout === "single"
-                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
-                  : "text-muted-foreground hover:text-white"
-              }`}
-              title="Lower Pleistocene Deep Confined Aquifer (0.4 - 10 ppt) & Khulna WASA Wellfields"
-            >
-              <ShieldAlert className="w-3.5 h-3.5 text-emerald-400" />
-              <span>(c) Deep GW</span>
-            </button>
-          </div>
-
-          {/* 3-Map Comparative Triptych View Mode Toggle */}
-          <button
-            id="btn-triptych-toggle"
-            onClick={() => setViewLayout(viewLayout === "single" ? "triptych" : "single")}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-serif font-bold transition-all flex items-center gap-1.5 shrink-0 ${
-              viewLayout === "triptych"
-                ? "bg-primary text-black border-primary shadow-lg shadow-primary/20 font-extrabold"
-                : "bg-white/5 hover:bg-white/10 border-white/10 text-white"
-            }`}
-            title="Display all 3 scientific sub-maps side-by-side matching the publication figure"
-          >
-            <Columns3 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">3-Map Comparative View</span>
-            <span className="sm:hidden">(a,b,c)</span>
-          </button>
-
-          {/* Unit Switcher: ppt vs dS/m */}
-          <button
-            id="btn-unit-toggle"
-            onClick={() => setSalinityUnit(salinityUnit === "ppt" ? "dS/m" : "ppt")}
-            className="px-2.5 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-[11px] font-mono font-bold text-amber-300 transition-all shrink-0 flex items-center gap-1"
-            title="Toggle unit between ppt (parts per thousand) and dS/m (electrical conductivity)"
-          >
-            <span>Unit:</span>
-            <strong className="text-white underline">{salinityUnit}</strong>
-          </button>
-
-          <div className="h-5 w-px bg-white/10 mx-1 hidden sm:block shrink-0" />
-
-          {/* Fixed Khulna Study Area Badge */}
-          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 shrink-0">
-            <div
-              className="px-2.5 py-1 text-[11px] font-serif font-bold rounded-lg transition-all flex items-center gap-1.5 bg-emerald-600/20 text-emerald-300 border border-emerald-500/30"
-              title="Khulna District & Estuarine Basin (10 Upazilas) - 100% Hardcoded Local Data"
-            >
-              <MapPin className="w-3 h-3 text-emerald-400" />
-              <span>Khulna Study Region (10 Upazilas)</span>
+            {/* Lead Horizon Quick Toggle */}
+            <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 text-xs">
+              <span className="text-[10px] font-mono uppercase text-muted-foreground px-1 hidden sm:inline flex items-center gap-1">
+                <Clock className="w-3 h-3 text-primary" />
+                <span>Lead:</span>
+              </span>
+              <button
+                onClick={() => setHorizon("now")}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                  horizon === "now" ? "bg-primary text-black" : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                Now
+              </button>
+              <button
+                onClick={() => setHorizon("7d")}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                  horizon === "7d" ? "bg-amber-500 text-black" : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                +7d PINN
+              </button>
+              <button
+                onClick={() => setHorizon("14d")}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                  horizon === "14d" ? "bg-rose-500 text-white" : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                +14d Peak
+              </button>
             </div>
           </div>
 
-          <div className="h-5 w-px bg-white/10 mx-1 hidden sm:block shrink-0" />
+          {/* Right: Quick Stress Presets & Basemap Selector */}
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            
+            {/* Quick Stress Presets */}
+            <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 text-xs">
+              <span className="text-[10px] font-mono text-muted-foreground px-1 hidden sm:inline">Preset:</span>
+              <button
+                onClick={() => applyScenarioPreset("baseline")}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                  activeScenarioPreset === "baseline" ? "bg-emerald-600 text-white" : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                Baseline
+              </button>
+              <button
+                onClick={() => applyScenarioPreset("drought")}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                  activeScenarioPreset === "drought" ? "bg-amber-600 text-white" : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                2024 Drought
+              </button>
+              <button
+                onClick={() => applyScenarioPreset("surge")}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                  activeScenarioPreset === "surge" ? "bg-rose-600 text-white" : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                Storm Surge
+              </button>
+              <button
+                onClick={() => applyScenarioPreset("flushing")}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                  activeScenarioPreset === "flushing" ? "bg-sky-600 text-white" : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                Monsoon Flush
+              </button>
+            </div>
 
-          {/* Quick Regional Upazila Focus / Opt-Out Pills */}
-          <div className="flex items-center gap-1 shrink-0 overflow-x-auto py-0.5">
+            {/* Basemap Switcher */}
+            <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 text-xs">
+              <button
+                id="btn-basemap-academic"
+                onClick={() => setBasemap("academic")}
+                className={`px-2.5 py-1 rounded-lg font-serif text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                  basemap === "academic" ? "bg-sky-600 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
+                }`}
+                title="Authentic Paper Cartography matching publication map"
+              >
+                <BookOpen className="w-3 h-3" />
+                <span>Publication</span>
+              </button>
+              <button
+                id="btn-basemap-radar"
+                onClick={() => setBasemap("radar")}
+                className={`px-2.5 py-1 rounded-lg font-serif text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                  basemap === "radar" ? "bg-emerald-600 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
+                }`}
+                title="Dark Radar GIS Mode"
+              >
+                <Zap className="w-3 h-3 text-emerald-300" />
+                <span>Radar GIS</span>
+              </button>
+            </div>
+
+            {/* Salinity Unit Switcher */}
             <button
-              id="btn-all-khulna"
-              onClick={() => {
-                setSelectedRegion(null);
-                setSelectedSite(null);
-                setSelectedPolder(null);
-              }}
-              className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                !selectedRegion
-                  ? "bg-white/20 text-white border-white/40 shadow-sm"
-                  : "bg-white/5 hover:bg-white/10 border-white/10 text-muted-foreground hover:text-white"
-              }`}
-              title="View full study domain (Opt in all regions)"
+              id="btn-unit-toggle"
+              onClick={() => setSalinityUnit(salinityUnit === "ppt" ? "dS/m" : "ppt")}
+              className="px-2.5 py-1 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-[11px] font-mono font-bold text-amber-300 transition-all shrink-0 flex items-center gap-1"
             >
-              <Compass className="w-3 h-3" />
-              <span>Reset Extent</span>
+              <span>Unit:</span>
+              <strong className="text-white underline">{salinityUnit}</strong>
             </button>
 
-            {KHULNA_UPAZILA_REGIONS.map((region) => {
-              const isSelected = selectedRegion?.id === region.id;
-              const val = getRegionDomainValue(region, hydrologicDomain);
-              const col = getRegionDomainColor(region, hydrologicDomain);
-              return (
-                <button
-                  key={region.id}
-                  id={`btn-upazila-${region.id}`}
-                  onClick={() => {
-                    if (isSelected) {
-                      setSelectedRegion(null);
-                    } else {
-                      setSelectedRegion(region);
-                      setSelectedSite(null);
-                      setSelectedPolder(null);
-                    }
-                  }}
-                  className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-medium transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                    isSelected
-                      ? "bg-white/25 text-white border-white shadow-md ring-2 ring-white/30 font-bold"
-                      : "bg-white/5 hover:bg-white/10 border-white/5 text-muted-foreground hover:text-white"
-                  }`}
-                  title={`Narrow down to ${region.name} (${val} ppt)`}
-                >
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: col }}
-                  />
-                  <span>{region.name.replace(" Upazila", "")}</span>
-                  <span
-                    className="text-[9px] font-mono px-1 py-0.2 rounded"
-                    style={{
-                      backgroundColor: isSelected ? col : "rgba(255,255,255,0.06)",
-                      color: isSelected ? "#fff" : undefined,
-                    }}
-                  >
-                    {salinityUnit === "ppt" ? `${val} ppt` : `${convertPptToEc(val)} dS/m`}
-                  </span>
-                </button>
-              );
-            })}
+            {/* Station Directory Button */}
+            <button
+              onClick={() => setActivePanel(activePanel === "directory" ? null : "directory")}
+              className={`px-2.5 py-1 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all ${
+                activePanel === "directory"
+                  ? "bg-primary text-black font-bold border-primary shadow"
+                  : "bg-white/5 hover:bg-white/10 border-white/10 text-white"
+              }`}
+            >
+              <Filter className="w-3 h-3" />
+              <span>Stations</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-black/20 text-[10px] font-mono font-bold">
+                {allSites.length || 20}
+              </span>
+            </button>
           </div>
         </div>
 
-        {/* Right: Basemap Selector & Directory Button */}
-        <div className="flex items-center gap-2 justify-end shrink-0">
+        {/* ROW 2: HYDRODYNAMIC STRESS PARAMETERS (Gorai Discharge, Tidal Surge, Polder Sluices & Layers) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1 border-t border-white/10 text-xs">
           
-          {/* Quick Basemap Switcher - 100% Offline Local GIS Themes */}
-          <div className="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5 text-xs">
-            <button
-              id="btn-basemap-radar"
-              onClick={() => setBasemap("radar")}
-              className={`px-2.5 py-1 rounded-lg font-serif text-[11px] font-semibold transition-all flex items-center gap-1 ${
-                basemap === "radar" ? "bg-emerald-600 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
-              }`}
-              title="Instant Offline Dark Radar GIS - Zero external API latency, 100% local vector"
-            >
-              <Zap className="w-3 h-3 text-emerald-300" />
-              <span>RADAR GIS</span>
-            </button>
-            <button
-              id="btn-basemap-academic"
-              onClick={() => setBasemap("academic")}
-              className={`px-2.5 py-1 rounded-lg font-serif text-[11px] font-semibold transition-all flex items-center gap-1 ${
-                basemap === "academic" ? "bg-sky-600 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
-              }`}
-              title="Clean Paper GIS Cartography matching academic journal figure"
-            >
-              <BookOpen className="w-3 h-3" />
-              <span>ACADEMIC</span>
-            </button>
-            <button
-              id="btn-basemap-topo"
-              onClick={() => setBasemap("topo")}
-              className={`px-2.5 py-1 rounded-lg font-serif text-[11px] font-semibold transition-all flex items-center gap-1 ${
-                basemap === "topo" ? "bg-sky-600 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
-              }`}
-              title="Hydrographic elevation relief and coastal polder cadastre"
-            >
-              <Waves className="w-3 h-3 text-cyan-300" />
-              <span>HYDRO TOPO</span>
-            </button>
+          {/* Parameter 1: Upstream Gorai Flow Slider */}
+          <div className="flex flex-col gap-1 bg-white/5 p-2 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className="text-muted-foreground flex items-center gap-1">
+                <Waves className="w-3 h-3 text-sky-400" />
+                <span>Gorai Flow Delta:</span>
+              </span>
+              <span className={`font-bold ${goraiFlowDelta < 0 ? "text-amber-400" : goraiFlowDelta > 0 ? "text-sky-300" : "text-white"}`}>
+                {goraiFlowDelta > 0 ? `+${goraiFlowDelta}%` : `${goraiFlowDelta}%`} ({(180 * (1 + goraiFlowDelta / 100)).toFixed(0)} m³/s)
+              </span>
+            </div>
+            <input
+              type="range"
+              min="-80"
+              max="50"
+              step="5"
+              value={goraiFlowDelta}
+              onChange={(e) => {
+                setGoraiFlowDelta(Number(e.target.value));
+                setActiveScenarioPreset("custom");
+              }}
+              className="w-full accent-sky-500 cursor-pointer h-1.5 bg-slate-700 rounded-lg appearance-none"
+            />
+            <div className="flex justify-between text-[9px] text-muted-foreground font-mono">
+              <span>-80% (Drought)</span>
+              <span>180 m³/s Baseline</span>
+              <span>+50% (Flush)</span>
+            </div>
           </div>
 
-          {/* Station Directory Button */}
-          <button
-            onClick={() => setActivePanel(activePanel === "directory" ? null : "directory")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all ${
-              activePanel === "directory"
-                ? "bg-primary text-black font-bold border-primary shadow-lg shadow-primary/20"
-                : "bg-white/5 hover:bg-white/10 border-white/10 text-white"
-            }`}
-          >
-            <Filter className="w-3.5 h-3.5" />
-            <span>Directory</span>
-            <span className="w-5 h-5 rounded-full bg-black/20 flex items-center justify-center text-[10px] font-mono font-bold">
-              {allSites.length || 20}
+          {/* Parameter 2: Tidal Marine Storm Surge Slider */}
+          <div className="flex flex-col gap-1 bg-white/5 p-2 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className="text-muted-foreground flex items-center gap-1">
+                <Gauge className="w-3 h-3 text-rose-400" />
+                <span>Tidal Surge Head:</span>
+              </span>
+              <span className={`font-bold ${tidalSurge > 0.5 ? "text-rose-400" : "text-white"}`}>
+                +{tidalSurge.toFixed(2)} m
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.0"
+              max="2.5"
+              step="0.1"
+              value={tidalSurge}
+              onChange={(e) => {
+                setTidalSurge(Number(e.target.value));
+                setActiveScenarioPreset("custom");
+              }}
+              className="w-full accent-rose-500 cursor-pointer h-1.5 bg-slate-700 rounded-lg appearance-none"
+            />
+            <div className="flex justify-between text-[9px] text-muted-foreground font-mono">
+              <span>0.0m (Spring)</span>
+              <span>+1.2m (Equinox)</span>
+              <span>+2.5m (Cyclone)</span>
+            </div>
+          </div>
+
+          {/* Parameter 3: Polder Sluice Gate Control */}
+          <div className="flex flex-col gap-1 bg-white/5 p-2 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className="text-muted-foreground flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                <span>Polder Defense:</span>
+              </span>
+              <span className="text-[10px] font-bold text-white uppercase">{sluiceDefense}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-1 pt-0.5">
+              <button
+                onClick={() => setSluiceDefense("closed")}
+                className={`py-1 text-[10px] font-mono font-bold rounded-lg transition-all ${
+                  sluiceDefense === "closed" ? "bg-emerald-600 text-white shadow" : "bg-white/5 text-muted-foreground hover:text-white"
+                }`}
+                title="Sluice gates closed against saline intrusion head"
+              >
+                Closed (Safe)
+              </button>
+              <button
+                onClick={() => setSluiceDefense("open")}
+                className={`py-1 text-[10px] font-mono font-bold rounded-lg transition-all ${
+                  sluiceDefense === "open" ? "bg-sky-600 text-white shadow" : "bg-white/5 text-muted-foreground hover:text-white"
+                }`}
+                title="Gravity drainage open for internal canal flushing"
+              >
+                Open (Flush)
+              </button>
+              <button
+                onClick={() => setSluiceDefense("breached")}
+                className={`py-1 text-[10px] font-mono font-bold rounded-lg transition-all ${
+                  sluiceDefense === "breached" ? "bg-rose-600 text-white shadow animate-pulse" : "bg-white/5 text-muted-foreground hover:text-white"
+                }`}
+                title="Embankment overtopped or flap-gate compromised"
+              >
+                Breached
+              </button>
+            </div>
+          </div>
+
+          {/* Parameter 4: Layer Visibility Toggles */}
+          <div className="flex flex-col gap-1 bg-white/5 p-2 rounded-xl border border-white/5">
+            <span className="text-[11px] font-mono text-muted-foreground flex items-center gap-1">
+              <Layers className="w-3 h-3 text-primary" />
+              <span>Layer Symbology:</span>
             </span>
-          </button>
-
-          {/* Layers & Style Button */}
-          <button
-            onClick={() => setActivePanel(activePanel === "layers" ? null : "layers")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all ${
-              activePanel === "layers"
-                ? "bg-primary text-black font-bold border-primary shadow-lg shadow-primary/20"
-                : "bg-white/5 hover:bg-white/10 border-white/10 text-white"
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Layers</span>
-          </button>
-
-          {/* Legend Button */}
-          <button
-            onClick={() => setShowLegend(!showLegend)}
-            className={`p-2 rounded-xl text-xs border transition-colors ${
-              showLegend ? "bg-white/20 text-white border-white/30" : "bg-white/5 text-muted-foreground hover:text-white border-white/10"
-            }`}
-            title="Toggle Map Symbology Legend"
-          >
-            <Info className="w-3.5 h-3.5" />
-          </button>
+            <div className="flex items-center gap-1 flex-wrap pt-0.5">
+              <button
+                onClick={() => setShowRasterOverlay(!showRasterOverlay)}
+                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                  showRasterOverlay ? "bg-primary text-black" : "bg-white/5 text-muted-foreground"
+                }`}
+              >
+                Raster
+              </button>
+              <button
+                onClick={() => setShowIsohalines(!showIsohalines)}
+                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                  showIsohalines ? "bg-primary text-black" : "bg-white/5 text-muted-foreground"
+                }`}
+              >
+                Contours
+              </button>
+              <button
+                onClick={() => setShowRivers(!showRivers)}
+                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                  showRivers ? "bg-primary text-black" : "bg-white/5 text-muted-foreground"
+                }`}
+              >
+                Rivers
+              </button>
+              <button
+                onClick={() => setShowGauges(!showGauges)}
+                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                  showGauges ? "bg-primary text-black" : "bg-white/5 text-muted-foreground"
+                }`}
+              >
+                Stations
+              </button>
+              <button
+                onClick={() => setShowLabels(!showLabels)}
+                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                  showLabels ? "bg-primary text-black" : "bg-white/5 text-muted-foreground"
+                }`}
+              >
+                Labels
+              </button>
+              <button
+                onClick={() => setShowBangladeshContext(!showBangladeshContext)}
+                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                  showBangladeshContext ? "bg-primary text-black" : "bg-white/5 text-muted-foreground"
+                }`}
+                title="Toggle low-opacity Bangladesh national context map in background"
+              >
+                Bangladesh
+              </button>
+            </div>
+          </div>
         </div>
 
+        {/* ROW 3: REAL-TIME HYDRODYNAMIC FACTOR OUTCOME STRIP */}
+        <div className="bg-[#050b14]/90 border border-white/10 rounded-xl px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Marine Intrusion Front */}
+            <div className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${computedFrontKm > 60 ? "bg-rose-500 animate-ping" : "bg-emerald-500"}`} />
+              <span className="font-mono text-[10px] text-muted-foreground uppercase">4.0 dS/m Front:</span>
+              <strong className="font-mono text-white text-xs">{computedFrontKm} km</strong>
+              <span className={`text-[10px] font-mono px-1 rounded ${computedFrontKm <= 55 ? "bg-emerald-500/20 text-emerald-300" : "bg-rose-500/20 text-rose-300"}`}>
+                {computedFrontKm <= 55 ? "Baseline" : `+${(computedFrontKm - 55).toFixed(1)} km inland`}
+              </span>
+            </div>
+
+            {/* Khulna WASA Intake P-14 */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[10px] text-muted-foreground uppercase">Khulna Intake (P-14):</span>
+              <strong className="font-mono text-white text-xs">{computedP14Salinity} dS/m</strong>
+              <span className={`text-[10px] font-mono px-1 rounded font-bold ${computedP14Salinity <= 1.0 ? "bg-emerald-500/20 text-emerald-300" : "bg-rose-500/20 text-rose-300"}`}>
+                {computedP14Salinity <= 1.0 ? "SECURED (Safe)" : "INTAKE ALERT"}
+              </span>
+            </div>
+
+            {/* Mongla Seaport SW244 */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[10px] text-muted-foreground uppercase">Mongla (SW244):</span>
+              <strong className="font-mono text-white text-xs">{computedMonglaSalinity} dS/m</strong>
+              <span className="text-[10px] font-mono px-1 rounded bg-amber-500/20 text-amber-300 font-bold">
+                {computedMonglaSalinity >= 8.0 ? "HYPER-SALINE" : "BRACKISH"}
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Hotspot Focus Pills */}
+          <div className="flex items-center gap-1 overflow-x-auto py-0.5">
+            <span className="text-[10px] font-mono text-muted-foreground hidden lg:inline">Focus:</span>
+            {HOTSPOTS.slice(0, 4).map((h) => (
+              <button
+                key={h.siteId}
+                onClick={() => {
+                  setFlyToCoords(h.coords);
+                  const found = allSites.find((s) => s.id === h.siteId);
+                  if (found) handleSelectSite(found);
+                }}
+                className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-mono text-white/80 hover:text-white transition-colors shrink-0 cursor-pointer"
+              >
+                {h.name.split(" (")[0]}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* 2. MAIN MAP CANVAS CONTAINER */}
@@ -535,41 +761,7 @@ export default function MapExplorerPage() {
           </div>
         )}
 
-        {/* BOTTOM FLOATING HORIZON SCRUBBER */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex justify-center">
-          <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-2xl shadow-2xl pointer-events-auto flex items-center gap-2 text-xs">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1">
-              <Clock className="w-3 h-3 text-primary" />
-              <span className="hidden sm:inline">Lead Horizon:</span>
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setHorizon("now")}
-                className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all ${
-                  horizon === "now" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
-                }`}
-              >
-                Now
-              </button>
-              <button
-                onClick={() => setHorizon("7d")}
-                className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all ${
-                  horizon === "7d" ? "bg-amber-500 text-black font-bold shadow" : "text-muted-foreground hover:text-white"
-                }`}
-              >
-                +7 Days (PINN)
-              </button>
-              <button
-                onClick={() => setHorizon("14d")}
-                className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all ${
-                  horizon === "14d" ? "bg-rose-500 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
-                }`}
-              >
-                +14 Days (Peak)
-              </button>
-            </div>
-          </div>
-        </div>
+
 
         {/* Leaflet Map Canvas: Single Interactive Mode or 3-Map Scientific Comparative Triptych */}
         {viewLayout === "triptych" ? (
@@ -706,6 +898,9 @@ export default function MapExplorerPage() {
             flyToCoords={flyToCoords}
             onSelectCorridor={handleSelectCorridor}
             onSelectPolder={(polder) => setSelectedPolder(polder)}
+            goraiFlowDelta={goraiFlowDelta}
+            tidalSurge={tidalSurge}
+            showBangladeshBackground={showBangladeshContext}
           />
         )}
 
@@ -850,10 +1045,9 @@ export default function MapExplorerPage() {
                   {/* Station List */}
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
                     {filteredDirectory.map((site) => {
-                      const isSwot = site.id.startsWith("3124") || site.id.toLowerCase().includes("swot");
                       const forecast = forecastMap[site.id];
                       const isSelected = selectedSite?.id === site.id;
-                      const val = forecast?.value ?? (site as any).baselineEc ?? 3.5;
+                      const val = forecast?.value ?? site.baselineEc ?? 3.5;
                       const isCrit = val >= 4.0;
                       const isWarn = val >= 2.5 && val < 4.0;
 
@@ -1127,7 +1321,7 @@ export default function MapExplorerPage() {
 
                 {/* Metric Badges */}
                 {(() => {
-                  const siteEc = selectedForecast?.value ?? (selectedSite as any).baselineEc ?? 3.5;
+                  const siteEc = selectedForecast?.value ?? selectedSite.baselineEc ?? 3.5;
                   const isCrit = siteEc >= 4.0;
                   const isWarn = siteEc >= 2.5 && siteEc < 4.0;
                   const isIntake = selectedSite.category === "intake" || selectedSite.id.includes("p14");

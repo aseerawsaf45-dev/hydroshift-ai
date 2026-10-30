@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "boundary",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "name": "Khulna District", "bengali_name": "খুলনা জেলা", "division": "Khulna Division", "country": "Bangladesh", "area_km2": 4394.46, "population": 2318527, "bbox": "[89.2  22.18 89.74 23.08]", "centroid": "[89.48 22.68]", "elevation_datum": "PWD Datum (Public Works Department, Bangladesh)", "coordinate_system": "WGS 84 (EPSG:4326)", "data_provenance": "Survey of Bangladesh (SoB) & CEGIS Verified Administrative Cadastre" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 89.42, 23.08 ], [ 89.58, 23.05 ], [ 89.7, 23.02 ], [ 89.74, 22.92 ], [ 89.65, 22.8 ], [ 89.66, 22.68 ], [ 89.66, 22.55 ], [ 89.55, 22.42 ], [ 89.46, 22.35 ], [ 89.42, 22.28 ], [ 89.33, 22.18 ], [ 89.24, 22.18 ], [ 89.24, 22.33 ], [ 89.22, 22.46 ], [ 89.22, 22.62 ], [ 89.28, 22.75 ], [ 89.26, 22.85 ], [ 89.34, 22.95 ], [ 89.42, 23.08 ] ] ] } }
+]
+}

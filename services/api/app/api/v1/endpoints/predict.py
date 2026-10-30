@@ -86,14 +86,14 @@ KHULNA_REACH_DATABASE = [
     {"id": "SW244", "name": "Mongla (Passur River)", "distance_km": 35.0, "baseline_ec": 7.9},
     {"id": "31241400601", "name": "Passur River Reach (Mongla)", "distance_km": 35.0, "baseline_ec": 8.1},
     {"id": "mongla-port", "name": "Mongla Port Gauge", "distance_km": 35.5, "baseline_ec": 7.9},
-    {"id": "SWOT_REACH_DEMO_001", "name": "Pasur River Segment A (Rampal)", "distance_km": 52.0, "baseline_ec": 5.8},
-    {"id": "SWOT_REACH_DEMO_002", "name": "Shibsa River Core (Dacope)", "distance_km": 58.0, "baseline_ec": 4.2},
-    {"id": "31241400561", "name": "Shibsa River Main Reach", "distance_km": 60.0, "baseline_ec": 3.8},
-    {"id": "swot-node-84", "name": "SWOT Node #84 (Paikgachha)", "distance_km": 62.0, "baseline_ec": 3.6},
-    {"id": "swot-node-85", "name": "SWOT Node #85 (Batiaghata)", "distance_km": 72.0, "baseline_ec": 3.9},
-    {"id": "SW241", "name": "Khulna (Pashure River)", "distance_km": 82.0, "baseline_ec": 4.6},
-    {"id": "khulna-p14", "name": "Khulna P-14 Intake", "distance_km": 82.0, "baseline_ec": 4.5},
-    {"id": "31241400581", "name": "Rupsha River Reach (Khulna Core)", "distance_km": 82.5, "baseline_ec": 4.8},
+    {"id": "SWOT_REACH_DEMO_001", "name": "Pasur River Segment A (Rampal)", "distance_km": 52.0, "baseline_ec": 4.2},
+    {"id": "SWOT_REACH_DEMO_002", "name": "Shibsa River Core (Dacope)", "distance_km": 58.0, "baseline_ec": 3.5},
+    {"id": "31241400561", "name": "Shibsa River Main Reach", "distance_km": 60.0, "baseline_ec": 3.1},
+    {"id": "swot-node-84", "name": "SWOT Node #84 (Paikgachha)", "distance_km": 62.0, "baseline_ec": 2.6},
+    {"id": "swot-node-85", "name": "SWOT Node #85 (Batiaghata)", "distance_km": 72.0, "baseline_ec": 1.8},
+    {"id": "SW241", "name": "Khulna (Pashure River)", "distance_km": 80.7, "baseline_ec": 1.1},
+    {"id": "khulna-p14", "name": "Khulna P-14 Intake", "distance_km": 82.0, "baseline_ec": 0.95},
+    {"id": "31241400581", "name": "Rupsha River Reach (Khulna Core)", "distance_km": 82.5, "baseline_ec": 1.05},
 ]
 
 
@@ -208,6 +208,9 @@ def run_hydrodynamic_simulation(req: SimulationRequest):
     # 2. Longitudinal Profile (Spatial Curve from Mouth to Khulna City)
     longitudinal_points: List[LongitudinalProfilePoint] = []
     mouth_ec = 20.0
+    baseline_decay = math.log(mouth_ec / 4.0) / total_baseline_intrusion  # ~0.02926 km^-1
+    current_decay = baseline_decay / (intrusion_exp ** 0.5)
+
     for km in range(10, 95, 5):
         loc = (
             "Sundarbans Mouth" if km <= 20 else
@@ -217,9 +220,8 @@ def run_hydrodynamic_simulation(req: SimulationRequest):
             "Batiaghata" if km <= 75 else
             "Khulna City (Rupsha)"
         )
-        base_curve = round(mouth_ec * math.exp(-0.022 * km), 2)
-        sim_decay = 0.022 / (intrusion_exp ** 0.5)
-        sim_curve = round(min(24.0, mouth_ec * surge_scale * math.exp(-sim_decay * km)), 2)
+        base_curve = round(mouth_ec * math.exp(-baseline_decay * km), 2)
+        sim_curve = round(min(24.0, mouth_ec * surge_scale * math.exp(-current_decay * km)), 2)
         if req.sluice_gate_closure and km >= 50:
             sim_curve = round(sim_curve * 0.72, 2)
             
@@ -231,8 +233,7 @@ def run_hydrodynamic_simulation(req: SimulationRequest):
         ))
 
     # Calculate exact 4.0 dS/m front penetration distance
-    # C(x) = 4.0 => x = ln(4.0 / C_mouth) / (-decay)
-    current_decay = 0.022 / (intrusion_exp ** 0.5)
+    # C(x) = 4.0 => x = ln(4.0 / (mouth_ec * surge_scale)) / (-current_decay)
     sim_intrusion_km = round(min(92.0, max(30.0, -math.log(4.0 / (mouth_ec * surge_scale)) / current_decay)), 1)
     if req.sluice_gate_closure:
         sim_intrusion_km = max(35.0, round(sim_intrusion_km - 8.5, 1))
@@ -248,7 +249,11 @@ def run_hydrodynamic_simulation(req: SimulationRequest):
         # Semi-diurnal / fortnightly spring-neap tidal cycle modulation
         tidal_harmonic = math.sin(day * 2 * math.pi / 14.0) * (0.6 + req.tidal_surge_meters * 0.4)
         h_base = round(mongla_base + (math.sin(day * 2 * math.pi / 14.0) * 0.8), 2)
-        h_sim = round(h_base * intrusion_exp * 0.95 + tidal_harmonic, 2)
+        
+        if abs(intrusion_exp - 1.0) < 0.01 and req.tidal_surge_meters == 0:
+            h_sim = h_base
+        else:
+            h_sim = round(h_base * math.sqrt(intrusion_exp) + req.tidal_surge_meters * 1.2 + tidal_harmonic * 0.5, 2)
         
         hydrograph_points.append(HydrographPoint(
             day=day,
@@ -260,16 +265,22 @@ def run_hydrodynamic_simulation(req: SimulationRequest):
 
     # 4. Impact Indicators
     threatened_ha = int(max(0, (sim_intrusion_km - 45.0) * 480))
-    wasa_breached = any(r.name.startswith("Khulna") and r.simulated_ec > 1.0 for r in reach_results)
+    wasa_breached = any((r.reach_id == "khulna-p14" or "p-14" in r.name.lower()) and r.simulated_ec > 1.0 for r in reach_results)
 
     # Summary generator
-    direction_word = "expanded inland by" if delta_km >= 0 else "receded seaward by"
+    if delta_km > 0.1:
+        direction_word = f"expanded inland by {delta_km:.1f} km, reaching {sim_intrusion_km:.1f} km"
+    elif delta_km < -0.1:
+        direction_word = f"receded seaward by {abs(delta_km):.1f} km, receding to {sim_intrusion_km:.1f} km"
+    else:
+        direction_word = f"remains stationary at {sim_intrusion_km:.1f} km"
+
     exec_summary = (
         f"Under {req.scenario_name} (Gorai flow: {req.discharge_change_percent:+.0f}%, "
-        f"surge: +{req.tidal_surge_meters:.1f}m), the 4.0 dS/m agricultural hazard front {direction_word} "
-        f"{abs(delta_km):.1f} km, reaching {sim_intrusion_km:.1f} km inland. "
-        f"{critical_count} reaches breached critical limits, placing approximately {threatened_ha:,} hectares "
-        f"of Boro rice polders at severe risk."
+        f"surge: +{req.tidal_surge_meters:.1f}m{', Polder Sluices: LOCKED SHUT' if req.sluice_gate_closure else ''}), "
+        f"the 4.0 dS/m agricultural hazard front {direction_word} from the Bay of Bengal. "
+        f"{critical_count} reaches breached critical crop tolerances, placing approximately {threatened_ha:,} hectares "
+        f"of Boro rice polders at severe risk. Khulna WASA raw drinking water intake is {'COMPROMISED (>1.0 dS/m)' if wasa_breached else 'SECURED (<=1.0 dS/m)'}."
     )
 
     return SimulationResponse(

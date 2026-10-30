@@ -1,0 +1,243 @@
+{
+  "type": "FeatureCollection",
+  "name": "Khulna_Hydrometric_Telemetry_and_SWOT_Reaches",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "khulna-p14",
+      "properties": {
+        "id": "khulna-p14",
+        "name": "Khulna WASA Surface Water Intake (P-14 / Madhukhali)",
+        "category": "intake",
+        "river": "Rupsha",
+        "baseline_ec_ds_m": 4.6,
+        "wse_pwd_m": 1.76,
+        "distance_km": 82.5,
+        "alert": "Municipal intake hazard (>4.0 dS/m)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.575,
+          22.825
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "SW241",
+      "properties": {
+        "id": "SW241",
+        "name": "Khulna Rupsha Gauge (SW241)",
+        "category": "gauge",
+        "river": "Rupsha",
+        "baseline_ec_ds_m": 4.5,
+        "wse_pwd_m": 1.84,
+        "distance_km": 82.0,
+        "alert": "Official BWDB tidal station"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.58,
+          22.808
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "31241400581",
+      "properties": {
+        "id": "31241400581",
+        "name": "NASA SWOT Reach: Upper Rupsha (Khulna Core)",
+        "category": "swot",
+        "river": "Rupsha",
+        "baseline_ec_ds_m": 4.8,
+        "wse_pwd_m": 1.85,
+        "distance_km": 82.5,
+        "alert": "NASA PO.DAAC Hydrocron High-Rate KaRIn Reach"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.595,
+          22.81
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "SW244",
+      "properties": {
+        "id": "SW244",
+        "name": "Mongla Seaport Station (SW244)",
+        "category": "gauge",
+        "river": "Passur",
+        "baseline_ec_ds_m": 7.9,
+        "wse_pwd_m": 2.38,
+        "distance_km": 35.0,
+        "alert": "Direct Bay of Bengal marine tidal surge conduit"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.6,
+          22.464
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "31241400601",
+      "properties": {
+        "id": "31241400601",
+        "name": "NASA SWOT Reach: Passur Main Channel (Mongla)",
+        "category": "swot",
+        "river": "Passur",
+        "baseline_ec_ds_m": 8.1,
+        "wse_pwd_m": 2.42,
+        "distance_km": 35.5,
+        "alert": "High-rate Ka-band radar telemetry tracking Passur estuarine channel storage"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.615,
+          22.47
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "batiaghata-polder",
+      "properties": {
+        "id": "batiaghata-polder",
+        "name": "Batiaghata Agricultural Polder 30 Flap Sluice",
+        "category": "gauge",
+        "river": "Rupsha-Passur",
+        "baseline_ec_ds_m": 3.9,
+        "wse_pwd_m": 1.95,
+        "distance_km": 72.0,
+        "alert": "Boro irrigation control gate"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.54,
+          22.71
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "chalna-gauge",
+      "properties": {
+        "id": "chalna-gauge",
+        "name": "Chalna Estuary / Dacope Port",
+        "category": "gauge",
+        "river": "Passur",
+        "baseline_ec_ds_m": 5.2,
+        "wse_pwd_m": 2.22,
+        "distance_km": 58.0,
+        "alert": "Mid-estuarine junction with southern polders"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.57,
+          22.605
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "rampal-station",
+      "properties": {
+        "id": "rampal-station",
+        "name": "Rampal Saline Transition Zone",
+        "category": "gauge",
+        "river": "Passur-Mongla",
+        "baseline_ec_ds_m": 5.8,
+        "wse_pwd_m": 2.3,
+        "distance_km": 52.0,
+        "alert": "Ground truth calibrated against Deltares baselines"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.64,
+          22.56
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "31241400561",
+      "properties": {
+        "id": "31241400561",
+        "name": "NASA SWOT Reach: Shibsa River Core",
+        "category": "swot",
+        "river": "Shibsa",
+        "baseline_ec_ds_m": 3.8,
+        "wse_pwd_m": 2.15,
+        "distance_km": 60.0,
+        "alert": "Traversing western delta through Dacope"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.47,
+          22.55
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "paikgachha-station",
+      "properties": {
+        "id": "paikgachha-station",
+        "name": "Paikgachha Western Delta Station",
+        "category": "gauge",
+        "river": "Shibsa",
+        "baseline_ec_ds_m": 4.2,
+        "wse_pwd_m": 2.05,
+        "distance_km": 62.0,
+        "alert": "Western Khulna agricultural and shrimp polder zone"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.33,
+          22.585
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "sundarbans-gate",
+      "properties": {
+        "id": "sundarbans-gate",
+        "name": "Sundarbans Ecological Reserve Boundary",
+        "category": "gauge",
+        "river": "Passur",
+        "baseline_ec_ds_m": 9.4,
+        "wse_pwd_m": 2.5,
+        "distance_km": 22.0,
+        "alert": "UNESCO World Heritage mangrove fringe benchmark"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.59,
+          22.38
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,268 @@
+{
+  "type": "FeatureCollection",
+  "name": "Khulna_Observation_Stations",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "khulna-p14",
+      "properties": {
+        "id": "khulna-p14",
+        "name": "Khulna WASA Surface Water Intake (P-14 / Madhukhali)",
+        "river": "Rupsha River",
+        "agency": "Khulna WASA & BWDB",
+        "station_type": "Municipal Water Intake & Tidal Gauge",
+        "latitude": 22.825,
+        "longitude": 89.575,
+        "wse_pwd_m": 1.45,
+        "danger_level_m": 2.8,
+        "distance_km": 82.0,
+        "status": "Active Automated Telemetry",
+        "ec_mean": 15.52,
+        "ec_min": 1.93,
+        "ec_max": 32.19,
+        "obs_count": 480,
+        "unit": "dS/m",
+        "first_obs": "2025-01-01T06:00:00+06:00",
+        "last_obs": "2025-08-28T18:00:00+06:00",
+        "data_source": "BWDB_IWM_Harmonized_2025"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.575,
+          22.825
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "SW241",
+      "properties": {
+        "id": "SW241",
+        "name": "Khulna Rupsha Rail Bridge (SW241)",
+        "river": "Rupsha River",
+        "agency": "BWDB Hydrology Division",
+        "station_type": "Tidal River Stage & EC Gauge",
+        "latitude": 22.808,
+        "longitude": 89.58,
+        "wse_pwd_m": 1.42,
+        "danger_level_m": 2.85,
+        "distance_km": 80.0,
+        "status": "Active Ground Gauge",
+        "ec_mean": 3.8,
+        "ec_min": 2.1,
+        "ec_max": 8.5,
+        "obs_count": 120,
+        "unit": "dS/m",
+        "first_obs": "2024-01-01T06:00:00+06:00",
+        "last_obs": "2025-05-30T18:00:00+06:00",
+        "data_source": "BWDB_SRDI_Ground_Survey"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.58,
+          22.808
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "chalna-estuary",
+      "properties": {
+        "id": "chalna-estuary",
+        "name": "Chalna Estuary Gauge (SW132)",
+        "river": "Passur River",
+        "agency": "BWDB Hydrology",
+        "station_type": "Tidal Stage Gauge",
+        "latitude": 22.605,
+        "longitude": 89.57,
+        "wse_pwd_m": 1.25,
+        "danger_level_m": 3.1,
+        "distance_km": 60.0,
+        "status": "Active Ground Gauge",
+        "ec_mean": 3.8,
+        "ec_min": 2.1,
+        "ec_max": 8.5,
+        "obs_count": 120,
+        "unit": "dS/m",
+        "first_obs": "2024-01-01T06:00:00+06:00",
+        "last_obs": "2025-05-30T18:00:00+06:00",
+        "data_source": "BWDB_SRDI_Ground_Survey"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.57,
+          22.605
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "SWOT_REACH_DEMO_001",
+      "properties": {
+        "id": "SWOT_REACH_DEMO_001",
+        "name": "NASA SWOT KaRIn Reach 31241400581 (Chalna / Dacope)",
+        "river": "Passur River",
+        "agency": "NASA SWOT / PO.DAAC Hydrocron",
+        "station_type": "Satellite Ka-Band Radar Reach",
+        "latitude": 22.55,
+        "longitude": 89.58,
+        "wse_pwd_m": 1.1,
+        "danger_level_m": 3.2,
+        "distance_km": 55.0,
+        "status": "Validated KaRIn Pass",
+        "ec_mean": 10.61,
+        "ec_min": 1.43,
+        "ec_max": 22.76,
+        "obs_count": 480,
+        "unit": "dS/m",
+        "first_obs": "2025-01-01T06:00:00+06:00",
+        "last_obs": "2025-08-28T18:00:00+06:00",
+        "data_source": "BWDB_IWM_Harmonized_2025"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.58,
+          22.55
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mongla-port",
+      "properties": {
+        "id": "mongla-port",
+        "name": "Mongla Seaport Hydrometric Gauge (SW244)",
+        "river": "Passur River",
+        "agency": "BWDB & Mongla Port Authority",
+        "station_type": "Tidal Hydrometric Station",
+        "latitude": 22.464,
+        "longitude": 89.6,
+        "wse_pwd_m": 0.85,
+        "danger_level_m": 3.45,
+        "distance_km": 42.0,
+        "status": "Active In-Situ Sensor",
+        "ec_mean": 18.67,
+        "ec_min": 2.39,
+        "ec_max": 39.41,
+        "obs_count": 480,
+        "unit": "dS/m",
+        "first_obs": "2025-01-01T06:00:00+06:00",
+        "last_obs": "2025-08-28T18:00:00+06:00",
+        "data_source": "BWDB_IWM_Harmonized_2025"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.6,
+          22.464
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "batiaghata-p30",
+      "properties": {
+        "id": "batiaghata-p30",
+        "name": "Batiaghata Polder 30 Sluice Gate Station",
+        "river": "Kazibacha River",
+        "agency": "BWDB Coastal Embankment Improvement Project",
+        "station_type": "Polder Drainage Regulator",
+        "latitude": 22.71,
+        "longitude": 89.54,
+        "wse_pwd_m": 1.55,
+        "danger_level_m": 2.6,
+        "distance_km": 72.0,
+        "status": "Active Flap Sluice Telemetry",
+        "ec_mean": 3.8,
+        "ec_min": 2.1,
+        "ec_max": 8.5,
+        "obs_count": 120,
+        "unit": "dS/m",
+        "first_obs": "2024-01-01T06:00:00+06:00",
+        "last_obs": "2025-05-30T18:00:00+06:00",
+        "data_source": "BWDB_SRDI_Ground_Survey"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.54,
+          22.71
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "paikgachha-shibsa",
+      "properties": {
+        "id": "paikgachha-shibsa",
+        "name": "Paikgachha Western Delta Station",
+        "river": "Shibsa River",
+        "agency": "BWDB & Department of Agricultural Extension",
+        "station_type": "Agricultural Salinity Monitoring Point",
+        "latitude": 22.585,
+        "longitude": 89.44,
+        "wse_pwd_m": 1.3,
+        "danger_level_m": 2.9,
+        "distance_km": 68.0,
+        "status": "Periodic Field Survey",
+        "ec_mean": 5.4,
+        "ec_min": 2.1,
+        "ec_max": 8.5,
+        "obs_count": 120,
+        "unit": "dS/m",
+        "first_obs": "2024-01-01T06:00:00+06:00",
+        "last_obs": "2025-05-30T18:00:00+06:00",
+        "data_source": "BWDB_SRDI_Ground_Survey"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.44,
+          22.585
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "koyra-sundarbans",
+      "properties": {
+        "id": "koyra-sundarbans",
+        "name": "Koyra Coastal Embankment Polder 32 Station",
+        "river": "Kobodak River",
+        "agency": "BWDB & Forest Department",
+        "station_type": "Coastal Mangrove Buffer Station",
+        "latitude": 22.22,
+        "longitude": 89.24,
+        "wse_pwd_m": 0.95,
+        "danger_level_m": 3.6,
+        "distance_km": 28.0,
+        "status": "Active Tidal Benchmark",
+        "ec_mean": 5.4,
+        "ec_min": 2.1,
+        "ec_max": 14.2,
+        "obs_count": 120,
+        "unit": "dS/m",
+        "first_obs": "2024-01-01T06:00:00+06:00",
+        "last_obs": "2025-05-30T18:00:00+06:00",
+        "data_source": "BWDB_SRDI_Ground_Survey"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          89.24,
+          22.22
+        ]
+      }
+    }
+  ]
+}

@@ -77,13 +77,13 @@ TARGET_CRS = "EPSG:32645"
 # Scale bar configuration (in kilometers)
 SCALEBAR_KM = 20  # 20 km segmented scale bar appropriate for Khulna (~90 km extent)
 
-# Colormap: Scientific Green -> Yellow -> Orange -> Red -> Dark Red (Standard Salinity Risk)
+# Colormap: Standard 5-tier Soil Salinity Risk (Dark Green -> Light Green -> Yellow -> Orange -> Red)
 SALINITY_COLORS = [
-    "#10b981",  # Non-saline (<2 dS/m): Fresh green
-    "#84cc16",  # Slightly saline (2-4 dS/m): Lime yellow
-    "#f59e0b",  # Moderately saline (4-8 dS/m): Amber / Boro danger threshold
-    "#ef4444",  # Highly saline (8-12 dS/m): Crimson red
-    "#991b1b",  # Very highly saline (>12 dS/m): Deep dark maroon
+    "#006837",  # Very Low (<2 dS/m): Dark Forest Green
+    "#78c679",  # Low (2-4 dS/m): Light Green
+    "#ffff00",  # Moderate (4-8 dS/m): Pure Yellow
+    "#fe9929",  # High (8-12 dS/m): Vivid Orange
+    "#e31a1c",  # Very High (>12 dS/m): Crimson Red
 ]
 CMAP_NAME = "SoilSalinityHarmonized"
 

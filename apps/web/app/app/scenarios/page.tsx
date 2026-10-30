@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import {
   LineChart,
@@ -13,7 +12,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
@@ -24,7 +22,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   TrendingUp,
-  BarChart3,
   Activity,
   RotateCcw,
   Compass,
@@ -75,6 +72,15 @@ interface SimulationData {
   longitudinal_profile: ProfilePoint[];
   hydrograph_14d: HydrographPoint[];
   executive_summary: string;
+}
+
+interface SimulationParams {
+  scenarioName: string;
+  dischargeChange: number;
+  tidalSurge: number;
+  dispersionMult: number;
+  sluiceClosed: boolean;
+  seaTempDelta: number;
 }
 
 // Preset Extreme Scenarios for 1-Click Stress Testing
@@ -141,9 +147,160 @@ const SCENARIO_PRESETS = [
   },
 ];
 
+// Calibrated Stations along the Passur-Rupsha Thalweg (Bay mouth to Khulna City)
+const CALIBRATED_STATIONS = [
+  { id: "SW244", name: "Mongla (Passur River)", km: 35.0, base: 7.9 },
+  { id: "31241400601", name: "Passur Reach (Mongla)", km: 35.0, base: 8.1 },
+  { id: "mongla-port", name: "Mongla Port Gauge", km: 35.5, base: 7.9 },
+  { id: "SWOT_REACH_DEMO_001", name: "Pasur Reach A (Rampal)", km: 52.0, base: 4.2 },
+  { id: "SWOT_REACH_DEMO_002", name: "Shibsa Core (Dacope)", km: 58.0, base: 3.5 },
+  { id: "31241400561", name: "Shibsa Main Reach", km: 60.0, base: 3.1 },
+  { id: "swot-node-84", name: "SWOT Node #84 (Paikgachha)", km: 62.0, base: 2.6 },
+  { id: "swot-node-85", name: "SWOT Node #85 (Batiaghata)", km: 72.0, base: 1.8 },
+  { id: "SW241", name: "Khulna (Pashure River)", km: 80.7, base: 1.1 },
+  { id: "khulna-p14", name: "Khulna P-14 Intake", km: 82.0, base: 0.95 },
+  { id: "31241400581", name: "Rupsha Reach (Khulna Core)", km: 82.5, base: 1.05 },
+];
+
+function calculateHydrodynamicSimulation(params: SimulationParams): SimulationData {
+  const { scenarioName, dischargeChange, tidalSurge, dispersionMult, sluiceClosed, seaTempDelta } = params;
+
+  const qScale = Math.max(0.15, 1.0 + dischargeChange / 100.0);
+  const surgeScale = 1.0 + tidalSurge / 1.5;
+  const dispersionFactor = dispersionMult * Math.pow(surgeScale, 1.3);
+  const intrusionExp = (surgeScale / Math.pow(qScale, 0.65)) * dispersionFactor;
+  const tempScale = 1.0 + seaTempDelta * 0.03;
+
+  let criticalCount = 0;
+  const reaches = CALIBRATED_STATIONS.map((s) => {
+    const decay = Math.max(0.2, 1.0 - s.km / 110.0);
+    let sim = s.base * Math.pow(intrusionExp, decay) * tempScale;
+    if (sluiceClosed && s.km >= 50.0) sim *= 0.68;
+    const simVal = Math.round(Math.min(24.0, Math.max(0.2, sim)) * 100) / 100;
+    const delta = Math.round((simVal - s.base) * 100) / 100;
+
+    let hazard = "NOMINAL";
+    let advisory = "Safe for irrigation and municipal intake.";
+    let safe = true;
+
+    if (simVal >= 4.0) {
+      hazard = "CRITICAL";
+      criticalCount++;
+      advisory = "Severe Boro Rice sterility risk. Preemptive sluice gate closure mandatory.";
+      safe = false;
+    } else if (simVal >= 2.5) {
+      hazard = "WARNING";
+      advisory = "Elevated salinity stress. Restrict field inundation during high tide.";
+      safe = false;
+    } else if (simVal > 1.0 && s.km >= 80.0) {
+      safe = false;
+      advisory = "Exceeds 1.0 dS/m municipal drinking limit. Desalination required.";
+    }
+
+    return {
+      reach_id: s.id,
+      name: s.name,
+      distance_km: s.km,
+      baseline_ec: s.base,
+      simulated_ec: simVal,
+      delta_ec: delta,
+      hazard_level: hazard,
+      crop_advisory: advisory,
+      intake_safe: safe,
+    };
+  });
+
+  const longitudinal: ProfilePoint[] = [];
+  const mouthEc = 20.0;
+  const baselineDecay = Math.log(mouthEc / 4.0) / 55.0; // ~0.02926 km^-1
+  const simDecay = baselineDecay / Math.sqrt(intrusionExp);
+
+  for (let km = 10; km <= 90; km += 5) {
+    const base = Math.round(mouthEc * Math.exp(-baselineDecay * km) * 100) / 100;
+    let sim = mouthEc * surgeScale * Math.exp(-simDecay * km);
+    if (sluiceClosed && km >= 50) sim *= 0.72;
+    const simVal = Math.round(Math.min(24.0, Math.max(0.2, sim)) * 100) / 100;
+
+    longitudinal.push({
+      distance_km: km,
+      location_name:
+        km <= 20
+          ? "Sundarbans Mouth"
+          : km <= 40
+          ? "Mongla Port"
+          : km <= 55
+          ? "Rampal Polders"
+          : km <= 75
+          ? "Batiaghata"
+          : "Khulna City",
+      baseline_ec: base,
+      simulated_ec: simVal,
+    });
+  }
+
+  let simIntrusionKm = Math.round(
+    Math.min(92.0, Math.max(30.0, -Math.log(4.0 / (mouthEc * surgeScale)) / simDecay)) * 10
+  ) / 10;
+  if (sluiceClosed) {
+    simIntrusionKm = Math.max(35.0, Math.round((simIntrusionKm - 8.5) * 10) / 10);
+  }
+  const baselineIntrusion = 55.0;
+  const deltaKm = Math.round((simIntrusionKm - baselineIntrusion) * 10) / 10;
+  const threatenedHa = Math.round(Math.max(0, (simIntrusionKm - 45.0) * 480));
+
+  const hydrograph: HydrographPoint[] = [];
+  const monglaBase = 7.9;
+  for (let i = 1; i <= 14; i++) {
+    const tidalHarmonic = Math.sin((i * 2 * Math.PI) / 14.0) * (0.6 + tidalSurge * 0.4);
+    const base = Math.round((monglaBase + Math.sin((i * 2 * Math.PI) / 14.0) * 0.8) * 100) / 100;
+
+    let sim: number;
+    if (Math.abs(intrusionExp - 1.0) < 0.01 && tidalSurge === 0) {
+      sim = base;
+    } else {
+      sim = Math.round((base * Math.sqrt(intrusionExp) + tidalSurge * 1.2 + tidalHarmonic * 0.5) * 100) / 100;
+    }
+
+    hydrograph.push({
+      day: i,
+      date_str: `Day +${i}`,
+      baseline_ec: base,
+      simulated_ec: Math.max(0.5, sim),
+      tidal_surge_m: Math.round((tidalSurge + tidalHarmonic * 0.5) * 100) / 100,
+    });
+  }
+
+  let directionNarrative: string;
+  if (deltaKm > 0.1) {
+    directionNarrative = `advanced inland by ${deltaKm.toFixed(1)} km, reaching ${simIntrusionKm.toFixed(1)} km`;
+  } else if (deltaKm < -0.1) {
+    directionNarrative = `receded seaward by ${Math.abs(deltaKm).toFixed(1)} km, receding to ${simIntrusionKm.toFixed(1)} km`;
+  } else {
+    directionNarrative = `remains stationary at ${simIntrusionKm.toFixed(1)} km`;
+  }
+
+  const wasaBreached = reaches.some(
+    (r) => (r.reach_id === "khulna-p14" || r.name.includes("P-14 Intake")) && r.simulated_ec > 1.0
+  );
+
+  return {
+    scenario_name: scenarioName,
+    salinity_intrusion_distance_km: simIntrusionKm,
+    baseline_intrusion_distance_km: baselineIntrusion,
+    delta_intrusion_km: deltaKm,
+    critical_reaches_count: criticalCount,
+    agricultural_hectares_threatened: threatenedHa,
+    wasa_intake_threatened: wasaBreached,
+    reaches,
+    longitudinal_profile: longitudinal,
+    hydrograph_14d: hydrograph,
+    executive_summary: `Under ${scenarioName} (Gorai flow: ${dischargeChange > 0 ? "+" : ""}${dischargeChange}%, surge: +${tidalSurge.toFixed(1)}m${sluiceClosed ? ", Polder Sluices: LOCKED SHUT" : ""}), the 4.0 dS/m agricultural hazard front ${directionNarrative} from the Bay of Bengal, placing ${threatenedHa.toLocaleString()} hectares of Boro rice crops at risk. Khulna WASA raw drinking water intake is ${wasaBreached ? "COMPROMISED (>1.0 dS/m)" : "SECURED (<=1.0 dS/m)"}.`,
+  };
+}
+
 export default function ScenariosPage() {
   // Simulator Controls
-  const [scenarioName, setScenarioName] = useState("Custom Simulation");
+  const [scenarioName, setScenarioName] = useState("Severe Drought Shock");
   const [activePreset, setActivePreset] = useState<string>("drought");
   const [dischargeChange, setDischargeChange] = useState<number>(-55);
   const [tidalSurge, setTidalSurge] = useState<number>(0.2);
@@ -154,7 +311,16 @@ export default function ScenariosPage() {
   // Studio View State
   const [chartTab, setChartTab] = useState<"profile" | "hydrograph" | "matrix">("profile");
   const [loading, setLoading] = useState(false);
-  const [simData, setSimData] = useState<SimulationData | null>(null);
+  const [simData, setSimData] = useState<SimulationData>(() =>
+    calculateHydrodynamicSimulation({
+      scenarioName: "Severe Drought Shock",
+      dischargeChange: -55,
+      tidalSurge: 0.2,
+      dispersionMult: 1.0,
+      sluiceClosed: false,
+      seaTempDelta: 1.5,
+    })
+  );
 
   // Apply a Preset
   const handleApplyPreset = (preset: typeof SCENARIO_PRESETS[0]) => {
@@ -165,12 +331,22 @@ export default function ScenariosPage() {
     setDispersionMult(preset.dispersion);
     setSluiceClosed(preset.sluice);
     setSeaTempDelta(preset.temp);
+
+    const calculated = calculateHydrodynamicSimulation({
+      scenarioName: preset.name,
+      dischargeChange: preset.discharge,
+      tidalSurge: preset.surge,
+      dispersionMult: preset.dispersion,
+      sluiceClosed: preset.sluice,
+      seaTempDelta: preset.temp,
+    });
+    setSimData(calculated);
   };
 
   // Run Simulation (calls /api/v1/predict/simulate with live ADE fallback)
   const runSimulation = useCallback(async () => {
     setLoading(true);
-    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
     const payload = {
       scenario_name: scenarioName,
@@ -182,7 +358,8 @@ export default function ScenariosPage() {
     };
 
     try {
-      const res = await fetch(`${API_URL}/api/v1/predict/simulate`, {
+      const endpoint = API_URL ? `${API_URL}/api/v1/predict/simulate` : "/api/v1/predict/simulate";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -195,130 +372,56 @@ export default function ScenariosPage() {
         throw new Error("Backend response error");
       }
     } catch {
-      // High-precision local ADE mathematical solver fallback
-      const qScale = Math.max(0.15, 1.0 + dischargeChange / 100.0);
-      const surgeScale = 1.0 + tidalSurge / 1.5;
-      const dispersionFactor = dispersionMult * Math.pow(surgeScale, 1.3);
-      const intrusionExp = (surgeScale / Math.pow(qScale, 0.65)) * dispersionFactor;
-      const tempScale = 1.0 + seaTempDelta * 0.03;
-
-      const stations = [
-        { id: "SW244", name: "Mongla (Passur River)", km: 35.0, base: 7.9 },
-        { id: "31241400601", name: "Passur Reach (Mongla)", km: 35.0, base: 8.1 },
-        { id: "mongla-port", name: "Mongla Port Gauge", km: 35.5, base: 7.9 },
-        { id: "SWOT_REACH_DEMO_001", name: "Pasur Reach A (Rampal)", km: 52.0, base: 5.8 },
-        { id: "SWOT_REACH_DEMO_002", name: "Shibsa Core (Dacope)", km: 58.0, base: 4.2 },
-        { id: "31241400561", name: "Shibsa Main Reach", km: 60.0, base: 3.8 },
-        { id: "swot-node-84", name: "SWOT Node #84 (Paikgachha)", km: 62.0, base: 3.6 },
-        { id: "swot-node-85", name: "SWOT Node #85 (Batiaghata)", km: 72.0, base: 3.9 },
-        { id: "SW241", name: "Khulna (Pashure River)", km: 82.0, base: 4.6 },
-        { id: "khulna-p14", name: "Khulna P-14 Intake", km: 82.0, base: 4.5 },
-        { id: "31241400581", name: "Rupsha Reach (Khulna Core)", km: 82.5, base: 4.8 },
-      ];
-
-      let criticalCount = 0;
-      const reaches = stations.map((s) => {
-        const decay = Math.max(0.2, 1.0 - s.km / 110.0);
-        let sim = s.base * Math.pow(intrusionExp, decay) * tempScale;
-        if (sluiceClosed && s.km >= 50.0) sim *= 0.68;
-        const simVal = Math.round(Math.min(24.0, Math.max(0.2, sim)) * 100) / 100;
-        const delta = Math.round((simVal - s.base) * 100) / 100;
-
-        let hazard = "NOMINAL";
-        let advisory = "Safe for irrigation and municipal intake.";
-        let safe = true;
-        if (simVal >= 4.0) {
-          hazard = "CRITICAL";
-          criticalCount++;
-          advisory = "Severe Boro Rice sterility risk. Preemptive sluice gate closure mandatory.";
-          safe = false;
-        } else if (simVal >= 2.5) {
-          hazard = "WARNING";
-          advisory = "Elevated salinity stress. Restrict field inundation during high tide.";
-          safe = false;
-        }
-
-        return {
-          reach_id: s.id,
-          name: s.name,
-          distance_km: s.km,
-          baseline_ec: s.base,
-          simulated_ec: simVal,
-          delta_ec: delta,
-          hazard_level: hazard,
-          crop_advisory: advisory,
-          intake_safe: safe,
-        };
+      // Local ADE mathematical solver fallback
+      const calculated = calculateHydrodynamicSimulation({
+        scenarioName,
+        dischargeChange,
+        tidalSurge,
+        dispersionMult,
+        sluiceClosed,
+        seaTempDelta,
       });
-
-      const longitudinal: ProfilePoint[] = [];
-      const mouthEc = 20.0;
-      for (let km = 10; km <= 90; km += 5) {
-        const base = Math.round(mouthEc * Math.exp(-0.022 * km) * 100) / 100;
-        const simDecay = 0.022 / Math.sqrt(intrusionExp);
-        let sim = mouthEc * surgeScale * Math.exp(-simDecay * km);
-        if (sluiceClosed && km >= 50) sim *= 0.72;
-        const simVal = Math.round(Math.min(24.0, sim) * 100) / 100;
-
-        longitudinal.push({
-          distance_km: km,
-          location_name:
-            km <= 20
-              ? "Sundarbans Mouth"
-              : km <= 40
-              ? "Mongla Port"
-              : km <= 55
-              ? "Rampal Polders"
-              : km <= 75
-              ? "Batiaghata"
-              : "Khulna City",
-          baseline_ec: base,
-          simulated_ec: simVal,
-        });
-      }
-
-      const simIntrusionKm = Math.round(Math.min(92.0, Math.max(35.0, 55.0 * Math.pow(intrusionExp, 0.45))) * 10) / 10;
-      const deltaKm = Math.round((simIntrusionKm - 55.0) * 10) / 10;
-      const threatenedHa = Math.round(Math.max(0, (simIntrusionKm - 45.0) * 480));
-
-      const hydrograph: HydrographPoint[] = [];
-      const now = new Date();
-      for (let i = 1; i <= 14; i++) {
-        const d = new Date(now.getTime() + i * 86400000);
-        const tidalHarmonic = Math.sin((i * 2 * Math.PI) / 14.0) * (0.6 + tidalSurge * 0.4);
-        const base = Math.round((7.9 + Math.sin((i * 2 * Math.PI) / 14.0) * 0.8) * 100) / 100;
-        const sim = Math.round((base * intrusionExp * 0.95 + tidalHarmonic) * 100) / 100;
-        hydrograph.push({
-          day: i,
-          date_str: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-          baseline_ec: base,
-          simulated_ec: Math.max(0.5, sim),
-          tidal_surge_m: Math.round((tidalSurge + tidalHarmonic * 0.5) * 100) / 100,
-        });
-      }
-
-      setSimData({
-        scenario_name: scenarioName,
-        salinity_intrusion_distance_km: simIntrusionKm,
-        baseline_intrusion_distance_km: 55.0,
-        delta_intrusion_km: deltaKm,
-        critical_reaches_count: criticalCount,
-        agricultural_hectares_threatened: threatenedHa,
-        wasa_intake_threatened: reaches.some((r) => r.name.includes("Khulna") && r.simulated_ec > 1.0),
-        reaches,
-        longitudinal_profile: longitudinal,
-        hydrograph_14d: hydrograph,
-        executive_summary: `Under ${scenarioName} (Gorai flow: ${dischargeChange > 0 ? "+" : ""}${dischargeChange}%, surge: +${tidalSurge.toFixed(1)}m), the 4.0 dS/m agricultural hazard front advanced to ${simIntrusionKm.toFixed(1)} km inland, placing ${threatenedHa.toLocaleString()} hectares of Boro rice crops at severe risk.`,
-      });
+      setSimData(calculated);
     } finally {
       setLoading(false);
     }
   }, [scenarioName, dischargeChange, tidalSurge, dispersionMult, sluiceClosed, seaTempDelta]);
 
-  // Initial calculation on load
-  useEffect(() => {
-    runSimulation();
-  }, [runSimulation]);
+  // Handler for manual slider changes
+  const handleSliderChange = (
+    param: "discharge" | "surge" | "dispersion" | "sluice",
+    val: number | boolean
+  ) => {
+    setActivePreset("custom");
+    let newDischarge = dischargeChange;
+    let newSurge = tidalSurge;
+    let newDispersion = dispersionMult;
+    let newSluice = sluiceClosed;
+
+    if (param === "discharge") {
+      newDischarge = val as number;
+      setDischargeChange(newDischarge);
+    } else if (param === "surge") {
+      newSurge = val as number;
+      setTidalSurge(newSurge);
+    } else if (param === "dispersion") {
+      newDispersion = val as number;
+      setDispersionMult(newDispersion);
+    } else if (param === "sluice") {
+      newSluice = val as boolean;
+      setSluiceClosed(newSluice);
+    }
+
+    const calculated = calculateHydrodynamicSimulation({
+      scenarioName: "Custom Scenario",
+      dischargeChange: newDischarge,
+      tidalSurge: newSurge,
+      dispersionMult: newDispersion,
+      sluiceClosed: newSluice,
+      seaTempDelta,
+    });
+    setSimData(calculated);
+  };
 
   // Matrix bar chart dataset formatting
   const matrixData = useMemo(() => {
@@ -333,7 +436,6 @@ export default function ScenariosPage() {
 
   return (
     <div className="flex flex-col space-y-6 pb-12 select-none">
-      
       {/* 0. RESEARCH PROTOTYPE & EXTRAPOLATION WARNING */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs">
         <div className="flex items-start sm:items-center gap-2.5">
@@ -370,7 +472,7 @@ export default function ScenariosPage() {
             <button
               key={p.id}
               onClick={() => handleApplyPreset(p)}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-2 ${
+              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-2 cursor-pointer ${
                 activePreset === p.id
                   ? "bg-white/15 text-white border-primary shadow-lg shadow-primary/10"
                   : "bg-white/5 text-muted-foreground hover:text-white border-white/10"
@@ -389,7 +491,6 @@ export default function ScenariosPage() {
       {/* 2. LIVE DELTA IMPACT BENTO TELEMETRY */}
       {simData && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          
           {/* Card 1: Salinity Front Intrusion */}
           <div className="bg-[#08131f]/95 border border-white/10 p-4 rounded-2xl flex flex-col justify-between shadow-xl">
             <div className="flex items-center justify-between text-muted-foreground text-xs font-mono uppercase tracking-wider">
@@ -403,14 +504,24 @@ export default function ScenariosPage() {
                 </span>
                 <span className="text-xs font-mono text-muted-foreground">km from Bay</span>
               </div>
-              <span className={`text-xs font-mono font-bold mt-1 block ${
-                simData.delta_intrusion_km >= 0 ? "text-rose-400" : "text-emerald-400"
-              }`}>
-                {simData.delta_intrusion_km >= 0 ? `+${simData.delta_intrusion_km.toFixed(1)} km inland advance` : `${simData.delta_intrusion_km.toFixed(1)} km seaward retreat`}
+              <span
+                className={`text-xs font-mono font-bold mt-1 block ${
+                  simData.delta_intrusion_km > 0
+                    ? "text-rose-400"
+                    : simData.delta_intrusion_km < 0
+                    ? "text-emerald-400"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {simData.delta_intrusion_km > 0
+                  ? `+${simData.delta_intrusion_km.toFixed(1)} km inland advance`
+                  : simData.delta_intrusion_km < 0
+                  ? `${simData.delta_intrusion_km.toFixed(1)} km seaward retreat`
+                  : "Stationary at baseline"}
               </span>
             </div>
             <span className="text-[11px] text-muted-foreground">
-              Baseline limit was {simData.baseline_intrusion_distance_km.toFixed(0)} km (Mongla-Rampal boundary).
+              Baseline limit: {simData.baseline_intrusion_distance_km.toFixed(0)} km (Mongla-Rampal boundary).
             </span>
           </div>
 
@@ -425,7 +536,7 @@ export default function ScenariosPage() {
                 <span className="text-3xl font-extrabold font-mono text-rose-400">
                   {simData.critical_reaches_count}
                 </span>
-                <span className="text-xs font-mono text-muted-foreground">/ 11 Khulna sites</span>
+                <span className="text-xs font-mono text-muted-foreground">/ {simData.reaches.length} Khulna sites</span>
               </div>
               <span className="text-xs font-mono text-rose-300 font-bold mt-1 block">
                 {simData.critical_reaches_count > 4 ? "Widespread Crop Hazard" : "Localized Estuarine Threat"}
@@ -466,9 +577,13 @@ export default function ScenariosPage() {
             </div>
             <div className="my-2">
               <div className="flex items-baseline gap-2">
-                <span className={`text-xl font-extrabold font-mono px-2 py-0.5 rounded-lg ${
-                  simData.wasa_intake_threatened ? "bg-rose-500/20 text-rose-400 border border-rose-500/30" : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                }`}>
+                <span
+                  className={`text-xl font-extrabold font-mono px-2 py-0.5 rounded-lg ${
+                    simData.wasa_intake_threatened
+                      ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                      : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  }`}
+                >
                   {simData.wasa_intake_threatened ? "COMPROMISED" : "SECURED"}
                 </span>
               </div>
@@ -477,16 +592,16 @@ export default function ScenariosPage() {
               </span>
             </div>
             <span className="text-[11px] text-muted-foreground">
-              {simData.wasa_intake_threatened ? "Salinity exceeds municipal filtration limits." : "Safe drinking intake levels maintained."}
+              {simData.wasa_intake_threatened
+                ? "Salinity exceeds municipal filtration limits."
+                : "Safe drinking intake levels maintained."}
             </span>
           </div>
-
         </div>
       )}
 
       {/* 3. SIMULATION WORKBENCH (CONTROLS + VISUALIZATION STUDIO) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
         {/* LEFT COLUMN: INTERACTIVE CONTROL PANEL (5 cols) */}
         <div className="lg:col-span-4 bg-[#08131f]/95 border border-white/10 p-5 rounded-3xl shadow-2xl flex flex-col space-y-6">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
@@ -496,14 +611,9 @@ export default function ScenariosPage() {
             </div>
             <button
               onClick={() => {
-                setActivePreset("baseline");
-                setDischargeChange(0);
-                setTidalSurge(0);
-                setDispersionMult(1.0);
-                setSluiceClosed(false);
-                setSeaTempDelta(0);
+                handleApplyPreset(SCENARIO_PRESETS[4]); // Baseline
               }}
-              className="text-xs text-muted-foreground hover:text-white flex items-center gap-1 font-mono transition-colors"
+              className="text-xs text-muted-foreground hover:text-white flex items-center gap-1 font-mono transition-colors cursor-pointer"
               title="Reset to baseline"
             >
               <RotateCcw className="w-3 h-3" />
@@ -518,9 +628,7 @@ export default function ScenariosPage() {
                 <Droplets className="w-3.5 h-3.5 text-sky-400" />
                 Upstream Gorai River Flow
               </span>
-              <span className={`font-mono font-bold ${
-                dischargeChange < 0 ? "text-amber-400" : "text-sky-400"
-              }`}>
+              <span className={`font-mono font-bold ${dischargeChange < 0 ? "text-amber-400" : "text-sky-400"}`}>
                 {dischargeChange > 0 ? `+${dischargeChange}%` : `${dischargeChange}%`}
               </span>
             </div>
@@ -530,10 +638,7 @@ export default function ScenariosPage() {
               max="50"
               step="5"
               value={dischargeChange}
-              onChange={(e) => {
-                setActivePreset("custom");
-                setDischargeChange(parseFloat(e.target.value));
-              }}
+              onChange={(e) => handleSliderChange("discharge", parseFloat(e.target.value))}
               className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
@@ -550,9 +655,7 @@ export default function ScenariosPage() {
                 <Waves className="w-3.5 h-3.5 text-rose-400" />
                 Bay Tidal Storm Surge
               </span>
-              <span className="font-mono font-bold text-rose-400">
-                +{tidalSurge.toFixed(1)} m
-              </span>
+              <span className="font-mono font-bold text-rose-400">+{tidalSurge.toFixed(1)} m</span>
             </div>
             <input
               type="range"
@@ -560,10 +663,7 @@ export default function ScenariosPage() {
               max="2.5"
               step="0.1"
               value={tidalSurge}
-              onChange={(e) => {
-                setActivePreset("custom");
-                setTidalSurge(parseFloat(e.target.value));
-              }}
+              onChange={(e) => handleSliderChange("surge", parseFloat(e.target.value))}
               className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
             />
             <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
@@ -580,9 +680,7 @@ export default function ScenariosPage() {
                 <TrendingUp className="w-3.5 h-3.5 text-primary" />
                 Estuarine Dispersion Rate (D<sub>x</sub>)
               </span>
-              <span className="font-mono font-bold text-primary">
-                {dispersionMult.toFixed(1)}&times;
-              </span>
+              <span className="font-mono font-bold text-primary">{dispersionMult.toFixed(1)}&times;</span>
             </div>
             <input
               type="range"
@@ -590,10 +688,7 @@ export default function ScenariosPage() {
               max="2.0"
               step="0.1"
               value={dispersionMult}
-              onChange={(e) => {
-                setActivePreset("custom");
-                setDispersionMult(parseFloat(e.target.value));
-              }}
+              onChange={(e) => handleSliderChange("dispersion", parseFloat(e.target.value))}
               className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
@@ -614,10 +709,7 @@ export default function ScenariosPage() {
                 <input
                   type="checkbox"
                   checked={sluiceClosed}
-                  onChange={(e) => {
-                    setActivePreset("custom");
-                    setSluiceClosed(e.target.checked);
-                  }}
+                  onChange={(e) => handleSliderChange("sluice", e.target.checked)}
                   className="sr-only peer"
                 />
                 <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
@@ -652,26 +744,21 @@ export default function ScenariosPage() {
           {/* Link to Map */}
           <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs">
             <span className="text-muted-foreground">View spatial front on GIS:</span>
-            <Link
-              href="/app/map"
-              className="text-primary hover:underline font-semibold flex items-center gap-1"
-            >
+            <Link href="/app/map" className="text-primary hover:underline font-semibold flex items-center gap-1">
               <span>Map Explorer</span>
               <ExternalLink className="w-3 h-3" />
             </Link>
           </div>
-
         </div>
 
         {/* RIGHT COLUMN: MULTI-VIEW CHART STUDIO (8 cols) */}
         <div className="lg:col-span-8 bg-[#08131f]/95 border border-white/10 p-5 rounded-3xl shadow-2xl flex flex-col space-y-4">
-          
           {/* Chart Studio Header & Mode Switcher */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
             <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl">
               <button
                 onClick={() => setChartTab("profile")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   chartTab === "profile" ? "bg-white/15 text-white" : "text-muted-foreground hover:text-white"
                 }`}
               >
@@ -679,7 +766,7 @@ export default function ScenariosPage() {
               </button>
               <button
                 onClick={() => setChartTab("hydrograph")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   chartTab === "hydrograph" ? "bg-white/15 text-white" : "text-muted-foreground hover:text-white"
                 }`}
               >
@@ -687,7 +774,7 @@ export default function ScenariosPage() {
               </button>
               <button
                 onClick={() => setChartTab("matrix")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   chartTab === "matrix" ? "bg-white/15 text-white" : "text-muted-foreground hover:text-white"
                 }`}
               >
@@ -734,7 +821,10 @@ export default function ScenariosPage() {
                     <Tooltip
                       contentStyle={{ backgroundColor: "#08131f", borderColor: "#ffffff20", borderRadius: "12px" }}
                       labelFormatter={(label) => `River Reach at ${label} km from Bay`}
-                      formatter={(val: any, name: any) => [`${Number(val).toFixed(2)} dS/m`, name === "simulated_ec" ? "Simulated Shock" : "Baseline"]}
+                      formatter={(val: unknown, name?: unknown) => [
+                        `${Number(val).toFixed(2)} dS/m`,
+                        name === "simulated_ec" ? "Simulated Shock" : "Baseline",
+                      ]}
                     />
                     {/* Agricultural 4.0 dS/m Threshold */}
                     <ReferenceLine
@@ -789,7 +879,10 @@ export default function ScenariosPage() {
                     <YAxis stroke="#718795" fontSize={11} tickFormatter={(val) => `${val} dS/m`} />
                     <Tooltip
                       contentStyle={{ backgroundColor: "#08131f", borderColor: "#ffffff20", borderRadius: "12px" }}
-                      formatter={(val: any, name: any) => [`${Number(val).toFixed(2)} dS/m`, name === "simulated_ec" ? "Simulated Peak" : "Baseline"]}
+                      formatter={(val: unknown, name?: unknown) => [
+                        `${Number(val).toFixed(2)} dS/m`,
+                        name === "simulated_ec" ? "Simulated Peak" : "Baseline",
+                      ]}
                     />
                     <ReferenceLine y={4.0} stroke="#f59e0b" strokeDasharray="4 4" />
                     <Line
@@ -838,7 +931,7 @@ export default function ScenariosPage() {
                     <YAxis stroke="#718795" fontSize={11} tickFormatter={(val) => `${val} dS/m`} />
                     <Tooltip
                       contentStyle={{ backgroundColor: "#08131f", borderColor: "#ffffff20", borderRadius: "12px" }}
-                      formatter={(val: any) => [`${Number(val).toFixed(2)} dS/m`]}
+                      formatter={(val: unknown) => [`${Number(val).toFixed(2)} dS/m`]}
                     />
                     <Bar dataKey="baseline" name="Baseline" fill="#718795" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="simulated" name="Simulated Shock" fill="#57d6d0" radius={[4, 4, 0, 0]} />
@@ -852,14 +945,10 @@ export default function ScenariosPage() {
           {simData && (
             <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex items-start gap-3 text-xs leading-relaxed">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-white/80 font-mono text-[11px]">
-                {simData.executive_summary}
-              </p>
+              <p className="text-white/80 font-mono text-[11px]">{simData.executive_summary}</p>
             </div>
           )}
-
         </div>
-
       </div>
 
       {/* 4. COMPREHENSIVE REACH IMPACT MATRIX TABLE */}
@@ -908,24 +997,30 @@ export default function ScenariosPage() {
                       <td className="py-3 px-3 text-muted-foreground font-mono">
                         {r.baseline_ec.toFixed(1)} dS/m
                       </td>
-                      <td className={`py-3 px-3 font-bold font-mono text-sm ${
-                        isCrit ? "text-rose-400" : isWarn ? "text-amber-400" : "text-emerald-400"
-                      }`}>
+                      <td
+                        className={`py-3 px-3 font-bold font-mono text-sm ${
+                          isCrit ? "text-rose-400" : isWarn ? "text-amber-400" : "text-emerald-400"
+                        }`}
+                      >
                         {r.simulated_ec.toFixed(1)} dS/m
                       </td>
-                      <td className={`py-3 px-3 font-semibold font-mono text-xs ${
-                        r.delta_ec > 0 ? "text-rose-300" : "text-emerald-300"
-                      }`}>
+                      <td
+                        className={`py-3 px-3 font-semibold font-mono text-xs ${
+                          r.delta_ec > 0 ? "text-rose-300" : "text-emerald-300"
+                        }`}
+                      >
                         {r.delta_ec > 0 ? `+${r.delta_ec.toFixed(1)}` : `${r.delta_ec.toFixed(1)}`}
                       </td>
                       <td className="py-3 px-3">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          isCrit
-                            ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
-                            : isWarn
-                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                            : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                        }`}>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            isCrit
+                              ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                              : isWarn
+                              ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                              : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                          }`}
+                        >
                           {r.hazard_level}
                         </span>
                       </td>
@@ -947,10 +1042,8 @@ export default function ScenariosPage() {
               </tbody>
             </table>
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
