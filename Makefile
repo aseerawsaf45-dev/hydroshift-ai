@@ -15,13 +15,10 @@ migrate:
 seed:
 	docker compose exec api python -m scripts.seed
 
-test: test-api test-ml test-web
+test: test-backend test-web
 
-test-api:
-	docker compose exec api pytest services/api/tests
-
-test-ml:
-	docker compose exec api pytest ml/tests
+test-backend:
+	docker compose exec api pytest tests/
 
 test-web:
 	cd apps/web && pnpm test

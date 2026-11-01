@@ -18,9 +18,13 @@ def test_csv_upload_idempotency():
     test_site_id = f"test-site-{uuid.uuid4()}"
     test_timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
     
-    # 1. Create a dummy site (Since we don't have a POST /sites yet, we can do it directly in DB or bypass FK constraint if sqlite)
-    # Actually, SQLite does not enforce foreign keys by default unless PRAGMA foreign_keys = ON is run.
-    # Let's just upload the CSV and assume it inserts, since we haven't enabled the pragma.
+    # 1. Create a dummy site to satisfy foreign key constraints in PostgreSQL
+    from services.api.app.db.session import SessionLocal
+    from services.api.app.db.models import Site
+    with SessionLocal() as db:
+        dummy_site = Site(id=test_site_id, name="Test Ingestion Site", latitude=22.5, longitude=89.5)
+        db.add(dummy_site)
+        db.commit()
     
     csv_content = f"site_id,timestamp,target_variable,value,unit,medium,source,measurement_method,quality_flag\n" \
                   f"{test_site_id},{test_timestamp},salinity,12.5,ppt,water,test_source,sensor,1\n" \

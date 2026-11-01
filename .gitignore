@@ -8,6 +8,7 @@ khulna.db
 *.pyc
 *.egg-info/
 .next/
+.pnpm-store/
 *.png
 !apps/web/public/gis/*.png
 !public/gis/*.png

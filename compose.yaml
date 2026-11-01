@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-local-only}
       POSTGRES_DB: ${POSTGRES_DB:-khulna_salt_intrusion}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
@@ -32,6 +32,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - PYTHONPATH=/app
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
@@ -50,6 +51,7 @@ services:
       context: .
       dockerfile: infra/api.Dockerfile
     environment:
+      - PYTHONPATH=/app
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
@@ -62,6 +64,18 @@ services:
     volumes:
       - .:/app
     command: ["celery", "-A", "services.worker.celery_app", "worker", "--loglevel=info"]
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/web.Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+      - PORT=3000
+    depends_on:
+      - api
 
 volumes:
   db_data:
