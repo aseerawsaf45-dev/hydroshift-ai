@@ -1,0 +1,112 @@
+# ==============================================================================
+# Render Blueprint Specification (Infrastructure-as-Code)
+# Documentation: https://render.com/docs/blueprint-spec
+# ==============================================================================
+
+databases:
+  - name: swot-khulna-db
+    databaseName: khulna_salt_intrusion
+    user: swot_app
+    plan: free # Change to starter for persistent production databases
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. Managed Redis (Broker & Result Backend for Celery)
+  # ----------------------------------------------------------------------------
+  - type: redis
+    name: swot-khulna-redis
+    plan: free # Change to starter for persistence
+    ipAllowList: [] # Restrict access to internal services only
+
+  # ----------------------------------------------------------------------------
+  # 2. FastAPI Backend API
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: swot-khulna-api
+    runtime: docker
+    dockerfilePath: ./infra/api.Dockerfile
+    dockerContext: .
+    plan: free # Change to starter for zero spin-down
+    dockerCommand: sh -c "alembic upgrade head && python -m scripts.seed && python -m scripts.seed_crop_data && python -m scripts.ingest_ground_truth && python -m scripts.populate_database && uvicorn services.api.app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: swot-khulna-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: swot-khulna-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: swot-khulna-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: swot-khulna-redis
+          property: connectionString
+      - key: PYTHONPATH
+        value: /app
+      - key: ENVIRONMENT
+        value: production
+      - key: DATA_MODE
+        value: real
+      - key: ALLOW_SYNTHETIC_DEMOS
+        value: "true"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*"
+
+  # ----------------------------------------------------------------------------
+  # 3. Celery Background Worker
+  # Note: Background workers require Render 'starter' plan ($7/mo)
+  # ----------------------------------------------------------------------------
+  - type: worker
+    name: swot-khulna-worker
+    runtime: docker
+    dockerfilePath: ./infra/api.Dockerfile
+    dockerContext: .
+    plan: starter
+    dockerCommand: celery -A services.worker.celery_app worker --loglevel=info
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: swot-khulna-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: swot-khulna-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: swot-khulna-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: swot-khulna-redis
+          property: connectionString
+      - key: PYTHONPATH
+        value: /app
+
+  # ----------------------------------------------------------------------------
+  # 4. Next.js Web Frontend
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: swot-khulna-web
+    runtime: docker
+    dockerfilePath: ./infra/web.Dockerfile
+    dockerContext: .
+    plan: free
+    dockerCommand: sh -c "pnpm dev --hostname 0.0.0.0 --port $PORT"
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        fromService:
+          type: web
+          name: swot-khulna-api
+          property: host
+

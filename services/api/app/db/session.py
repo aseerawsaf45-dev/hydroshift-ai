@@ -16,6 +16,12 @@ DATABASE_URL = os.environ.get(
     "sqlite:///khulna.db"
 )
 
+# Normalize cloud-managed postgres URL for SQLAlchemy + psycopg
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+
 # Resolve relative sqlite URL to root project directory
 if DATABASE_URL.startswith("sqlite:///") and not (DATABASE_URL.startswith("sqlite:////") or ":" in DATABASE_URL[10:13]):
     rel_path = DATABASE_URL.replace("sqlite:///", "")

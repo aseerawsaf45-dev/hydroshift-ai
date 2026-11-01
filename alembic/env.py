@@ -63,7 +63,12 @@ def run_migrations_online() -> None:
     """
     ini_section = config.get_section(config.config_ini_section, {})
     if os.environ.get("DATABASE_URL"):
-        ini_section["sqlalchemy.url"] = os.environ.get("DATABASE_URL")
+        db_url = os.environ.get("DATABASE_URL")
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+        elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
+            db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+        ini_section["sqlalchemy.url"] = db_url
 
     connectable = engine_from_config(
         ini_section,
