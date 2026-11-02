@@ -84,16 +84,12 @@ export default function Home() {
         </div>
 
         {/* 2-Line Iron Rule H1 */}
-        <h1 className="w-full max-w-6xl text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-[1.08] text-balance">
-          Surface Water Elevation{" "}
-          <span
-            className="inline-block w-16 sm:w-24 md:w-32 h-8 sm:h-12 md:h-14 rounded-full align-middle bg-cover bg-center mx-1.5 sm:mx-2 border border-primary/40 shadow-inner"
-            style={{
-              backgroundImage:
-                "url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=600&auto=format&fit=crop')",
-            }}
-          />{" "}
-          and Salinity Intelligence for the Khulna Delta.
+        <h1 className="w-full max-w-5xl text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-[1.1] text-balance">
+          Surface Water Elevation and Salinity Intelligence for the{" "}
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-cyan-300 to-sky-400">
+            Khulna Delta
+          </span>
+          .
         </h1>
 
         {/* Subtitle */}

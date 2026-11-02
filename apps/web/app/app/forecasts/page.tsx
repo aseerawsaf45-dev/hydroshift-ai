@@ -11,16 +11,18 @@ import {
 } from "@/components/map-data";
 import { Cpu, ArrowUpRight, ShieldAlert, Waves, CheckCircle2, Clock } from "lucide-react";
 
+const BASELINE_TIMESTAMP = 1793275200000; // Fixed canonical timestamp for SSR prerender stability
+
 export default function ForecastsPage() {
   const [sites, setSites] = useState<Site[]>(CANONICAL_KHULNA_STATIONS);
   const [allForecasts, setAllForecasts] = useState<Forecast[]>(CANONICAL_KHULNA_FORECASTS);
   const [loading, setLoading] = useState(false);
-  const [currentTime, setCurrentTime] = useState<number>(() => Date.parse("2026-10-29T12:00:00Z"));
+  const [currentTime, setCurrentTime] = useState<number>(BASELINE_TIMESTAMP);
 
   useEffect(() => {
     setCurrentTime(Date.now());
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-    
+
     Promise.all([
       fetch(`${API_URL}/api/v1/reaches`).then(res => res.ok ? res.json() : []).catch(() => []),
       fetch(`${API_URL}/api/v1/reaches/forecasts/all`).then(res => res.ok ? res.json() : []).catch(() => [])
@@ -28,7 +30,7 @@ export default function ForecastsPage() {
       if (loadedSites && loadedSites.length > 0) {
         setSites(loadedSites);
       }
-      
+
       let forecasts = loadedForecasts;
       if ((!forecasts || forecasts.length === 0) && loadedSites && loadedSites.length > 0) {
         const manualForecasts: Forecast[] = [];
@@ -77,7 +79,7 @@ export default function ForecastsPage() {
             </h1>
 
             <p className="text-xs md:text-sm text-muted-foreground max-w-3xl leading-relaxed">
-              Saint-Venant 1D shallow water hydrodynamic constraints combined with 21-day NASA SWOT orbit tracks. 
+              Saint-Venant 1D shallow water hydrodynamic constraints combined with 21-day NASA SWOT orbit tracks.
               Forecasting tidal stage elevations and advection-dispersion salinity front penetration 7 to 14 days in advance.
             </p>
           </div>
@@ -101,15 +103,14 @@ export default function ForecastsPage() {
           const isStale = forecast.validation_status !== "VALIDATED";
           const horizonDays = Math.max(1, Math.round((new Date(forecast.target_time).getTime() - currentTime) / (1000 * 3600 * 24)));
           const isCritical = forecast.value >= 4.0;
-          
+
           return (
             <Link key={forecast.id} href={`/app/reaches/${forecast.site_id}`} className="block group">
               <div
-                className={`p-5 rounded-2xl glass-panel spotlight-card border transition-all flex flex-col justify-between h-full ${
-                  isCritical
+                className={`p-5 rounded-2xl glass-panel spotlight-card border transition-all flex flex-col justify-between h-full ${isCritical
                     ? "border-rose-500/30 hover:border-rose-500/60"
                     : "border-white/10 hover:border-primary/40"
-                }`}
+                  }`}
               >
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex flex-col">
@@ -120,16 +121,15 @@ export default function ForecastsPage() {
                   </div>
                   <Badge
                     variant="outline"
-                    className={`font-mono text-[10px] uppercase ${
-                      isStale
+                    className={`font-mono text-[10px] uppercase ${isStale
                         ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
                         : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                    }`}
+                      }`}
                   >
                     {isStale ? "STALE INPUTS" : "VALIDATED"}
                   </Badge>
                 </div>
-                
+
                 <div className="flex flex-col space-y-2.5 pt-4 mt-4 border-t border-white/5">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground font-mono flex items-center gap-1">
