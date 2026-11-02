@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { AmbientAtmosphere } from "@/components/ui/AmbientAtmosphere";
 
 export const metadata: Metadata = {
   title: "SWOT Khulna | Delta Hydro-AI Platform",
@@ -20,11 +21,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans")}>
+    <html lang="en" className={cn("font-sans dark")}>
       <body
-        className={`font-sans antialiased bg-[#050505] text-white selection:bg-cyan-500/30`}
+        className="font-sans antialiased bg-[#060b13] text-foreground selection:bg-primary/30 selection:text-white relative min-h-[100dvh]"
       >
-        {children}
+        <AmbientAtmosphere />
+        <div className="relative z-10 flex flex-col min-h-[100dvh]">
+          {children}
+        </div>
       </body>
     </html>
   );

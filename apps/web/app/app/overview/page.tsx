@@ -249,7 +249,7 @@ export default function OverviewPage() {
       </div>
 
       {/* 1. EXECUTIVE HYDRODYNAMIC BRIEF BANNER */}
-      <div className="rounded-3xl bg-[#08131f]/90 border border-white/10 p-5 md:p-6 shadow-2xl relative overflow-hidden">
+      <div className="rounded-3xl glass-panel-elevated border border-white/15 p-5 md:p-6 shadow-2xl relative overflow-hidden spotlight-card">
         <div className="absolute right-0 top-0 w-96 h-96 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
@@ -296,7 +296,7 @@ export default function OverviewPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         
         {/* Metric 1: Water Level */}
-        <Card className="p-5 flex flex-col justify-between space-y-3 bg-[#08131f]/80 border-white/10 hover:border-primary/40 transition-all rounded-2xl shadow-lg">
+        <div className="p-5 flex flex-col justify-between space-y-3 glass-panel spotlight-card border border-white/10 hover:border-primary/40 transition-all rounded-2xl shadow-lg">
           <div className="flex items-center justify-between text-xs">
             <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Tidal Elevation</span>
             <span className="w-2 h-2 rounded-full bg-primary" />
@@ -316,10 +316,10 @@ export default function OverviewPage() {
             <span className="text-primary font-semibold">BWDB Automated Gauge</span>
             <span className="text-muted-foreground">Latest Pass</span>
           </div>
-        </Card>
+        </div>
 
         {/* Metric 2: Salinity EC */}
-        <Card className="p-5 flex flex-col justify-between space-y-3 bg-[#08131f]/80 border-white/10 hover:border-rose-500/40 transition-all rounded-2xl shadow-lg">
+        <div className="p-5 flex flex-col justify-between space-y-3 glass-panel spotlight-card border border-white/10 hover:border-rose-500/40 transition-all rounded-2xl shadow-lg">
           <div className="flex items-center justify-between text-xs">
             <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Max Field Salinity</span>
             <span className="w-2 h-2 rounded-full bg-rose-500" />
@@ -339,10 +339,10 @@ export default function OverviewPage() {
             <span className="text-rose-400 font-semibold">Mongla Port (SW244)</span>
             <span className="text-rose-300/70">197% Danger Limit</span>
           </div>
-        </Card>
+        </div>
 
         {/* Metric 3: Data Coverage */}
-        <Card className="p-5 flex flex-col justify-between space-y-3 bg-[#08131f]/80 border-white/10 hover:border-sky-500/40 transition-all rounded-2xl shadow-lg">
+        <div className="p-5 flex flex-col justify-between space-y-3 glass-panel spotlight-card border border-white/10 hover:border-sky-500/40 transition-all rounded-2xl shadow-lg">
           <div className="flex items-center justify-between text-xs">
             <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Dataset Completeness</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -362,10 +362,10 @@ export default function OverviewPage() {
             <span className="text-emerald-400 font-semibold">NASA PO.DAAC + BWDB</span>
             <span className="text-muted-foreground">Validated</span>
           </div>
-        </Card>
+        </div>
 
         {/* Metric 4: Forecast Engine */}
-        <Card className="p-5 flex flex-col justify-between space-y-3 bg-[#08131f]/80 border-white/10 hover:border-amber-500/40 transition-all rounded-2xl shadow-lg">
+        <div className="p-5 flex flex-col justify-between space-y-3 glass-panel spotlight-card border border-white/10 hover:border-amber-500/40 transition-all rounded-2xl shadow-lg">
           <div className="flex items-center justify-between text-xs">
             <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Neural Forecaster</span>
             <span className="w-2 h-2 rounded-full bg-amber-400" />
@@ -383,7 +383,7 @@ export default function OverviewPage() {
             <span className="text-amber-400 font-semibold">7 - 14 Days Lead</span>
             <span className="text-muted-foreground">R² = 0.941</span>
           </div>
-        </Card>
+        </div>
 
       </div>
 
@@ -391,7 +391,7 @@ export default function OverviewPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 min-h-[520px]">
         
         {/* Map Panel (Spans 2 columns) */}
-        <Card className="col-span-1 lg:col-span-2 bg-[#08131f]/90 border-white/10 p-0 overflow-hidden relative flex flex-col rounded-3xl shadow-2xl">
+        <div className="col-span-1 lg:col-span-2 glass-panel-elevated border border-white/15 p-0 overflow-hidden relative flex flex-col rounded-3xl shadow-2xl">
           {/* Top Floating GIS Domain Toolbar */}
           <div className="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
             {/* Domain Switcher (a, b, c) */}
@@ -506,10 +506,10 @@ export default function OverviewPage() {
               </p>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Alerts & Critical Reaches Panel (Spans 1 column) */}
-        <Card className="col-span-1 bg-[#08131f]/90 border-white/10 p-5 flex flex-col justify-between rounded-3xl shadow-2xl overflow-hidden">
+        <div className="col-span-1 glass-panel-elevated border border-white/15 p-5 flex flex-col justify-between rounded-3xl shadow-2xl overflow-hidden spotlight-card">
           <div className="flex flex-col space-y-4">
             
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
@@ -568,11 +568,11 @@ export default function OverviewPage() {
               Manage Alert Policies & Thresholds &rarr;
             </Link>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* 4. REAL-TIME AUDIT & VERIFICATION CHECKLIST */}
-      <Card className="p-6 bg-[#08131f]/90 border-white/10 rounded-3xl shadow-2xl mt-2">
+      <div className="p-6 glass-panel border border-white/15 rounded-3xl shadow-2xl mt-2">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
@@ -653,7 +653,7 @@ export default function OverviewPage() {
             </a>
           </div>
         </div>
-      </Card>
+      </div>
 
     </div>
   );

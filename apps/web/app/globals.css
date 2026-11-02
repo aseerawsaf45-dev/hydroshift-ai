@@ -32,7 +32,6 @@
 }
 
 .dark {
-  /* We force dark mode as default for this product */
   --background: 211 59% 8%;
   --foreground: 197 37% 96%;
   --card: 211 53% 11%;
@@ -102,3 +101,125 @@
     }
   }
 }
+
+/* ==============================================================================
+   Tactical Glassmorphism & Surface Elevation
+   ============================================================================== */
+.glass-panel {
+  background: rgba(13, 27, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+}
+
+.glass-panel-elevated {
+  background: rgba(18, 37, 56, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.45);
+}
+
+.spotlight-card {
+  position: relative;
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease;
+}
+
+.spotlight-card:hover {
+  border-color: rgba(87, 214, 208, 0.35);
+  box-shadow: 0 0 30px -5px rgba(87, 214, 208, 0.15);
+}
+
+/* ==============================================================================
+   Custom Precision Simulation Sliders
+   ============================================================================== */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.08);
+  height: 6px;
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+input[type="range"]:hover::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -6px;
+  background: #57D6D0;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  box-shadow: 0 0 14px rgba(87, 214, 208, 0.7);
+  border: 2px solid #08131F;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 22px rgba(87, 214, 208, 0.95);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(1.1);
+}
+
+/* ==============================================================================
+   High-Tech Telemetry Grids, Corner Crosshairs & Glows
+   ============================================================================== */
+.bg-telemetry-grid {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.glow-cyan {
+  box-shadow: 0 0 24px -2px rgba(87, 214, 208, 0.25);
+}
+
+.glow-rose {
+  box-shadow: 0 0 24px -2px rgba(244, 126, 112, 0.25);
+}
+
+.glow-amber {
+  box-shadow: 0 0 24px -2px rgba(242, 180, 93, 0.25);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 24px -2px rgba(117, 199, 164, 0.25);
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(6, 11, 19, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(87, 214, 208, 0.4);
+}
+

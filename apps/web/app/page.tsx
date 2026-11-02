@@ -12,14 +12,16 @@ import {
   Droplets,
   Layers,
   MapPin,
+  Sliders,
 } from "lucide-react";
+import { LandingSimulationTeaser } from "@/components/gis/LandingSimulationTeaser";
 
 export default function Home() {
   return (
     <main className="min-h-[100dvh] w-full bg-[#05070d] text-foreground overflow-x-hidden selection:bg-primary selection:text-black">
       {/* 1. FLOATING GLASS PILL NAVIGATION */}
       <header className="fixed top-5 inset-x-0 z-50 flex justify-center px-4">
-        <nav className="w-full max-w-5xl h-14 rounded-full bg-[#08131f]/80 backdrop-blur-xl border border-white/10 px-5 flex items-center justify-between shadow-2xl">
+        <nav className="w-full max-w-5xl h-14 rounded-full glass-panel-elevated border border-white/15 px-5 flex items-center justify-between shadow-2xl">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary transition-transform duration-500 group-hover:scale-110">
@@ -41,6 +43,10 @@ export default function Home() {
             </Link>
             <Link href="#impact" className="hover:text-white transition-colors">
               Delta Hazard
+            </Link>
+            <Link href="/app/scenarios" className="hover:text-primary transition-colors flex items-center gap-1 font-mono text-[11px] text-primary/90">
+              <Sliders className="w-3 h-3" />
+              <span>Simulation Studio</span>
             </Link>
             <Link href="/app/forecasts" className="hover:text-white transition-colors">
               PINN Forecaster
@@ -115,39 +121,39 @@ export default function Home() {
         </div>
 
         {/* Real-time Delta Metrics Pill Bar */}
-        <div className="mt-16 w-full max-w-4xl p-1 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-left p-3">
-            <div className="flex flex-col p-3 rounded-xl bg-black/40 border border-white/5">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Monitoring Sites</span>
-              <span className="text-xl font-bold font-mono text-white mt-0.5">20 Reaches</span>
-              <span className="text-[10px] text-emerald-400">16 BWDB + 4 SWOT</span>
+        <div className="mt-16 w-full max-w-4xl p-1.5 rounded-2xl glass-panel-elevated border border-white/15 shadow-2xl spotlight-card">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-left p-2">
+            <div className="flex flex-col p-3.5 rounded-xl bg-black/40 border border-white/5 hover:border-primary/30 transition-all">
+              <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-muted-foreground">Monitoring Sites</span>
+              <span className="text-2xl font-bold font-mono text-white mt-0.5 tracking-tight">20 Reaches</span>
+              <span className="text-[10px] text-emerald-400 font-mono mt-0.5">16 BWDB + 4 SWOT</span>
             </div>
-            <div className="flex flex-col p-3 rounded-xl bg-black/40 border border-white/5">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Observed Passes</span>
-              <span className="text-xl font-bold font-mono text-white mt-0.5">831 Datapoints</span>
-              <span className="text-[10px] text-primary">Harmonized Hydrocron</span>
+            <div className="flex flex-col p-3.5 rounded-xl bg-black/40 border border-white/5 hover:border-primary/30 transition-all">
+              <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-muted-foreground">Observed Passes</span>
+              <span className="text-2xl font-bold font-mono text-white mt-0.5 tracking-tight">831 Passes</span>
+              <span className="text-[10px] text-primary font-mono mt-0.5">Harmonized Hydrocron</span>
             </div>
-            <div className="flex flex-col p-3 rounded-xl bg-black/40 border border-white/5">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Critical Salinity</span>
-              <span className="text-xl font-bold font-mono text-rose-400 mt-0.5">7.9 dS/m</span>
-              <span className="text-[10px] text-rose-300/80">Mongla Port SW244</span>
+            <div className="flex flex-col p-3.5 rounded-xl bg-black/40 border border-white/5 hover:border-rose-500/30 transition-all">
+              <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-muted-foreground">Critical Salinity</span>
+              <span className="text-2xl font-bold font-mono text-rose-400 mt-0.5 tracking-tight">7.9 dS/m</span>
+              <span className="text-[10px] text-rose-300/80 font-mono mt-0.5">Mongla Port SW244</span>
             </div>
-            <div className="flex flex-col p-3 rounded-xl bg-black/40 border border-white/5">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">PINN Forecast</span>
-              <span className="text-xl font-bold font-mono text-sky-400 mt-0.5">7 - 14 Days</span>
-              <span className="text-[10px] text-sky-300/80">Saint-Venant Loss Engine</span>
+            <div className="flex flex-col p-3.5 rounded-xl bg-black/40 border border-white/5 hover:border-sky-500/30 transition-all">
+              <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-muted-foreground">PINN Forecast</span>
+              <span className="text-2xl font-bold font-mono text-sky-400 mt-0.5 tracking-tight">7 - 14 Days</span>
+              <span className="text-[10px] text-sky-300/80 font-mono mt-0.5">Saint-Venant Loss Engine</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* 3. TRUSTED MARQUEE: SPACE & HYDROLOGICAL INSTITUTIONS */}
-      <section className="py-12 border-y border-white/5 bg-black/30">
+      <section className="py-12 border-y border-white/10 bg-black/40 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
           <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground mb-6">
             Data Architecture Backed by Global Hydrology & Earth Observation Sources
           </span>
-          <div className="w-full flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-70">
+          <div className="w-full flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-80">
             <span className="font-mono text-sm tracking-wider font-semibold text-white/90">NASA PO.DAAC</span>
             <span className="font-mono text-sm tracking-wider font-semibold text-white/90">BWDB BANGLADESH</span>
             <span className="font-mono text-sm tracking-wider font-semibold text-white/90">CNES FRANCE</span>
@@ -173,7 +179,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 grid-flow-dense">
           
           {/* Card 1: SWOT Ka-Band Radar (Spans 2 columns) */}
-          <div className="md:col-span-2 p-8 rounded-3xl bg-[#08131f]/90 border border-white/10 relative overflow-hidden flex flex-col justify-between group hover:border-primary/40 transition-all duration-500 shadow-xl">
+          <div className="md:col-span-2 p-8 rounded-3xl glass-panel spotlight-card relative overflow-hidden flex flex-col justify-between group">
             <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-primary/20 transition-all" />
             
             <div>
@@ -204,7 +210,7 @@ export default function Home() {
           </div>
 
           {/* Card 2: BWDB Automated Stage Gages (Spans 1 column) */}
-          <div className="p-8 rounded-3xl bg-[#08131f]/90 border border-white/10 relative overflow-hidden flex flex-col justify-between group hover:border-sky-500/40 transition-all duration-500 shadow-xl">
+          <div className="p-8 rounded-3xl glass-panel spotlight-card relative overflow-hidden flex flex-col justify-between group">
             <div>
               <div className="w-10 h-10 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-6">
                 <Activity className="w-5 h-5" />
@@ -223,7 +229,7 @@ export default function Home() {
           </div>
 
           {/* Card 3: PINN Physics Engine (Spans 1 column) */}
-          <div className="p-8 rounded-3xl bg-[#08131f]/90 border border-white/10 relative overflow-hidden flex flex-col justify-between group hover:border-amber-500/40 transition-all duration-500 shadow-xl">
+          <div className="p-8 rounded-3xl glass-panel spotlight-card relative overflow-hidden flex flex-col justify-between group">
             <div>
               <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-6">
                 <Cpu className="w-5 h-5" />
@@ -242,7 +248,7 @@ export default function Home() {
           </div>
 
           {/* Card 4: Crop Protection Hazard (Spans 2 columns) */}
-          <div className="md:col-span-2 p-8 rounded-3xl bg-[#08131f]/90 border border-white/10 relative overflow-hidden flex flex-col justify-between group hover:border-rose-500/40 transition-all duration-500 shadow-xl">
+          <div className="md:col-span-2 p-8 rounded-3xl glass-panel spotlight-card relative overflow-hidden flex flex-col justify-between group">
             <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-rose-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-rose-500/20 transition-all" />
 
             <div>
@@ -277,8 +283,8 @@ export default function Home() {
       </section>
 
       {/* 5. DESIRE: ESTUARY HYDRODYNAMIC NARRATIVE */}
-      <section id="impact" className="py-24 md:py-36 border-t border-white/5 bg-[#03060c] px-4">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
+      <section id="impact" className="py-24 md:py-36 border-t border-white/10 bg-black/20 px-4">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12">
           
           <div className="flex-1 space-y-6 text-left">
             <span className="text-xs font-mono uppercase tracking-widest text-primary">The Delta Dynamics</span>
@@ -289,7 +295,7 @@ export default function Home() {
               The southwest delta is an intricate battlefield between two opposing forces: the high-saline marine tidal pulse pushing inland from the Bay of Bengal through the Passur canyon, and the Gorai freshwater buffer flowing south from the Ganges.
             </p>
             <div className="space-y-3 pt-2">
-              <div className="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
+              <div className="flex items-start gap-3 p-4 rounded-2xl glass-panel">
                 <MapPin className="w-4 h-4 text-rose-400 mt-1 shrink-0" />
                 <div>
                   <span className="text-xs font-bold text-white">Passur Marine Corridor</span>
@@ -297,7 +303,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
+              <div className="flex items-start gap-3 p-4 rounded-2xl glass-panel">
                 <Droplets className="w-4 h-4 text-sky-400 mt-1 shrink-0" />
                 <div>
                   <span className="text-xs font-bold text-white">Gorai Freshwater Buffer</span>
@@ -307,37 +313,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex-1 w-full max-w-md p-1.5 rounded-3xl bg-white/5 border border-white/10 shadow-2xl">
-            <div className="rounded-[calc(1.5rem-2px)] overflow-hidden bg-[#08131f] p-6 space-y-5">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground font-bold">Simulated Salt Shock</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono">Scenario Mode</span>
-              </div>
-              <div className="space-y-3 text-xs">
-                <div className="flex justify-between items-center text-muted-foreground">
-                  <span>Upstream Gorai Discharge:</span>
-                  <span className="font-mono text-white font-bold">-40% Drought</span>
-                </div>
-                <div className="flex justify-between items-center text-muted-foreground">
-                  <span>Downstream Tidal Surge:</span>
-                  <span className="font-mono text-white font-bold">+0.8m Spring Tide</span>
-                </div>
-                <div className="flex justify-between items-center text-muted-foreground">
-                  <span>Saline Intrusion Distance:</span>
-                  <span className="font-mono text-rose-400 font-bold">+18.4 km Inland</span>
-                </div>
-                <div className="flex justify-between items-center text-muted-foreground">
-                  <span>Vulnerable Intakes:</span>
-                  <span className="font-mono text-amber-400 font-bold">Khulna Rupsha SW241</span>
-                </div>
-              </div>
-              <Link
-                href="/app/scenarios"
-                className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs text-center block transition-colors"
-              >
-                Run Custom Simulation &rarr;
-              </Link>
-            </div>
+          <div className="flex-1 w-full max-w-xl">
+            <LandingSimulationTeaser />
           </div>
 
         </div>

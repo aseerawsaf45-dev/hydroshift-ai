@@ -64,3 +64,4 @@ def test_api_key_validation_with_keys(monkeypatch):
     # Test protected upload endpoint rejected without key
     resp_upload = client.post("/api/v1/data/upload/csv")
     assert resp_upload.status_code == 401
+

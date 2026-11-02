@@ -39,3 +39,4 @@ def verify_api_key(api_key: str = Depends(require_api_key)) -> Dict[str, Any]:
         "message": "API key successfully authenticated.",
         "key_fingerprint": mask_secret(api_key)
     }
+

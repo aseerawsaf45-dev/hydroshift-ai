@@ -661,7 +661,7 @@ export default function CropRotationPage() {
       {/* ------------------------------------------------------------- */}
       {/* 1. HERO HEADER WITH MISSION CONTEXT                           */}
       {/* ------------------------------------------------------------- */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-[#0b1727] via-[#091b29] to-[#07131f] border border-white/10 shadow-2xl relative overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl glass-panel-elevated spotlight-card border border-white/15 shadow-2xl relative overflow-hidden">
         <div className="absolute -right-8 -top-8 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute right-40 -bottom-8 w-48 h-48 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -813,7 +813,7 @@ export default function CropRotationPage() {
       {/* ------------------------------------------------------------- */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* SWOT Telemetry */}
-        <Card className="p-4 bg-[#0a1624] border-white/10 flex flex-col justify-between">
+        <div className="p-4 glass-panel spotlight-card border border-white/10 rounded-2xl flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono text-muted-foreground uppercase">NASA SWOT Reach WSE</span>
             <div className="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
@@ -835,10 +835,10 @@ export default function CropRotationPage() {
             <span className="text-muted-foreground">Drainage Head:</span>
             <span className="font-mono text-emerald-400 font-medium">Safe for Low-Tide Flush</span>
           </div>
-        </Card>
+        </div>
 
         {/* SRDI Soil Salinity */}
-        <Card className="p-4 bg-[#0a1624] border-white/10 flex flex-col justify-between">
+        <div className="p-4 glass-panel spotlight-card border border-white/10 rounded-2xl flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono text-muted-foreground uppercase">SRDI Root-Zone Soil ECe</span>
             <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
@@ -862,10 +862,10 @@ export default function CropRotationPage() {
               {soilEcOverride > 15 ? "S4 (Very High)" : soilEcOverride > 8 ? "S3 (Strongly Saline)" : soilEcOverride > 4 ? "S2 (Moderately Saline)" : "S1 (Slightly Saline)"}
             </span>
           </div>
-        </Card>
+        </div>
 
         {/* Canal Irrigation Water Salinity */}
-        <Card className="p-4 bg-[#0a1624] border-white/10 flex flex-col justify-between">
+        <div className="p-4 glass-panel spotlight-card border border-white/10 rounded-2xl flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono text-muted-foreground uppercase">Canal Water ECw</span>
             <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
@@ -887,10 +887,10 @@ export default function CropRotationPage() {
             <span className="text-muted-foreground">Boro Rice Safe Limit:</span>
             <span className="font-mono text-rose-400 font-medium">&lt; 2.0 dS/m (Exceeded)</span>
           </div>
-        </Card>
+        </div>
 
         {/* Soil Organic & Reaction */}
-        <Card className="p-4 bg-[#0a1624] border-white/10 flex flex-col justify-between">
+        <div className="p-4 glass-panel spotlight-card border border-white/10 rounded-2xl flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono text-muted-foreground uppercase">Soil Properties</span>
             <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -916,13 +916,13 @@ export default function CropRotationPage() {
             <span className="text-muted-foreground">Mulch Recommendation:</span>
             <span className="font-mono text-emerald-400 font-medium">Straw Mulching Essential</span>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* ------------------------------------------------------------- */}
       {/* 3. INTERACTIVE SIMULATION & SCENARIO OVERRIDES                */}
       {/* ------------------------------------------------------------- */}
-      <Card className="p-5 bg-[#091522] border-white/10">
+      <div className="p-6 glass-panel-elevated spotlight-card rounded-3xl border border-white/15 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/5 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-primary/20 flex items-center justify-center text-primary">
@@ -1034,7 +1034,7 @@ export default function CropRotationPage() {
             <strong>Extrapolation Notice:</strong> Tuning sliders beyond typical seasonal baselines simulates numerical sensitivity stress-tests rather than deterministic forecasts.
           </span>
         </div>
-      </Card>
+      </div>
 
       {/* ------------------------------------------------------------- */}
       {/* 4. ADVISORY BANNER                                            */}
@@ -1068,12 +1068,12 @@ export default function CropRotationPage() {
           {rotations.map((strat) => {
             const isRec = strat.id === recommendedId;
             return (
-              <Card
+              <div
                 key={strat.id}
-                className={`p-5 rounded-2xl transition-all flex flex-col justify-between ${
+                className={`p-6 rounded-3xl transition-all flex flex-col justify-between spotlight-card ${
                   isRec
-                    ? "bg-[#0c1e2e] border-emerald-500/50 ring-1 ring-emerald-500/30 shadow-xl shadow-emerald-950/20"
-                    : "bg-[#091522] border-white/10 hover:border-white/20"
+                    ? "glass-panel-elevated border border-emerald-500/60 ring-1 ring-emerald-500/30 glow-emerald shadow-2xl"
+                    : "glass-panel border border-white/10 hover:border-white/20 shadow-xl"
                 }`}
               >
                 <div>
@@ -1205,7 +1205,7 @@ export default function CropRotationPage() {
                     </span>
                   </div>
                 </div>
-              </Card>
+              </div>
             );
           })}
         </div>
@@ -1216,7 +1216,7 @@ export default function CropRotationPage() {
       {/* ------------------------------------------------------------- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Profit Comparison Bar Chart */}
-        <Card className="p-5 bg-[#091522] border-white/10">
+        <div className="p-5 glass-panel-elevated spotlight-card rounded-3xl border border-white/15 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-emerald-400" />
@@ -1240,10 +1240,10 @@ export default function CropRotationPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </Card>
+        </div>
 
         {/* 12-Month Salinity Curve with Critical Thresholds */}
-        <Card className="p-5 bg-[#091522] border-white/10">
+        <div className="p-5 glass-panel-elevated spotlight-card rounded-3xl border border-white/15 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-amber-400" />
@@ -1270,7 +1270,7 @@ export default function CropRotationPage() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* ------------------------------------------------------------- */}

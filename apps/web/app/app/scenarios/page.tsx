@@ -6,6 +6,8 @@ import Link from "next/link";
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
@@ -15,6 +17,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
+import { SalinityWedgeProfile } from "@/components/gis/SalinityWedgeProfile";
 import {
   Sliders,
   Droplets,
@@ -490,27 +493,27 @@ export default function ScenariosPage() {
 
       {/* 2. LIVE DELTA IMPACT BENTO TELEMETRY */}
       {simData && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Salinity Front Intrusion */}
-          <div className="bg-[#08131f]/95 border border-white/10 p-4 rounded-2xl flex flex-col justify-between shadow-xl">
+          <div className="glass-panel spotlight-card p-5 rounded-2xl flex flex-col justify-between border-primary/20">
             <div className="flex items-center justify-between text-muted-foreground text-xs font-mono uppercase tracking-wider">
               <span>4.0 dS/m Hazard Front</span>
               <Compass className="w-4 h-4 text-primary" />
             </div>
-            <div className="my-2">
+            <div className="my-2.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold font-mono text-white">
+                <span className="text-3xl font-extrabold font-mono text-white tracking-tight">
                   {simData.salinity_intrusion_distance_km.toFixed(1)}
                 </span>
                 <span className="text-xs font-mono text-muted-foreground">km from Bay</span>
               </div>
               <span
-                className={`text-xs font-mono font-bold mt-1 block ${
+                className={`text-xs font-mono font-bold mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full ${
                   simData.delta_intrusion_km > 0
-                    ? "text-rose-400"
+                    ? "bg-rose-500/15 text-rose-300 border border-rose-500/30"
                     : simData.delta_intrusion_km < 0
-                    ? "text-emerald-400"
-                    : "text-muted-foreground"
+                    ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                    : "bg-white/5 text-muted-foreground"
                 }`}
               >
                 {simData.delta_intrusion_km > 0
@@ -526,19 +529,19 @@ export default function ScenariosPage() {
           </div>
 
           {/* Card 2: Critical Hazard Reaches */}
-          <div className="bg-[#08131f]/95 border border-white/10 p-4 rounded-2xl flex flex-col justify-between shadow-xl">
+          <div className="glass-panel spotlight-card p-5 rounded-2xl flex flex-col justify-between border-rose-500/20">
             <div className="flex items-center justify-between text-muted-foreground text-xs font-mono uppercase tracking-wider">
               <span>Critical Breach Reaches</span>
               <ShieldAlert className="w-4 h-4 text-rose-400" />
             </div>
-            <div className="my-2">
+            <div className="my-2.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold font-mono text-rose-400">
+                <span className="text-3xl font-extrabold font-mono text-rose-400 tracking-tight">
                   {simData.critical_reaches_count}
                 </span>
                 <span className="text-xs font-mono text-muted-foreground">/ {simData.reaches.length} Khulna sites</span>
               </div>
-              <span className="text-xs font-mono text-rose-300 font-bold mt-1 block">
+              <span className="text-xs font-mono text-rose-300 font-bold mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30">
                 {simData.critical_reaches_count > 4 ? "Widespread Crop Hazard" : "Localized Estuarine Threat"}
               </span>
             </div>
@@ -548,19 +551,19 @@ export default function ScenariosPage() {
           </div>
 
           {/* Card 3: Agricultural Land Endangered */}
-          <div className="bg-[#08131f]/95 border border-white/10 p-4 rounded-2xl flex flex-col justify-between shadow-xl">
+          <div className="glass-panel spotlight-card p-5 rounded-2xl flex flex-col justify-between border-amber-500/20">
             <div className="flex items-center justify-between text-muted-foreground text-xs font-mono uppercase tracking-wider">
               <span>Boro Rice Area At Risk</span>
               <Droplets className="w-4 h-4 text-amber-400" />
             </div>
-            <div className="my-2">
+            <div className="my-2.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold font-mono text-amber-400">
+                <span className="text-3xl font-extrabold font-mono text-amber-400 tracking-tight">
                   {simData.agricultural_hectares_threatened.toLocaleString()}
                 </span>
                 <span className="text-xs font-mono text-muted-foreground">Hectares</span>
               </div>
-              <span className="text-xs font-mono text-amber-300 font-bold mt-1 block">
+              <span className="text-xs font-mono text-amber-300 font-bold mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30">
                 Rampal, Dacope & Batiaghata Polders
               </span>
             </div>
@@ -570,24 +573,24 @@ export default function ScenariosPage() {
           </div>
 
           {/* Card 4: Municipal Drinking Intake Status */}
-          <div className="bg-[#08131f]/95 border border-white/10 p-4 rounded-2xl flex flex-col justify-between shadow-xl">
+          <div className="glass-panel spotlight-card p-5 rounded-2xl flex flex-col justify-between border-sky-500/20">
             <div className="flex items-center justify-between text-muted-foreground text-xs font-mono uppercase tracking-wider">
               <span>Khulna WASA Raw Intake</span>
               <Activity className="w-4 h-4 text-sky-400" />
             </div>
-            <div className="my-2">
+            <div className="my-2.5">
               <div className="flex items-baseline gap-2">
                 <span
-                  className={`text-xl font-extrabold font-mono px-2 py-0.5 rounded-lg ${
+                  className={`text-xl font-extrabold font-mono px-2.5 py-1 rounded-lg ${
                     simData.wasa_intake_threatened
-                      ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                      : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                      : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
                   }`}
                 >
                   {simData.wasa_intake_threatened ? "COMPROMISED" : "SECURED"}
                 </span>
               </div>
-              <span className="text-xs font-mono text-muted-foreground mt-1 block">
+              <span className="text-xs font-mono text-muted-foreground mt-1.5 block">
                 Intake Threshold: 1.0 dS/m Drinking Standard
               </span>
             </div>
@@ -600,10 +603,22 @@ export default function ScenariosPage() {
         </div>
       )}
 
+      {/* 2.5 DYNAMIC ESTUARINE SALINITY WEDGE CROSS-SECTION */}
+      {simData && (
+        <SalinityWedgeProfile
+          intrusionKm={simData.salinity_intrusion_distance_km}
+          baselineIntrusionKm={simData.baseline_intrusion_distance_km}
+          reaches={simData.reaches}
+          sluiceClosed={sluiceClosed}
+          dischargeChange={dischargeChange}
+          tidalSurge={tidalSurge}
+        />
+      )}
+
       {/* 3. SIMULATION WORKBENCH (CONTROLS + VISUALIZATION STUDIO) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT COLUMN: INTERACTIVE CONTROL PANEL (5 cols) */}
-        <div className="lg:col-span-4 bg-[#08131f]/95 border border-white/10 p-5 rounded-3xl shadow-2xl flex flex-col space-y-6">
+        <div className="lg:col-span-4 glass-panel p-5 sm:p-6 rounded-3xl shadow-2xl flex flex-col space-y-6 border border-white/10">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-primary" />
@@ -752,7 +767,7 @@ export default function ScenariosPage() {
         </div>
 
         {/* RIGHT COLUMN: MULTI-VIEW CHART STUDIO (8 cols) */}
-        <div className="lg:col-span-8 bg-[#08131f]/95 border border-white/10 p-5 rounded-3xl shadow-2xl flex flex-col space-y-4">
+        <div className="lg:col-span-8 glass-panel p-5 sm:p-6 rounded-3xl shadow-2xl flex flex-col space-y-4 border border-white/10">
           {/* Chart Studio Header & Mode Switcher */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
             <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl">
@@ -801,10 +816,20 @@ export default function ScenariosPage() {
                 <span>Longitudinal Distance: Bay of Bengal Mouth (0km) &rarr; Khulna City (85km)</span>
                 <span className="text-amber-400 font-bold">Lethal Boro Threshold: 4.0 dS/m</span>
               </div>
-              <div className="w-full h-80 bg-black/30 rounded-2xl p-2 border border-white/5">
+              <div className="w-full h-80 bg-[#040811]/80 rounded-2xl p-2 border border-white/5 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={simData.longitudinal_profile} margin={{ top: 20, right: 30, left: 10, bottom: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                  <AreaChart data={simData.longitudinal_profile} margin={{ top: 20, right: 30, left: 10, bottom: 10 }}>
+                    <defs>
+                      <linearGradient id="simSalinityGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#57d6d0" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#57d6d0" stopOpacity={0.0} />
+                      </linearGradient>
+                      <linearGradient id="baseSalinityGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#718795" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#718795" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
                     <XAxis
                       dataKey="distance_km"
                       stroke="#718795"
@@ -819,7 +844,7 @@ export default function ScenariosPage() {
                       domain={[0, 22]}
                     />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#08131f", borderColor: "#ffffff20", borderRadius: "12px" }}
+                      contentStyle={{ backgroundColor: "#08131f", borderColor: "rgba(255,255,255,0.15)", borderRadius: "14px", backdropFilter: "blur(12px)" }}
                       labelFormatter={(label) => `River Reach at ${label} km from Bay`}
                       formatter={(val: unknown, name?: unknown) => [
                         `${Number(val).toFixed(2)} dS/m`,
@@ -840,25 +865,26 @@ export default function ScenariosPage() {
                       strokeDasharray="4 4"
                       label={{ value: "1.0 dS/m Drinking Limit", fill: "#38bdf8", fontSize: 10, position: "insideBottomLeft" }}
                     />
-                    <Line
+                    <Area
                       type="monotone"
                       dataKey="baseline_ec"
                       name="baseline_ec"
                       stroke="#718795"
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      dot={false}
+                      strokeWidth={1.5}
+                      strokeDasharray="4 4"
+                      fill="url(#baseSalinityGradient)"
                     />
-                    <Line
+                    <Area
                       type="monotone"
                       dataKey="simulated_ec"
                       name="simulated_ec"
                       stroke="#57d6d0"
                       strokeWidth={3}
-                      dot={{ r: 4, fill: "#57d6d0", strokeWidth: 0 }}
-                      activeDot={{ r: 6 }}
+                      fill="url(#simSalinityGradient)"
+                      dot={{ r: 4, fill: "#57d6d0", strokeWidth: 2, stroke: "#08131f" }}
+                      activeDot={{ r: 7, fill: "#57d6d0", strokeWidth: 3, stroke: "#ffffff" }}
                     />
-                  </LineChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
@@ -953,7 +979,7 @@ export default function ScenariosPage() {
 
       {/* 4. COMPREHENSIVE REACH IMPACT MATRIX TABLE */}
       {simData && (
-        <div className="bg-[#08131f]/95 border border-white/10 rounded-3xl p-5 shadow-2xl flex flex-col space-y-4">
+        <div className="glass-panel rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col space-y-4 border border-white/10">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-primary" />
