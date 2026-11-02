@@ -27,7 +27,7 @@ services:
     dockerfilePath: ./infra/api.Dockerfile
     dockerContext: .
     plan: free # Change to starter for zero spin-down
-    dockerCommand: sh -c "alembic upgrade head && python -m scripts.seed && python -m scripts.seed_crop_data && python -m scripts.ingest_ground_truth && python -m scripts.populate_database && uvicorn services.api.app.main:app --host 0.0.0.0 --port $PORT"
+    dockerCommand: /app/scripts/start_api.sh
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -102,8 +102,7 @@ services:
     dockerfilePath: ./infra/web.Dockerfile
     dockerContext: .
     plan: free
-    dockerCommand: sh -c "pnpm start --port $PORT"
+    dockerCommand: /app/scripts/start_web.sh
     envVars:
       - key: NEXT_PUBLIC_API_BASE_URL
         value: https://swot-khulna-api.onrender.com
-

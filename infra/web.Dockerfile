@@ -18,6 +18,6 @@ EXPOSE 3000
 
 RUN pnpm --filter web build
 
-WORKDIR /app/apps/web
+RUN chmod +x /app/scripts/start_web.sh
 
-CMD ["pnpm", "start", "--port", "3000"]
+CMD ["/app/scripts/start_web.sh"]

@@ -15,8 +15,10 @@ RUN pip install --no-cache-dir uv && uv pip install --system --no-cache -e .[dev
 
 COPY . .
 
+RUN chmod +x /app/scripts/start_api.sh
+
 EXPOSE 8000
 
 ENV PORT=8000
 
-CMD ["sh", "-c", "uvicorn services.api.app.main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["/app/scripts/start_api.sh"]
