@@ -102,7 +102,7 @@ services:
     dockerfilePath: ./infra/web.Dockerfile
     dockerContext: .
     plan: free
-    dockerCommand: sh -c "pnpm dev --hostname 0.0.0.0 --port $PORT"
+    dockerCommand: sh -c "pnpm start --port $PORT"
     envVars:
       - key: NEXT_PUBLIC_API_BASE_URL
         value: https://swot-khulna-api.onrender.com

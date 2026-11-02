@@ -32,7 +32,14 @@ def seed():
         Site(id="SWOT_REACH_DEMO_002", name="Shibsa River Core", latitude=22.45, longitude=89.32, description="Stale Inputs"),
     ]
     for s in sites:
-        db.add(s)
+        existing = db.query(Site).filter(Site.id == s.id).first()
+        if existing:
+            existing.name = s.name
+            existing.latitude = s.latitude
+            existing.longitude = s.longitude
+            existing.description = s.description
+        else:
+            db.add(s)
 
     # 3. Create Forecasts
     now = datetime.utcnow()

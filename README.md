@@ -19,6 +19,8 @@ A climate-smart **Crop Rotation Decision Support System (DSS)** and estuarine sa
 ## Documentation
 
 - **Comprehensive Technical & Scientific Documentation:** [docs/PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md)
+- **Sector-Specific Inspection Checklists (Backend, NASA Data, ML):** [docs/SECTOR_SPECIFIC_INSPECTION_CHECKLISTS.md](docs/SECTOR_SPECIFIC_INSPECTION_CHECKLISTS.md)
+- **Render Cloud Deployment Guide:** [docs/RENDER_DEPLOYMENT_GUIDE.md](docs/RENDER_DEPLOYMENT_GUIDE.md)
 - **Problem Resolution Roadmap (All 7 Phases Resolved):** [docs/PROBLEM_RESOLUTION_ROADMAP.md](docs/PROBLEM_RESOLUTION_ROADMAP.md)
 - **Implementation & Audit Checklist:** [docs/IMPLEMENTATION_CHECKLIST.md](docs/IMPLEMENTATION_CHECKLIST.md)
 - **PINN Build & Training Guide:** [docs/BUILD_GUIDE.md](docs/BUILD_GUIDE.md)
