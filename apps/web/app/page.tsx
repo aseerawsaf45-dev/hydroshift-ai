@@ -28,8 +28,8 @@ export default function Home() {
               <Waves className="w-4 h-4 text-primary" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold tracking-tight text-xs uppercase text-white font-mono">SWOT / Khulna</span>
-              <span className="text-[9px] text-muted-foreground font-mono">Delta Hydro-AI</span>
+              <span className="font-bold tracking-tight text-xs uppercase text-white font-mono">HydroShift AI</span>
+              <span className="text-[9px] text-muted-foreground font-mono">Delta Hydrology Platform</span>
             </div>
           </Link>
 
@@ -355,7 +355,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
             <Waves className="w-4 h-4 text-primary" />
-            <span className="font-mono text-white uppercase font-bold tracking-tight">SWOT Khulna Platform</span>
+            <span className="font-mono text-white uppercase font-bold tracking-tight">HydroShift AI</span>
             <span className="text-muted-foreground/50">&bull;</span>
             <span>NASA SWOT & BWDB Hydrological Intelligence</span>
           </div>

@@ -1,6 +1,6 @@
 <div align="center">
 
-# SWOT Khulna Platform
+# HydroShift AI
 
 <p align="center">
   A climate-smart <b>Crop Rotation Decision Support System (DSS)</b> and estuarine salinity intelligence prototype for the Khulna delta, southwest Bangladesh. Combines <b>NASA SWOT</b> satellite radar altimetry (<code>SWOT_L2_HR_RiverSP_2.0</code>), <b>SRDI</b> ground soil salinity surveys, <b>NASA POWER & Open-Meteo</b> agroclimatology APIs, and <b>Fourier Physics-Informed Neural Networks (PINN)</b>.

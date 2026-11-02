@@ -31,7 +31,7 @@ export function TopContextBar({ onToggleMobileNav }: { onToggleMobileNav?: () =>
           <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center">
             <Waves className="w-3.5 h-3.5 text-primary" />
           </div>
-          <span className="font-bold text-xs uppercase tracking-tight text-foreground">SWOT Khulna</span>
+          <span className="font-bold text-xs uppercase tracking-tight text-foreground">HydroShift AI</span>
         </div>
       </div>
 

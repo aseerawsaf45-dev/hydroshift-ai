@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 import { AmbientAtmosphere } from "@/components/ui/AmbientAtmosphere";
 
 export const metadata: Metadata = {
-  title: "SWOT Khulna | Delta Hydro-AI Platform",
-  description: "NASA SWOT Satellite Radar Interferometry & Estuarine Hydrodynamic Salinity Forecasting in the Bengal Delta",
+  title: "HydroShift AI | Delta Hydrological Intelligence Platform",
+  description: "HydroShift AI: NASA SWOT Satellite Radar Interferometry & Estuarine Hydrodynamic Salinity Forecasting in the Bengal Delta",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

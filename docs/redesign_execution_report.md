@@ -1,6 +1,6 @@
-# SWOT-Khulna: Comprehensive Platform Redesign & Simulation Studio
+# HydroShift AI: Comprehensive Platform Redesign & Simulation Studio
 
-> **Mission**: Upgrade the entire SWOT-Khulna platform to an agency-grade, high-contrast, scientific telemetry aesthetic featuring custom atmospheric backgrounds, true glassmorphic surfaces, tactile simulation controls, and an interactive 2D estuarine bathymetry cross-section simulator.
+> **Mission**: Upgrade the entire HydroShift AI platform to an agency-grade, high-contrast, scientific telemetry aesthetic featuring custom atmospheric backgrounds, true glassmorphic surfaces, tactile simulation controls, and an interactive 2D estuarine bathymetry cross-section simulator.
 
 ---
 
@@ -87,3 +87,4 @@
 - **Deployment**:
   - Git commit `c20b302` pushed to `origin/master` (`https://github.com/aseerawsaf45-dev/swot-khulna.git`).
   - Render blueprint auto-sync triggered for live deployment.
+

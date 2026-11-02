@@ -41,7 +41,7 @@ export default function ReportsPage() {
           Intelligence Reports
         </h1>
         <p className="text-sm text-muted-foreground max-w-2xl">
-          Curated analytics, seasonal assessments, and technical validations derived from the SWOT Khulna pipeline. Export ready for institutional stakeholders.
+          Curated analytics, seasonal assessments, and technical validations derived from the HydroShift AI pipeline. Export ready for institutional stakeholders.
         </p>
       </div>
 

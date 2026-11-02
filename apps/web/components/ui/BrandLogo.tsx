@@ -117,17 +117,16 @@ export function BrandLogo({
         <BrandLogoMark size={size} glow={glow} />
       </div>
       <div className="flex flex-col leading-tight">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <span className="font-extrabold tracking-tight text-white text-xs uppercase font-sans">
-            SWOT
+            HydroShift
           </span>
-          <span className="text-cyan-400 font-light text-xs font-mono">/</span>
-          <span className="font-bold tracking-tight text-white/90 text-xs uppercase font-sans">
-            KHULNA
+          <span className="px-1.5 py-0.5 rounded bg-primary/20 text-primary font-bold text-[9px] font-mono border border-primary/30 leading-none">
+            AI
           </span>
         </div>
         <span className="text-[10px] text-muted-foreground font-mono tracking-wider uppercase">
-          Delta Hydro-AI
+          Delta Hydrology Platform
         </span>
       </div>
     </div>
