@@ -19,12 +19,17 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from services.api.app.db.session import get_db
 from services.api.app.db.models import GroundTruthMeasurement
+from services.api.app.core.security import require_api_key
 import pandas as pd
 import io
 import uuid
 
 @router.post("/upload/csv", response_model=UploadResponse)
-async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_csv(
+    file: UploadFile = File(...), 
+    db: Session = Depends(get_db),
+    api_key: str = Depends(require_api_key)
+):
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are supported")
     

@@ -1,16 +1,61 @@
+# ==============================================================================
+# Security & Secret Shielding
+# ==============================================================================
 .env
-.env.local
+.env.*
+!.env.example
+*.env
+*.secrets
+secrets/
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+credentials.json
+service_account*.json
+*.token
+token.json
+.render/
+
+# ==============================================================================
+# Python & Virtual Environments
+# ==============================================================================
 .venv/
-node_modules/
+venv/
+ENV/
 __pycache__/
-.pytest_cache/
-khulna.db
 *.pyc
 *.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+khulna.db
+*.sqlite3
+
+# ==============================================================================
+# Node & Next.js Builds
+# ==============================================================================
+node_modules/
 .next/
 .pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==============================================================================
+# Archives & Large Artifacts
+# ==============================================================================
+*.zip
+*.tar.gz
+*.7z
+
+# ==============================================================================
+# Media & GIS Assets
+# ==============================================================================
 *.png
 !apps/web/public/gis/*.png
 !public/gis/*.png
 !soil-salinity-gis/output/*.png
-*.zip

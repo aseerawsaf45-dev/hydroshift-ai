@@ -1,7 +1,8 @@
 from fastapi import APIRouter
-from .endpoints import data_hub, reaches, predict, crop_rotation, audit, eligibility
+from .endpoints import data_hub, reaches, predict, crop_rotation, audit, eligibility, auth
 
 api_router = APIRouter()
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(reaches.router, prefix="/reaches", tags=["reaches"])
 api_router.include_router(data_hub.router, prefix="/data", tags=["data_hub"])
 api_router.include_router(predict.router, prefix="/predict", tags=["predict"])
