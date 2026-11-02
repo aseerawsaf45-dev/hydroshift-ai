@@ -63,35 +63,35 @@ services:
   # 3. Celery Background Worker
   # Note: Background workers require Render 'starter' plan ($7/mo)
   # ----------------------------------------------------------------------------
-  - type: worker
-    name: swot-khulna-worker
-    runtime: docker
-    dockerfilePath: ./infra/api.Dockerfile
-    dockerContext: .
-    plan: starter
-    dockerCommand: celery -A services.worker.celery_app worker --loglevel=info
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: swot-khulna-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: swot-khulna-redis
-          property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: redis
-          name: swot-khulna-redis
-          property: connectionString
-      - key: CELERY_RESULT_BACKEND
-        fromService:
-          type: redis
-          name: swot-khulna-redis
-          property: connectionString
-      - key: PYTHONPATH
-        value: /app
+  # - type: worker
+  #   name: swot-khulna-worker
+  #   runtime: docker
+  #   dockerfilePath: ./infra/api.Dockerfile
+  #   dockerContext: .
+  #   plan: starter
+  #   dockerCommand: celery -A services.worker.celery_app worker --loglevel=info
+  #   envVars:
+  #     - key: DATABASE_URL
+  #       fromDatabase:
+  #         name: swot-khulna-db
+  #         property: connectionString
+  #     - key: REDIS_URL
+  #       fromService:
+  #         type: redis
+  #         name: swot-khulna-redis
+  #         property: connectionString
+  #     - key: CELERY_BROKER_URL
+  #       fromService:
+  #         type: redis
+  #         name: swot-khulna-redis
+  #         property: connectionString
+  #     - key: CELERY_RESULT_BACKEND
+  #       fromService:
+  #         type: redis
+  #         name: swot-khulna-redis
+  #         property: connectionString
+  #     - key: PYTHONPATH
+  #       value: /app
 
   # ----------------------------------------------------------------------------
   # 4. Next.js Web Frontend
@@ -105,8 +105,5 @@ services:
     dockerCommand: sh -c "pnpm dev --hostname 0.0.0.0 --port $PORT"
     envVars:
       - key: NEXT_PUBLIC_API_BASE_URL
-        fromService:
-          type: web
-          name: swot-khulna-api
-          property: host
+        value: https://swot-khulna-api.onrender.com
 
