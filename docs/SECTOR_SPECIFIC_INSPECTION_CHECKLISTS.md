@@ -1,6 +1,6 @@
-# SWOT-Khulna: Domain-Specific Technical Checklists & Inspection Guidelines
+# HydroShift AI: Domain-Specific Technical Checklists & Inspection Guidelines
 
-This document provides actionable technical specifications, implementation directives, and audit protocols tailored for the three primary engineering roles maintaining the **SWOT-Khulna Delta Hydro-AI Platform**:
+This document provides actionable technical specifications, implementation directives, and audit protocols tailored for the three primary engineering roles maintaining the **HydroShift AI Delta Hydro-AI Platform**:
 
 1. **[Backend & API Developer](#1-backend--api-developer-checklist)**
 2. **[NASA Data & Remote Sensing Specialist](#2-nasa-data--remote-sensing-specialist-checklist)**
@@ -38,17 +38,17 @@ The Backend and API team is responsible for high-throughput, low-latency, and de
 ### 1.2 What to Do (Implementation Tasks)
 
 - [ ] **1. Maintain & Audit API Endpoints**
-  - **Path**: [`swot-khulna/services/api/app/api/v1/router.py`](swot-khulna/services/api/app/api/v1/router.py)
+  - **Path**: [`HydroShift AI/services/api/app/api/v1/router.py`](HydroShift AI/services/api/app/api/v1/router.py)
   - Verify all active routers are registered:
     - `/predict`: Multi-horizon salinity forecasting (`now`, `7d`, `14d`).
     - `/predict/simulate`: Real-time hydrodynamic scenario perturbation engine.
     - `/eligibility`: Scientific pre-flight audit gating.
     - `/hydraulics`: Polder sluice gate drainage feasibility.
     - `/crops`: Maas-Hoffman agronomic yield and Boro rice risk evaluation.
-  - Ensure the Next.js API route fallback [`swot-khulna/apps/web/app/api/v1/predict/simulate/route.ts`](swot-khulna/apps/web/app/api/v1/predict/simulate/route.ts) maintains complete schema parity with the FastAPI implementation.
+  - Ensure the Next.js API route fallback [`HydroShift AI/apps/web/app/api/v1/predict/simulate/route.ts`](HydroShift AI/apps/web/app/api/v1/predict/simulate/route.ts) maintains complete schema parity with the FastAPI implementation.
 
 - [ ] **2. Enforce the "Fail-Closed" Eligibility Gate**
-  - **Path**: [`swot-khulna/services/api/app/services/eligibility.py`](swot-khulna/services/api/app/services/eligibility.py)
+  - **Path**: [`HydroShift AI/services/api/app/services/eligibility.py`](HydroShift AI/services/api/app/services/eligibility.py)
   - Ensure `validate_preflight_eligibility()` enforces strict operational criteria:
     - Minimum 30 days of continuous ground telemetry (BWDB).
     - At least one in-situ water chemistry ground target (EC / Chloride).
@@ -56,14 +56,14 @@ The Backend and API team is responsible for high-throughput, low-latency, and de
   - If prerequisites are not satisfied, return HTTP `403 Forbidden` or `422 Unprocessable Entity` with an explicit RFC 7807 problem payload detailing missing sensor IDs. Never substitute synthetic dummy values without clear test-mode headers.
 
 - [ ] **3. Implement Sluice Gate Hydraulics Engine**
-  - **Path**: [`swot-khulna/services/api/app/services/polder_hydraulics.py`](swot-khulna/services/api/app/services/polder_hydraulics.py)
+  - **Path**: [`HydroShift AI/services/api/app/services/polder_hydraulics.py`](HydroShift AI/services/api/app/services/polder_hydraulics.py)
   - Implement orifice and weir flow transitions for flap-gate regulators:
     $$Q_{\text{orifice}} = C_d A \sqrt{2g \Delta H} \quad \text{for submerged flow } (H_{\text{ext}} > H_{\text{crest}})$$
     $$Q_{\text{weir}} = \frac{2}{3} C_w B \sqrt{2g} (\Delta H)^{3/2} \quad \text{for free-surface overflow}$$
   - Calculate available drainage duration during low-tide windows in the Passur and Kazibacha rivers relative to polder internal ditch water levels (PWD vertical datum).
 
 - [ ] **4. Maintain Offline GIS Asset Pipelines & Static Delivery**
-  - **Path**: [`swot-khulna/public/gis/khulna/`](swot-khulna/public/gis/khulna/) and [`swot-khulna/apps/web/public/gis/`](swot-khulna/apps/web/public/gis/)
+  - **Path**: [`HydroShift AI/public/gis/khulna/`](HydroShift AI/public/gis/khulna/) and [`HydroShift AI/apps/web/public/gis/`](HydroShift AI/apps/web/public/gis/)
   - Verify fast local delivery of GeoJSON boundaries, river thalwegs, and kriging PNG overlays.
   - Configure HTTP headers: `Cache-Control: public, max-age=86400, immutable` for static GeoJSON/PNG files.
   - Coordinate precision quantization: enforce a maximum of 4 decimal places in all GeoJSON responses to keep file sizes $< 50\text{ KB}$.
@@ -135,7 +135,7 @@ The NASA Data & Remote Sensing team is responsible for satellite telemetry inges
   - Mask non-water features using the static Khulna district waterbody mask.
 
 - [ ] **4. Build & Validate Boundary-Clipped Kriging Surfaces**
-  - **Script**: [`swot-khulna/scripts/generate_scientific_gis_rasters.py`](swot-khulna/scripts/generate_scientific_gis_rasters.py)
+  - **Script**: [`HydroShift AI/scripts/generate_scientific_gis_rasters.py`](HydroShift AI/scripts/generate_scientific_gis_rasters.py)
   - Generate clean $569 \times 332$ continuous PNG surfaces for:
     - `salinity_river.png`: Surface river water electrical conductivity.
     - `salinity_shallow_gw.png`: Shallow tube-well aquifer ($15 - 35\text{ m}$).
@@ -214,7 +214,7 @@ The ML Engineering team is responsible for the **Physics-Informed Neural Network
     1. **Persistence Baseline**: $\hat{C}_{t+h} = C_t$
     2. **Seasonal Harmonic Baseline**: Linear regression on harmonic components.
     3. **Physics-Blind MLP**: Identical architecture without $\mathcal{L}_{\text{PDE}}$ loss constraint.
-  - Serialize benchmark metrics in [`swot-khulna/public/benchmark_results.json`](swot-khulna/public/benchmark_results.json).
+  - Serialize benchmark metrics in [`HydroShift AI/public/benchmark_results.json`](HydroShift AI/public/benchmark_results.json).
 
 ---
 

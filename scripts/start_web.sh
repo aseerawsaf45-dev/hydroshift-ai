@@ -3,7 +3,7 @@ set -e
 
 PORT="${PORT:-3000}"
 
-echo "=== SWOT-Khulna Web Startup ==="
+echo "=== HydroShift AI Web Startup ==="
 echo "Port: $PORT"
 
 cd /app/apps/web

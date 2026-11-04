@@ -9,8 +9,8 @@ from .schemas.models import HealthResponse
 from .core.security import SecurityHeadersMiddleware
 
 app = FastAPI(
-    title="SWOT Khulna API",
-    description="API for the SWOT Khulna Platform",
+    title="HydroShift AI API",
+    description="API for the HydroShift AI Platform",
     version="0.1.0",
 )
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# SWOT Khulna Platform - Automated Docker Startup Script
+# HydroShift AI Platform - Automated Docker Startup Script
 # ==============================================================================
 set -euo pipefail
 
@@ -17,7 +17,7 @@ cd "$ROOT_DIR"
 print_header() {
     echo -e "${CYAN}${BOLD}"
     echo "======================================================================"
-    echo "  SWOT Khulna - Estuarine Salinity & Crop Rotation DSS Platform"
+    echo "  HydroShift AI - Estuarine Salinity & Crop Rotation DSS Platform"
     echo "======================================================================"
     echo -e "${NC}"
 }
@@ -111,7 +111,7 @@ start_stack() {
     run_migrations_and_seed
 
     echo -e "\n${GREEN}${BOLD}======================================================================${NC}"
-    echo -e "${GREEN}${BOLD}  SWOT Khulna Platform is live and ready!${NC}"
+    echo -e "${GREEN}${BOLD}  HydroShift AI Platform is live and ready!${NC}"
     echo -e "${GREEN}${BOLD}======================================================================${NC}"
     echo -e "  ${BOLD}Web UI:${NC}         ${CYAN}http://localhost:3000${NC}"
     echo -e "  ${BOLD}API Backend:${NC}    ${CYAN}http://localhost:8000${NC}"

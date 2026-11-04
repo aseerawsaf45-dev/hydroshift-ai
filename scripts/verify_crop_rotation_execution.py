@@ -18,7 +18,7 @@ from services.api.app.main import app
 def run_execution_benchmark():
     client = TestClient(app)
     print("=" * 80)
-    print("SWOT KHULNA PLATFORM: CROP ROTATION DECISION SUPPORT SYSTEM (DSS)")
+    print("HYDROSHIFT AI PLATFORM: CROP ROTATION DECISION SUPPORT SYSTEM (DSS)")
     print("EXECUTION BENCHMARK & MULTI-POINT VALIDATION REPORT")
     print("=" * 80)
 

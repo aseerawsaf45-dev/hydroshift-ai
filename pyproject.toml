@@ -1,7 +1,7 @@
 [project]
 name = "khulna-salt-intrusion"
 version = "0.1.0"
-description = "SWOT Khulna API and Worker"
+description = "HydroShift AI API and Worker"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

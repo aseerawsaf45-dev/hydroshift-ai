@@ -1,4 +1,4 @@
-# How to build the SWOT Khulna salinity PINN
+# How to build the HydroShift AI salinity PINN
 
 Based on PROJECT_DOCUMENTATION.md. This build guide outlines the complete mathematical formulation, data engineering, model design, evaluation, and operational serving for the Physics-Informed Neural Network (PINN).
 

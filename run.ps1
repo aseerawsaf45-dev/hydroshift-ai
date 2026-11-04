@@ -1,5 +1,5 @@
 # ==============================================================================
-# SWOT Khulna Platform - Automated Docker Startup Script (PowerShell)
+# HydroShift AI Platform - Automated Docker Startup Script (PowerShell)
 # ==============================================================================
 param (
     [string]$Option = ""
@@ -9,7 +9,7 @@ $ErrorActionPreference = "Continue"
 
 function Print-Header {
     Write-Host "======================================================================" -ForegroundColor Cyan
-    Write-Host "  SWOT Khulna - Estuarine Salinity & Crop Rotation DSS Platform" -ForegroundColor Cyan
+    Write-Host "  HydroShift AI - Estuarine Salinity & Crop Rotation DSS Platform" -ForegroundColor Cyan
     Write-Host "======================================================================" -ForegroundColor Cyan
 }
 
@@ -93,7 +93,7 @@ docker compose exec api python -m scripts.populate_database
 
 Write-Host ""
 Write-Host "======================================================================" -ForegroundColor Green
-Write-Host "  SWOT Khulna Platform is live and ready!" -ForegroundColor Green
+Write-Host "  HydroShift AI Platform is live and ready!" -ForegroundColor Green
 Write-Host "======================================================================" -ForegroundColor Green
 Write-Host "  Web UI:          http://localhost:3000" -ForegroundColor Cyan
 Write-Host "  API Backend:     http://localhost:8000" -ForegroundColor Cyan

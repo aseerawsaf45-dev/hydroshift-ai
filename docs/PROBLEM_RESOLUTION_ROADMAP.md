@@ -1,5 +1,5 @@
 # Scientific & Engineering Problem Resolution Roadmap
-## SWOT Khulna Salinity & Crop Adaptation Decision Platform
+## HydroShift AI Salinity & Crop Adaptation Decision Platform
 **Document Version:** 2.0.0  
 **Target Submission:** NASA Space Apps Challenge 2026 (Field Shift: Adapting Farms with NASA Data)  
 **Audit Status:** Active Implementation Tracking

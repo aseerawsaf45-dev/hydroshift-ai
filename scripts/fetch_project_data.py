@@ -1,5 +1,5 @@
 """
-Data Acquisition Script for SWOT Khulna Intelligence Platform.
+Data Acquisition Script for HydroShift AI Intelligence Platform.
 Fetches:
 1. BWDB / FFWC official stations & recent 3-hourly water levels for Khulna, Mongla, Kobadak, and Gorai.
 2. NASA PO.DAAC Hydrocron SWOT River reach satellite observations (WSE, width, slope).
@@ -26,7 +26,7 @@ def fetch_bwdb_data():
         'x-ffwc-internal-key': 'FFWC-Project-2026-Secure-V1',
         'referer': 'https://www.ffwc.gov.bd/app/home',
         'origin': 'https://www.ffwc.gov.bd',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SWOT-Khulna-DataFetcher'
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) HydroShift AI-DataFetcher'
     }
 
     stations_url = "https://api.ffwc.gov.bd/data_load/stations-2025/"
@@ -248,7 +248,7 @@ def build_harmonized_salinity_dataset(khulna_stations, df_bwdb):
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("SWOT Khulna Platform — Institutional Data Acquisition Pipeline")
+    print("HydroShift AI Platform — Institutional Data Acquisition Pipeline")
     print("=" * 60)
     khulna_stations, df_bwdb = fetch_bwdb_data()
     df_swot = fetch_hydrocron_swot_data()

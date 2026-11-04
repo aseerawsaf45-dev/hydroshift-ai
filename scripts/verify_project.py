@@ -164,7 +164,7 @@ def verify_decision_pipeline():
 def main():
     print("=" * 78)
     print("      NASA SPACE APPS CHALLENGE 2026 -- SYSTEM VERIFICATION WORKFLOW")
-    print("        Project: SWOT Khulna Salinity & Crop Rotation Decision System")
+    print("        Project: HydroShift AI Salinity & Crop Rotation Decision System")
     print("=" * 78)
 
     checks = [

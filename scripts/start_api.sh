@@ -3,7 +3,7 @@ set -e
 
 PORT="${PORT:-8000}"
 
-echo "=== SWOT-Khulna API Startup ==="
+echo "=== HydroShift AI API Startup ==="
 echo "Port: $PORT"
 echo "Environment: ${ENVIRONMENT:-production}"
 

@@ -1,5 +1,5 @@
 """
-SWOT Khulna - Core Security & API Key Authentication Module
+HydroShift AI - Core Security & API Key Authentication Module
 Provides constant-time API key validation, security headers, and secret masking.
 """
 

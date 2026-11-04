@@ -564,7 +564,7 @@ The following table pairs every critical issue raised during peer-review and tec
 
 ## 12. Verification, Test Suite & Build Verification Report
 
-The entire SWOT Khulna Platform is backed by an automated CI/CD verification suite covering backend physics, live data pipelines, crop decision logic, API contracts, and the Next.js production frontend.
+The entire HydroShift AI Platform is backed by an automated CI/CD verification suite covering backend physics, live data pipelines, crop decision logic, API contracts, and the Next.js production frontend.
 
 ### 12.1 Backend Pytest Execution Summary
 - **Execution Command:** `.venv\Scripts\python -m pytest`
@@ -573,7 +573,7 @@ The entire SWOT Khulna Platform is backed by an automated CI/CD verification sui
 ```text
 ============================= test session starts =============================
 platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.7.0
-rootdir: swot-khulna
+rootdir: HydroShift AI
 configfile: pyproject.toml
 plugins: anyio-4.15.1, asyncio-1.4.0
 collected 44 items
@@ -619,7 +619,7 @@ tests\test_science.py ..                                                 [100%]
 ```text
 ==============================================================================
       NASA SPACE APPS CHALLENGE 2026 -- SYSTEM VERIFICATION WORKFLOW
-        Project: SWOT Khulna Salinity & Crop Rotation Decision System
+        Project: HydroShift AI Salinity & Crop Rotation Decision System
 ==============================================================================
 1. Automated Backend Test Suite (Pytest)     : [PASS] 44 passed in 17.35s
 2. Benchmark Performance & Model Hold-Outs   : [PASS] Fourier PINN Spatial MAE 4.643 dS/m, Conformal q95=7.64, Mondrian Strata Active
@@ -805,7 +805,7 @@ In accordance with official NASA International Space Apps Challenge guidelines:
 
 To ensure deterministic operations, scientific rigor, and verifiable reproducibility across the entire multidisciplinary stack, dedicated technical specifications, operational checklists, and audit protocols are codified below for each core engineering discipline.
 
-For the standalone, field-ready reference checklist, see [`swot-khulna/docs/SECTOR_SPECIFIC_INSPECTION_CHECKLISTS.md`](swot-khulna/docs/SECTOR_SPECIFIC_INSPECTION_CHECKLISTS.md).
+For the standalone, field-ready reference checklist, see [`HydroShift AI/docs/SECTOR_SPECIFIC_INSPECTION_CHECKLISTS.md`](HydroShift AI/docs/SECTOR_SPECIFIC_INSPECTION_CHECKLISTS.md).
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -833,30 +833,30 @@ For the standalone, field-ready reference checklist, see [`swot-khulna/docs/SECT
 
 ### 16.1 Backend & API Developer Operational Directives
 
-The Backend and API team maintains the FastAPI application ([`swot-khulna/services/api/app/`](swot-khulna/services/api/app/)), Next.js serverless route fallbacks ([`swot-khulna/apps/web/app/api/`](swot-khulna/apps/web/app/api/)), data schemas, and hydraulic solver engines. All endpoints adhere to strict Pydantic v2 validation, RFC 7807 problem detail payloads, and a **"Fail-Closed"** scientific integrity philosophy.
+The Backend and API team maintains the FastAPI application ([`HydroShift AI/services/api/app/`](HydroShift AI/services/api/app/)), Next.js serverless route fallbacks ([`HydroShift AI/apps/web/app/api/`](HydroShift AI/apps/web/app/api/)), data schemas, and hydraulic solver engines. All endpoints adhere to strict Pydantic v2 validation, RFC 7807 problem detail payloads, and a **"Fail-Closed"** scientific integrity philosophy.
 
 #### 16.1.1 Implementation Directives (What to Do)
-1. **Maintain & Audit Core API Endpoints ([`swot-khulna/services/api/app/api/v1/router.py`](swot-khulna/services/api/app/api/v1/router.py)):**
+1. **Maintain & Audit Core API Endpoints ([`HydroShift AI/services/api/app/api/v1/router.py`](HydroShift AI/services/api/app/api/v1/router.py)):**
    - `/predict`: Multi-horizon salinity forecasting (`now`, `7d`, `14d`) parameterized by reach ID.
    - `/predict/simulate`: Real-time hydrodynamic scenario perturbation engine (`gorai_flow_delta`, `tidal_surge_head`, `polder_defense`).
    - `/eligibility`: Scientific pre-flight audit gating verifying minimum sensor requirements.
    - `/hydraulics`: Polder sluice gate drainage feasibility solver.
    - `/crops`: Maas-Hoffman agronomic yield and Boro rice risk evaluation.
-   - Ensure the Next.js API route fallback [`swot-khulna/apps/web/app/api/v1/predict/simulate/route.ts`](swot-khulna/apps/web/app/api/v1/predict/simulate/route.ts) maintains complete schema parity with the FastAPI implementation.
-2. **Enforce the "Fail-Closed" Eligibility Gate ([`swot-khulna/services/api/app/services/eligibility.py`](swot-khulna/services/api/app/services/eligibility.py)):**
+   - Ensure the Next.js API route fallback [`HydroShift AI/apps/web/app/api/v1/predict/simulate/route.ts`](HydroShift AI/apps/web/app/api/v1/predict/simulate/route.ts) maintains complete schema parity with the FastAPI implementation.
+2. **Enforce the "Fail-Closed" Eligibility Gate ([`HydroShift AI/services/api/app/services/eligibility.py`](HydroShift AI/services/api/app/services/eligibility.py)):**
    - The platform strictly rejects ungrounded model training or execution. Ensure `validate_preflight_eligibility()` validates:
      - Minimum 30 days of continuous ground telemetry (BWDB).
      - At least one in-situ water chemistry ground target (EC / Chloride).
      - Valid SWORD reach topology for the delta corridor.
    - When missing, return HTTP `403 Forbidden` or `422 Unprocessable Entity` with an explicit RFC 7807 payload detailing missing sensor IDs. Never substitute synthetic dummy values without clear test-mode headers.
-3. **Implement Sluice Gate Hydraulics Engine ([`swot-khulna/services/api/app/services/polder_hydraulics.py`](swot-khulna/services/api/app/services/polder_hydraulics.py)):**
+3. **Implement Sluice Gate Hydraulics Engine ([`HydroShift AI/services/api/app/services/polder_hydraulics.py`](HydroShift AI/services/api/app/services/polder_hydraulics.py)):**
    - Transition dynamically between submerged orifice flow and free-surface weir flow:
      $$\Delta H = H_{\text{int}} - H_{\text{ext}}$$
      $$Q_{\text{orifice}} = C_d A \sqrt{2g |\Delta H|} \quad \text{for } H_{\text{ext}} > H_{\text{crest}}$$
      $$Q_{\text{weir}} = \frac{2}{3} C_w B \sqrt{2g} (\Delta H)^{3/2} \quad \text{for free-surface overflow}$$
    - Flap gates physically lock when $H_{\text{ext}} > H_{\text{int}}$, enforcing $Q = 0\text{ m}^3\text{/s}$ to prevent tidal saltwater ingress into agricultural polders.
 4. **Maintain Offline GIS Asset Pipelines & Static Delivery:**
-   - Serve GeoJSON boundaries, river thalwegs, and kriging PNG overlays directly from [`swot-khulna/public/gis/khulna/`](swot-khulna/public/gis/khulna/) and [`swot-khulna/apps/web/public/gis/`](swot-khulna/apps/web/public/gis/).
+   - Serve GeoJSON boundaries, river thalwegs, and kriging PNG overlays directly from [`HydroShift AI/public/gis/khulna/`](HydroShift AI/public/gis/khulna/) and [`HydroShift AI/apps/web/public/gis/`](HydroShift AI/apps/web/public/gis/).
    - Set HTTP headers: `Cache-Control: public, max-age=86400, immutable`.
    - Enforce maximum 4 decimal places in GeoJSON geometries to maintain bundle sizes $< 50\text{ KB}$.
 
@@ -891,7 +891,7 @@ The Remote Sensing team manages the ingestion, geodetic datum reconciliation, an
      $$\text{Salinity Index (SI)} = \sqrt{B4 (\text{Red}) \times B8 (\text{NIR})}$$
      $$\text{Salinity Index 2 (SI-2)} = \sqrt{B3 (\text{Green}) \times B4 (\text{Red})}$$
    - Apply static Khulna district waterbody mask to eliminate false vegetated surface anomalies.
-4. **Build & Validate Boundary-Clipped Kriging Surfaces ([`swot-khulna/scripts/generate_scientific_gis_rasters.py`](swot-khulna/scripts/generate_scientific_gis_rasters.py)):**
+4. **Build & Validate Boundary-Clipped Kriging Surfaces ([`HydroShift AI/scripts/generate_scientific_gis_rasters.py`](HydroShift AI/scripts/generate_scientific_gis_rasters.py)):**
    - Generate $569 \times 332$ continuous PNG surfaces for:
      - `salinity_river.png`: Surface river water electrical conductivity ($0.0 - 28.0\text{ dS/m}$).
      - `salinity_shallow_gw.png`: Shallow tube-well aquifer ($15 - 35\text{ m}$ depth).
@@ -916,7 +916,7 @@ The Remote Sensing team manages the ingestion, geodetic datum reconciliation, an
 The ML Engineering team develops and maintains the Physics-Informed Neural Network (Fourier-PINN), PDE loss formulations, astronomical tidal feature mappings, conformal uncertainty bounds, and ablation baselines.
 
 #### 16.3.1 Implementation Directives (What to Do)
-1. **Implement 1D Unsteady ADE Physics Loss ([`swot-khulna/ml/models/fourier_pinn.py`](swot-khulna/ml/models/fourier_pinn.py)):**
+1. **Implement 1D Unsteady ADE Physics Loss ([`HydroShift AI/ml/models/fourier_pinn.py`](HydroShift AI/ml/models/fourier_pinn.py)):**
    - Formulate the PDE loss function with autograd differentiation:
      $$\mathcal{L}_{\text{PDE}} = \frac{1}{N_r} \sum_{i=1}^{N_r} \left( \frac{\partial C}{\partial t} + u(x,t) \frac{\partial C}{\partial x} - \frac{\partial}{\partial x}\left( D(x) \frac{\partial C}{\partial x} \right) + k C - S \right)^2$$
    - Couple width-dependent velocity and longitudinal dispersion:
@@ -926,17 +926,17 @@ The ML Engineering team develops and maintains the Physics-Informed Neural Netwo
    - Inject astronomical tidal frequencies corresponding to Southwest Bangladesh constituents:
      $$\gamma(t) = \left[ \sin\left(\frac{2\pi t}{T_k}\right), \cos\left(\frac{2\pi t}{T_k}\right) \right] \quad \text{for } T_k \in \{12.42\text{h } (M_2), \, 12.00\text{h } (S_2), \, 23.93\text{h } (K_1), \, 25.82\text{h } (O_1)\}$$
    - Normalize the spatial curvilinear coordinate $x \in [0, 1]$ where $x=0$ represents the upstream Gorai-Phultala boundary and $x=1$ represents the Bay of Bengal estuarine mouth.
-3. **Implement Mondrian Group-Conditional Conformal Calibration ([`swot-khulna/ml/evaluation/evaluate.py`](swot-khulna/ml/evaluation/evaluate.py)):**
+3. **Implement Mondrian Group-Conditional Conformal Calibration ([`HydroShift AI/ml/evaluation/evaluate.py`](HydroShift AI/ml/evaluation/evaluate.py)):**
    - Compute non-conformity scores across 5 distinct salinity strata ($S_0 < 2\text{ dS/m}$, $S_1 \in [2, 4]$, $S_2 \in [4, 8]$, $S_3 \in [8, 15]$, $S_4 > 15\text{ dS/m}$).
    - Formulate calibrated distribution-free prediction intervals:
      $$\hat{C}_{\text{low}} = \hat{C} - q_{1-\alpha}, \quad \hat{C}_{\text{high}} = \hat{C} + q_{1-\alpha}$$
      ensuring verified empirical coverage $\ge 90\%$ under non-stationary tidal regimes.
-4. **Maintain Empirical Baselines & Benchmark Registry ([`swot-khulna/ml/evaluation/benchmark_suite.py`](swot-khulna/ml/evaluation/benchmark_suite.py)):**
+4. **Maintain Empirical Baselines & Benchmark Registry ([`HydroShift AI/ml/evaluation/benchmark_suite.py`](HydroShift AI/ml/evaluation/benchmark_suite.py)):**
    - Maintain reproducible evaluations against:
      - **Persistence Baseline**: $\hat{C}_{t+h} = C_t$
      - **Seasonal Harmonic Baseline**: Linear regression on $M_2, S_2$ and semi-annual harmonics.
      - **Physics-Blind MLP**: Identical architecture with $\lambda_{\text{PDE}} = 0$.
-   - Output results directly to [`swot-khulna/public/benchmark_results.json`](swot-khulna/public/benchmark_results.json).
+   - Output results directly to [`HydroShift AI/public/benchmark_results.json`](HydroShift AI/public/benchmark_results.json).
 
 #### 16.3.2 ML Engineering Quality Inspection Protocol (What to Inspect)
 | Check Item | Inspection Procedure | Target Metric | Red Flag Indicator |
@@ -951,7 +951,7 @@ The ML Engineering team develops and maintains the Physics-Informed Neural Netwo
 
 ### 16.4 Fixed Khulna Regional WebGIS & Hydrodynamic Cartography Architecture
 
-The interactive WebGIS layer ([`swot-khulna/apps/web/components/map/`](swot-khulna/apps/web/components/map/)) provides a geodetically accurate, boundary-constrained cartographic canvas specifically tailored for the Khulna coastal belt.
+The interactive WebGIS layer ([`HydroShift AI/apps/web/components/map/`](HydroShift AI/apps/web/components/map/)) provides a geodetically accurate, boundary-constrained cartographic canvas specifically tailored for the Khulna coastal belt.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐

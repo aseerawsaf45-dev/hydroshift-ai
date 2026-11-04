@@ -12,7 +12,7 @@
 
 > In coastal Bangladesh, 30 million farmers are caught between rising sea tides and dry-season freshwater starvation. As saline river fronts surge up to 80 km inland, Boro rice yields collapse, while polder sluice flap-gates sit locked or mistimed.
 > 
-> **SWOT Khulna** bridges NASA’s flagship Surface Water and Ocean Topography (SWOT) satellite radar altimetry with ground-truth river hydrology, agroclimatology, and physics-informed machine learning. Rather than using satellite passes for noisy curve-fitting, our platform computes exact **polder gravity drainage head** ($\Delta h = WSE_{\text{river}} - H_{\text{canal}}$) to guide sluice gate flushing, runs a **spatially-varying estuarine PDE transport model** to forecast root-zone salinity, and calibrates **heteroscedastic Mondrian conformal uncertainty** to recommend resilient crop rotations (BRRI dhan67, Sunflower, or Gher Shrimp) customized to farmer risk profiles.
+> **HydroShift AI** bridges NASA’s flagship Surface Water and Ocean Topography (SWOT) satellite radar altimetry with ground-truth river hydrology, agroclimatology, and physics-informed machine learning. Rather than using satellite passes for noisy curve-fitting, our platform computes exact **polder gravity drainage head** ($\Delta h = WSE_{\text{river}} - H_{\text{canal}}$) to guide sluice gate flushing, runs a **spatially-varying estuarine PDE transport model** to forecast root-zone salinity, and calibrates **heteroscedastic Mondrian conformal uncertainty** to recommend resilient crop rotations (BRRI dhan67, Sunflower, or Gher Shrimp) customized to farmer risk profiles.
 
 ---
 

@@ -1,5 +1,5 @@
 # Implementation & Audit Checklist
-## SWOT Khulna Salinity & Crop Adaptation Decision Platform
+## HydroShift AI Salinity & Crop Adaptation Decision Platform
 
 ---
 
