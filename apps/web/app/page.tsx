@@ -288,14 +288,22 @@ export default function Home() {
               Tidal Seawater vs. Upstream Dilution Flushes.
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              The southwest delta is an intricate battlefield between two opposing forces: the high-saline marine tidal pulse pushing inland from the Bay of Bengal through the Passur canyon, and the Gorai freshwater buffer flowing south from the Ganges.
+              The southwest delta is the active estuarine frontier of the Ganges (Padma) Delta plain. It forms an intricate hydrodynamic battlefield between the high-saline marine tidal pulse pushing inland from the Bay of Bengal through the Passur canyon, and freshwater flushes descending through the Bhairab, Rupsha, and Gorai-Madhumati distributary corridors.
             </p>
             <div className="space-y-3 pt-2">
               <div className="flex items-start gap-3 p-4 rounded-2xl glass-panel">
                 <MapPin className="w-4 h-4 text-rose-400 mt-1 shrink-0" />
                 <div>
                   <span className="text-xs font-bold text-white">Passur Marine Corridor</span>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Primary conduit carrying up to 18.2 dS/m salinity into Mongla Port and Khulna municipal water intakes.</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Primary estuarine conduit carrying up to 18.2 dS/m salinity past Mongla Port toward Khulna municipal water intakes.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-4 rounded-2xl glass-panel">
+                <Droplets className="w-4 h-4 text-emerald-400 mt-1 shrink-0" />
+                <div>
+                  <span className="text-xs font-bold text-white">Bhairab-Rupsha Tidal Fluvial Axis</span>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Key Ganges delta river confluence that provides Khulna metropolitan drainage and conveys seasonal freshwater recharge to suppress intrusion.</p>
                 </div>
               </div>
 
@@ -303,7 +311,7 @@ export default function Home() {
                 <Droplets className="w-4 h-4 text-sky-400 mt-1 shrink-0" />
                 <div>
                   <span className="text-xs font-bold text-white">Gorai Freshwater Buffer</span>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Upstream Ganges distributary providing natural dilution to suppress the saltwater front below agricultural danger thresholds.</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Primary upstream Ganges distributary providing natural transboundary dilution to hold the salinity wedge below agricultural thresholds.</p>
                 </div>
               </div>
             </div>

@@ -3,10 +3,10 @@
   "train_samples": 80,
   "test_samples": 20,
   "is_synthetic": true,
-  "pinn_mae": 0.454,
-  "pinn_rmse": 0.48,
+  "pinn_mae": 0.392,
+  "pinn_rmse": 0.432,
   "baseline_mae": 0.66,
   "baseline_rmse": 0.724,
   "pinn_wins": true,
-  "pinn_checksum": "e5f53f5167ebb4c4fbbe631284d7bd745f9cd4636059d6774abd1740bbaaf482"
+  "pinn_checksum": "2d868109de9447951c61524c012de8b182a511b68a0fe6d1f714049fefd45431"
 }

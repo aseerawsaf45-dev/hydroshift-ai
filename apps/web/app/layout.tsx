@@ -5,7 +5,7 @@ import { AmbientAtmosphere } from "@/components/ui/AmbientAtmosphere";
 
 export const metadata: Metadata = {
   title: "HydroShift AI | Delta Hydrological Intelligence Platform",
-  description: "HydroShift AI: NASA SWOT Satellite Radar Interferometry & Estuarine Hydrodynamic Salinity Forecasting in the Bengal Delta",
+  description: "HydroShift AI: NASA SWOT Satellite Radar Interferometry & Estuarine Hydrodynamic Salinity Forecasting in the Lower Ganges Delta",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

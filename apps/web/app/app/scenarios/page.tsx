@@ -150,7 +150,7 @@ const SCENARIO_PRESETS = [
   },
 ];
 
-// Calibrated Stations along the Passur-Rupsha Thalweg (Bay mouth to Khulna City)
+// Calibrated Stations along the Passur-Rupsha-Bhairab Thalweg (Bay mouth to Khulna City)
 const CALIBRATED_STATIONS = [
   { id: "SW244", name: "Mongla (Passur River)", km: 35.0, base: 7.9 },
   { id: "31241400601", name: "Passur Reach (Mongla)", km: 35.0, base: 8.1 },
@@ -160,9 +160,10 @@ const CALIBRATED_STATIONS = [
   { id: "31241400561", name: "Shibsa Main Reach", km: 60.0, base: 3.1 },
   { id: "swot-node-84", name: "SWOT Node #84 (Paikgachha)", km: 62.0, base: 2.6 },
   { id: "swot-node-85", name: "SWOT Node #85 (Batiaghata)", km: 72.0, base: 1.8 },
-  { id: "SW241", name: "Khulna (Pashure River)", km: 80.7, base: 1.1 },
+  { id: "SW241", name: "Khulna (Passur-Rupsha River)", km: 80.7, base: 1.1 },
   { id: "khulna-p14", name: "Khulna P-14 Intake", km: 82.0, base: 0.95 },
   { id: "31241400581", name: "Rupsha Reach (Khulna Core)", km: 82.5, base: 1.05 },
+  { id: "bhairab-confluence", name: "Bhairab River Confluence", km: 88.0, base: 0.85 },
 ];
 
 function calculateHydrodynamicSimulation(params: SimulationParams): SimulationData {
@@ -465,7 +466,7 @@ export default function ScenariosPage() {
             Khulna Estuarine Stress Simulator
           </h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
-            Simulate upstream Gorai discharge droughts, Bay of Bengal tidal storm surges, and automated polder sluice gate operations across the Passur-Rupsha delta.
+            Simulate upstream Gorai-Ganges discharge droughts, Bay of Bengal tidal storm surges, and automated polder sluice gate operations across the Passur-Rupsha-Bhairab estuarine corridor.
           </p>
         </div>
 

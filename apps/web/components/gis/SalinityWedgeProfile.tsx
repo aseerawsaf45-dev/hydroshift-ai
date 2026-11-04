@@ -180,11 +180,11 @@ export function SalinityWedgeProfile({
             <span>4.0 dS/m ({intrusionKm.toFixed(1)} km)</span>
           </div>
 
-          {/* Khulna WASA Raw Intake */}
+          {/* Khulna WASA Raw Intake (Bhairab-Rupsha Confluence) */}
           <div className="absolute right-2 top-2 text-[10px] font-mono text-right flex flex-col">
             <span className="font-bold text-emerald-400 flex items-center justify-end gap-1">
               <MapPin className="w-3 h-3 text-emerald-400" />
-              Khulna WASA (km 82)
+              Khulna WASA / Bhairab (km 82)
             </span>
             <span className="text-muted-foreground">Standard &lt;1.0 dS/m</span>
           </div>

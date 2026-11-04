@@ -76,8 +76,8 @@ export function LandingSimulationTeaser() {
       <div className="mb-5 p-3 rounded-2xl bg-black/50 border border-white/10 relative">
         <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground mb-1.5 px-1">
           <span className="text-rose-400 font-semibold">Bay of Bengal (0 km)</span>
-          <span className="text-sky-300">Mongla (42 km)</span>
-          <span className="text-white font-semibold">Khulna WASA (82 km)</span>
+          <span className="text-sky-300">Mongla (35 km)</span>
+          <span className="text-white font-semibold">Bhairab-Rupsha WASA (82 km)</span>
         </div>
 
         <svg viewBox="0 0 400 70" className="w-full h-16 rounded-xl overflow-hidden bg-[#050a12]">

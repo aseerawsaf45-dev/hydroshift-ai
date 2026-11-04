@@ -269,7 +269,7 @@ export default function OverviewPage() {
             </h1>
 
             <p className="text-xs md:text-sm text-muted-foreground max-w-3xl leading-relaxed">
-              Real-time monitoring along the Passur-Shibsa estuarine corridor. Marine tidal salinity currently exceeds the 4.0 dS/m agricultural safety limit at Mongla Port (7.9 dS/m) and Khulna Rupsha (4.5 dS/m), while upstream Gorai discharge provides freshwater dilution to the northern reaches.
+              Real-time monitoring across the lower Ganges Delta tidal plain. Marine tidal salinity currently pushes inland along the Passur-Shibsa corridor exceeding agricultural limits at Mongla Port (7.9 dS/m) and Khulna Rupsha (4.5 dS/m), buffered by upstream Bhairab and Gorai-Padma freshwater flushes.
             </p>
           </div>
 

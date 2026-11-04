@@ -750,6 +750,30 @@ export const CANONICAL_KHULNA_STATIONS: (Site & {
 
   },
 
+  {
+
+    id: "bhairab-confluence-gauge",
+
+    name: "Bhairab River Confluence (SW62)",
+
+    latitude: 22.845,
+
+    longitude: 89.560,
+
+    river: "Bhairab",
+
+    category: "gauge",
+
+    description: "Major Ganges delta distributary flowing through Khulna city and merging into Rupsha. Essential municipal and ecological buffer.",
+
+    baselineEc: 1.8,
+
+    wsePwd: 1.90,
+
+    distanceKm: 88.0,
+
+  },
+
 ];
 
 

@@ -69,6 +69,7 @@ interface RotationStrategy {
   name: string;
   strategy_type: string;
   description: string;
+  cropping_intensity_pct: number;
   overall_feasibility_score: number;
   risk_level: "LOW" | "MODERATE" | "CRITICAL";
   total_net_profit_bdt: number;
@@ -270,6 +271,7 @@ export default function CropRotationPage() {
         name: "Sunflower/Mustard - Mungbean - Short Aman",
         strategy_type: "Cash Crop Diversified",
         description: "Triple-crop climate-smart intensification with low-water duty oilseeds and legumes that escape peak March-April salinity through early maturity.",
+        cropping_intensity_pct: 300,
         overall_feasibility_score: Math.max(35, Math.round(92 - lossSunflower * 0.4 - lossMung * 0.3)),
         risk_level: "LOW",
         total_net_profit_bdt: 245000 - (lossSunflower * 500) - (lossMung * 400),
@@ -340,6 +342,7 @@ export default function CropRotationPage() {
         name: "Salt-Tolerant Boro - Sesame - Modern T.Aman",
         strategy_type: "Salt-Tolerant Rice",
         description: "BRRI-engineered saline-tolerant rice varieties coupled with short-duration oilseed sesame to utilize post-monsoon moisture safely.",
+        cropping_intensity_pct: 300,
         overall_feasibility_score: Math.max(25, Math.round(88 - lossSaltBoro * 0.6)),
         risk_level: lossSaltBoro > 30 ? "MODERATE" : "LOW",
         total_net_profit_bdt: 218000 - (lossSaltBoro * 750),
@@ -410,6 +413,7 @@ export default function CropRotationPage() {
         name: "Integrated Brackish Shrimp - Monsoon Aman Gher",
         strategy_type: "Agro-Aquaculture",
         description: "Controlled seasonal dual-production system: brackish shrimp during dry months followed by rainwater-desalinized monsoon paddy.",
+        cropping_intensity_pct: 200,
         overall_feasibility_score: 78,
         risk_level: "MODERATE",
         total_net_profit_bdt: 435000,
@@ -480,6 +484,7 @@ export default function CropRotationPage() {
         name: "Traditional Boro - Fallow - Local T.Aman",
         strategy_type: "Traditional High-Risk",
         description: "Conventional mono-culture boro rice relying heavily on canal water irrigation, followed by summer fallow and low-yielding local rainfed Aman.",
+        cropping_intensity_pct: 167,
         overall_feasibility_score: Math.max(10, Math.round(100 - lossTradBoro * 0.9)),
         risk_level: lossTradBoro > 50 ? "CRITICAL" : "MODERATE",
         total_net_profit_bdt: Math.round(135000 - lossTradBoro * 1200),
@@ -809,9 +814,9 @@ export default function CropRotationPage() {
       )}
 
       {/* ------------------------------------------------------------- */}
-      {/* 2. REAL-TIME HYDROLOGY & SOIL TELEMETRY CARDS                 */}
+      {/* 2. REAL-TIME HYDROLOGY, INTENSITY & SOIL TELEMETRY CARDS      */}
       {/* ------------------------------------------------------------- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* SWOT Telemetry */}
         <div className="p-4 glass-panel spotlight-card border border-white/10 rounded-2xl flex flex-col justify-between">
           <div className="flex items-center justify-between">
@@ -834,6 +839,31 @@ export default function CropRotationPage() {
           <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px]">
             <span className="text-muted-foreground">Drainage Head:</span>
             <span className="font-mono text-emerald-400 font-medium">Safe for Low-Tide Flush</span>
+          </div>
+        </div>
+
+        {/* Cropping Intensity Index */}
+        <div className="p-4 glass-panel spotlight-card border border-white/10 rounded-2xl flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono text-muted-foreground uppercase">Target Cropping Intensity</span>
+            <div className="w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-bold font-mono text-purple-300">
+                {rotations.find(r => r.id === recommendedId)?.cropping_intensity_pct || 300}%
+              </span>
+              <span className="text-xs text-muted-foreground font-mono">(Triple Crop)</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Khulna Regional Avg: 154%
+            </p>
+          </div>
+          <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px]">
+            <span className="text-muted-foreground">Intensification:</span>
+            <span className="font-mono text-emerald-400 font-medium">+146% Climate-Smart Potential</span>
           </div>
         </div>
 
@@ -1123,7 +1153,7 @@ export default function CropRotationPage() {
                   </p>
 
                   {/* Key Metrics Row */}
-                  <div className="grid grid-cols-3 gap-2 p-3 mt-3 rounded-xl bg-black/30 border border-white/5">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 mt-3 rounded-xl bg-black/30 border border-white/5">
                     <div>
                       <span className="text-[10px] text-muted-foreground uppercase font-mono block">Net Income</span>
                       <span className="text-sm font-bold font-mono text-emerald-400">
@@ -1137,6 +1167,13 @@ export default function CropRotationPage() {
                         {strat.total_water_consumption_m3.toLocaleString()}
                       </span>
                       <span className="text-[9px] text-muted-foreground block">m³ freshwater</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-muted-foreground uppercase font-mono block">Crop Intensity</span>
+                      <span className="text-sm font-bold font-mono text-purple-300">
+                        {strat.cropping_intensity_pct}%
+                      </span>
+                      <span className="text-[9px] text-muted-foreground block">cropping index</span>
                     </div>
                     <div>
                       <span className="text-[10px] text-muted-foreground uppercase font-mono block">Risk Rating</span>
