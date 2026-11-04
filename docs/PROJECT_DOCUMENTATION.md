@@ -1,7 +1,7 @@
-# SWOT Khulna Platform: Comprehensive Technical & Scientific Documentation
+# HydroShift AI Platform: Comprehensive Technical & Scientific Documentation
 
-**Project Name:** SWOT Khulna Hydrological, Estuarine Salinity & Crop Rotation Decision Support Platform  
-**Target Region:** Khulna Division & Southwest Coastal Delta, Bangladesh (Passur-Rupsha-Gorai River Network; Focus on Dacope Upazila Polders 31 & 32, Koyra, and Paikgachha)  
+**Project Name:** HydroShift AI Hydrological, Estuarine Salinity & Crop Rotation Decision Support Platform  
+**Target Region:** Khulna Division & Southwest Coastal Delta, Bangladesh (Passur-Rupsha-Bhairab-Gorai River Network; Focus on Dacope Upazila Polders 31 & 32, Koyra, and Paikgachha)  
 **Primary Technologies:** NASA SWOT Satellite Radar Altimetry (`SWOT_L2_HR_RiverSP_2.0`), PO.DAAC Hydrocron API, NASA POWER Agroclimatology API, Open-Meteo FAO-56 Evapotranspiration API, BWDB/FFWC In-Situ Telemetry, SRDI Coastal Soil Surveys, Fourier Physics-Informed Neural Networks (PINN), Maas-Hoffman Crop Response Models, PyTorch, FastAPI, SQLite / PostGIS, Next.js.  
 **System Classification:** Academic Research Prototype & Climate-Smart Agricultural Decision Support System (DSS). Not certified for life-safety operational flood alerts without in-situ ground sensors.
 
@@ -27,8 +27,8 @@
 10. [Summary Table: Quick Reference](#10-summary-table-quick-reference)
 11. [Independent Technical Audit & Resolution Matrix](#11-independent-technical-audit--resolution-matrix)
 12. [Verification, Test Suite & Build Verification Report](#12-verification-test-suite--build-verification-report)
-    - 12.1 Backend Pytest Execution Summary (44/44 Passed)
-    - 12.2 Frontend Production Next.js Build Report (16/16 Routes Prerendered)
+    - 12.1 Backend Pytest Execution Summary (48/48 Passed)
+    - 12.2 Frontend Production Next.js Build Report (17/17 Routes Prerendered)
     - 12.3 Single-Command System Verification Workflow (scripts/verify_project.py)
 13. [Complete Mathematical & Algorithmic Formulations](#13-complete-mathematical--algorithmic-formulations)
 14. [Local Execution, Benchmark Replication & Operations Guide](#14-local-execution-benchmark-replication--operations-guide)
@@ -45,7 +45,7 @@
 ## 1. What Problem Does It Solve? (Ki Problem Solve)
 
 ### 1.1 The Southwest Bangladesh Hydrological Crisis
-The Khulna coastal belt in southwest Bangladesh is one of the most climate-vulnerable estuarine zones on Earth. The region's hydrology is governed by a delicate, high-stakes equilibrium between **upstream freshwater flush** from the Ganges-Gorai river network and **marine tidal ingress** from the Bay of Bengal through the Passur, Shibsa, and Rupsha river estuaries.
+The Khulna coastal belt in southwest Bangladesh is one of the most climate-vulnerable estuarine zones on Earth. The region's hydrology is governed by a delicate, high-stakes equilibrium between **upstream freshwater flush** from the Ganges-Gorai river network and **marine tidal ingress** from the Bay of Bengal through the Passur, Shibsa, Rupsha, and Bhairab river estuaries of the **Lower Ganges (Padma) Delta** / Ganges tidal plain.
 
 In recent years, this equilibrium has broken down due to three compounding stressors:
 1. **Severe Upstream Freshwater Starvation:** During the pre-monsoon dry season (February to May), upstream discharge through the Gorai River drops precipitously (often decreasing by >50–80% compared to historical medians). With insufficient freshwater head to push against the tides, dense, hyper-saline seawater surges deep inland.
@@ -67,7 +67,7 @@ Conventional water management approaches in Bangladesh suffer from severe struct
 
 ## 2. What is the Proposed Solution? (Solution)
 
-The **SWOT Khulna Platform** is an end-to-end cyber-physical decision-support prototype that unites **NASA's next-generation satellite radar altimetry** with **national ground-truth telemetry**, **agroclimatological APIs**, and **physics-informed artificial intelligence**.
+The **HydroShift AI** platform is an end-to-end cyber-physical decision-support prototype that unites **NASA's next-generation satellite radar altimetry** with **national ground-truth telemetry**, **agroclimatological APIs**, and **physics-informed artificial intelligence**.
 
 ```
   +-------------------------------------+      +-----------------------------------+
@@ -137,7 +137,7 @@ The **SWOT Khulna Platform** is an end-to-end cyber-physical decision-support pr
 
 ## 3. What is the Unique Selling Proposition? (USP)
 
-| Dimension | Conventional Numerical Models (Delft3D / MIKE) | Standard Empirical Models (Plain MLP / Harmonic) | **SWOT Khulna Platform (Our Approach)** |
+| Dimension | Conventional Numerical Models (Delft3D / MIKE) | Standard Empirical Models (Plain MLP / Harmonic) | **HydroShift AI (Our Approach)** |
 | :--- | :--- | :--- | :--- |
 | **Physical Formulation** | High (Rigorous Navier-Stokes solvers) | **None** (Pure empirical data fitting) | **Soft ADE Regularization** (1D transport equation guides gradients and bounds extrapolation) |
 | **Inference Latency** | Very Slow (Hours to days per simulation) | Fast (~10–30 ms) | **Fast (~15–40 ms)** (Suitable for interactive DSS dashboards) |
@@ -430,12 +430,24 @@ In real coastal farming communities, maximum estimated profit is not every farme
 3. **Risk Aversion (`risk_aversion`):** Ranks rotations by overall agronomic feasibility score evaluated against the 95th-percentile salinity bound ($EC_{\text{p95}}$), aggressively penalizing crops susceptible to reproductive-stage salinity failure.
 4. **Balanced Resilience (`balanced`):** The standard competitive setting; combines 60% agronomic feasibility score with 40% normalized net profit return.
 
+### 7.6 Crop Intensity Index
+
+The DSS now displays a **Cropping Intensity (%)** metric alongside Net Income, Water Footprint, and Risk Rating:
+
+| Rotation Strategy | Cropping Intensity | vs. Khulna Average (154%) |
+| :--- | :---: | :--- |
+| Cash Crop Diversified / Salt-Tolerant Rice (triple-crop) | **300%** | +146 pp above regional avg |
+| Agro-Aquaculture (Brackish Shrimp-Aman Gher) | **200%** | +46 pp above regional avg |
+| Traditional Boro-Fallow-Aman | **167%** | +13 pp above regional avg |
+
+A **"Target Cropping Intensity"** telemetry KPI card is displayed in the top metrics bar, comparing the recommended strategy's intensity against the Khulna regional average of **154%**, demonstrating the potential of salinity-adaptive crop calendaring to increase per-hectare productivity.
+
 ---
 
 ## 8. Why Use That Specific Method / Architecture? (Keno Eta Use Kortesi)
 
 ### 8.1 The Mathematical Core: Physics-Informed Neural Network (PINN)
-In an estuarine tidal delta, pure statistical regression hallucinates impossible negative concentrations or discontinuous steps. The SWOT Khulna Platform utilizes a **Physics-Informed Neural Network** regularized by the 1D Advection-Dispersion Equation:
+In an estuarine tidal delta, pure statistical regression hallucinates impossible negative concentrations or discontinuous steps. The HydroShift AI platform utilizes a **Physics-Informed Neural Network** regularized by the 1D Advection-Dispersion Equation:
 
 $$\frac{\partial u}{\partial t} + v \frac{\partial u}{\partial x} - D \frac{\partial^2 u}{\partial x^2} = 0$$
 

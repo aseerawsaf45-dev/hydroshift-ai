@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
 
 # HydroShift AI
 
@@ -24,7 +24,7 @@
 
 - **Crop Rotation Decision Support (DSS):** Evaluates multi-season crop sequences (Sunflower/Mustard $\rightarrow$ Mungbean $\rightarrow$ Short Aman) for coastal polders (Dacope Polders 31 & 32, Koyra, Paikgachha) using FAO 29/56 Maas-Hoffman yield reduction equations.
 - **NASA SWOT Satellite Radar Integration:** Consumes wide-swath Water Surface Elevation (WSE), width, and hydraulic slope ($S_0$) via PO.DAAC Hydrocron API to evaluate polder flap gate gravity drainage ($\Delta h = WSE_{\text{river}} - H_{\text{canal}}$).
-- **Curvilinear Thalweg Sinuosity Projection:** Orthogonal projection onto Passur-Rupsha SWORD centerlines (< 0.05 km cross-track error), resolving Euclidean distance distortions.
+- **Curvilinear Thalweg Sinuosity Projection:** Orthogonal projection onto Passur-Rupsha-Bhairab SWORD centerlines (< 0.05 km cross-track error), resolving Euclidean distance distortions.
 - **Physics-Informed Neural Network (Fourier PINN):** Solves 1D Advection-Dispersion Equation with spatially-varying dispersion $D(x) = D_0 \exp(\alpha(L-x)/L)$ and width-constrained advection velocity $v(x) = v_0 \frac{W_0}{W(x)}$. Spatial holdout extrapolation MAE drops to **4.643 dS/m** on unseen stations ($x=55\text{ km}$), beating Plain MLP (6.124 dS/m) and Persistence (5.828 dS/m).
 - **Pure Ground Truth Isolation:** Explicitly isolates the 48 direct laboratory bench calibration measurements (MAE: 3.252 dS/m, R² = +0.709, 95.8% breach accuracy) from the 1,392 tidal harmonic reconstructions.
 - **Locally-Adaptive (Mondrian) Conformal Calibration:** Group-conditional nonconformity quantiles across physical reach strata contract upstream uncertainty margins by >70% ($q_{95} = 1.00$ vs $8.66$ at seaward boundary) while guaranteeing finite-sample coverage.
@@ -39,6 +39,7 @@
 - **The Solution:** The DSS evaluates, ranks, and recommends climate-resilient 3-season crop sequences:
   $$\text{Rabi (Winter)} \longrightarrow \text{Kharif-I (Pre-Monsoon)} \longrightarrow \text{Kharif-II (Monsoon)}$$
   *(e.g., Salt-tolerant Mustard/Sunflower $\rightarrow$ Mungbean $\rightarrow$ Short-duration T. Aman)*.
+- **Cropping Intensity Metric:** The DSS displays Cropping Intensity (%) as a key metric: triple-crop sequences achieve 300% intensity vs. the 154% Khulna regional average, demonstrating the potential of salinity-adaptive crop calendaring.
 - **Farmer Priority Decision Engine:** Dynamically adapts ranking to 4 distinct farmer objectives:
   - **Profit Maximization:** Maximizes total annual net return ($\text{BDT/ha}$).
   - **Water Conservation:** Minimizes dry-season irrigation water withdrawal ($m^3/\text{ha}$).
@@ -60,6 +61,8 @@ Evaluates gravity drainage and canal intake feasibility across coastal polders (
 - Built with React Leaflet, featuring dedicated vector layers for SWORD river reach nodes, polder boundaries (Dacope 31 & 32), and BWDB river gauging stations.
 - Overlays deep and shallow groundwater salinity contours alongside real-time river reach salinity states.
 - Color-coded reach visualizations indicating salinity safety thresholds: Green ($< 2\text{ dS/m}$, Freshwater), Yellow ($2–4\text{ dS/m}$, Slight Salinity), Orange ($4–8\text{ dS/m}$, Moderate Salinity), and Red ($> 8\text{ dS/m}$, Severe Salinity).
+- Monitors the **Passur, Shibsa, Rupsha, Bhairab, and Gorai-Madhumati** river network across the Lower Ganges (Padma) Delta / Ganges tidal plain.
+- **Bhairab River Monitoring Station (SW62)**: Canonical monitoring station at the Bhairab-Rupsha confluence, tracking freshwater dilution flows from the Ganges distributary network through Khulna city.
 
 ### 4. Salinity Forecasts & Physics-Informed AI (`/app/forecasts`)
 - **Fourier Physics-Informed Neural Network (Fourier PINN):** Solves the 1D Advection-Dispersion Equation (ADE) along the curvilinear river thalweg:
@@ -69,7 +72,7 @@ Evaluates gravity drainage and canal intake feasibility across coastal polders (
 
 ### 5. Hydrodynamic Scenario Stress-Tester (`/app/scenarios`)
 Interactive sensitivity simulation engine enabling planners to stress-test salinity intrusion against climate variables:
-- **Gorai Freshwater Discharge Slider ($-50\%$ to $+50\%$):** Evaluates upstream Ganges-Gorai seasonal flush rates.
+- **Passur-Rupsha-Bhairab Corridor Gorai Freshwater Discharge Slider ($-50\%$ to $+50\%$):** Evaluates upstream Ganges-Gorai seasonal flush rates along the Passur-Rupsha-Bhairab estuarine corridor.
 - **Sea Level Anomaly & Storm Surge ($-0.5\text{m}$ to $+1.5\text{m}$):** Simulates Bay of Bengal tidal surge penetration into coastal estuaries.
 - **Monsoon Arrival Timing:** Stress-tests early vs delayed monsoon onset on dry-season crop harvest safety.
 
@@ -141,13 +144,13 @@ pnpm --filter web dev
 ### 5. Run Verification Tests & Generate Submission Archive
 
 ```bash
-# Single-command full verification (All 5 gates, 44 tests, live audit)
+# Single-command full verification (All 5 gates, 48 tests, live audit)
 python scripts/verify_project.py
 
-# Run pytest backend test suite individually (44 tests passing)
+# Run pytest backend test suite individually (48 tests passing)
 python -m pytest
 
-# Build Next.js frontend (16 routes prerendered)
+# Build Next.js frontend (17 routes prerendered)
 pnpm --filter web build
 
 # Package clean submission archive (swot_khulna_audit_package.zip)

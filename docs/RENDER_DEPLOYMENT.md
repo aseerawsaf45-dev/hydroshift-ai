@@ -1,6 +1,6 @@
-# Deploying SWOT Khulna Platform to Render
+﻿# Deploying HydroShift AI to Render
 
-This guide outlines how to deploy the **SWOT Khulna Platform** to [Render](https://render.com) using the included Infrastructure-as-Code Blueprint (`render.yaml`).
+This guide outlines how to deploy the **HydroShift AI** platform to [Render](https://render.com) using the included Infrastructure-as-Code Blueprint (`render.yaml`).
 
 ---
 

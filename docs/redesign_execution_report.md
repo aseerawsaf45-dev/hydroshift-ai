@@ -88,3 +88,37 @@
   - Git commit `c20b302` pushed to `origin/master` (`https://github.com/aseerawsaf45-dev/swot-khulna.git`).
   - Render blueprint auto-sync triggered for live deployment.
 
+
+---
+
+## 5. Hydrological & Geographic Updates (Commit 5014152)
+
+### Bhairab River Integration
+- Added canonical monitoring station **Bhairab River Confluence (SW62)** to `CANONICAL_KHULNA_STATIONS` in `map-data.ts`:
+  - Coordinates: 22.845°N, 89.560°E
+  - River: Bhairab (major Ganges tidal distributary)
+  - Baseline EC: 1.8 dS/m | WSE: 1.90m PWD | Distance from Bay: 88 km
+- Added `Bhairab River Confluence` station node to the Passur-Rupsha-**Bhairab** simulation thalweg in `scenarios/page.tsx`.
+- Updated `SalinityWedgeProfile.tsx` WASA intake label to: **"Khulna WASA / Bhairab (km 82)"**.
+- Updated `LandingSimulationTeaser.tsx` rightmost axis label to: **"Bhairab-Rupsha WASA (82 km)"**.
+- Added **Bhairab-Rupsha Tidal Fluvial Axis** info card to the landing page delta dynamics section.
+
+### Geographic Recalibration: Lower Ganges Delta
+- Corrected all "Bengal Delta" references to **Lower Ganges (Padma) Delta** / Ganges tidal plain.
+- The Khulna region is accurately described as the western moribund/tidal plain of the **Ganges-Brahmaputra-Meghna (GBM) mega-delta**.
+- Updated `layout.tsx` metadata description, `page.tsx` body text, and `overview/page.tsx` description to reflect the Ganges-origin delta system.
+- Key narrative: the southwest delta's hydrodynamics are defined by the collision between Bay of Bengal marine tidal pulses (via Passur) and Ganges-origin freshwater from the Bhairab, Rupsha, and Gorai-Madhumati distributaries.
+
+### Crop Intensity Metric Added
+- Added `cropping_intensity_pct` field to `RotationStrategy` interface in `crop-rotation/page.tsx`.
+- Values: Triple-crop sequences = **300%**, Agro-Aquaculture = **200%**, Traditional Boro-Fallow = **167%**.
+- Added a 5th **"Target Cropping Intensity"** telemetry KPI card to the top metrics bar, comparing the recommended strategy's intensity against the Khulna regional average of **154%**.
+- Expanded the strategy card Key Metrics Row from 3 to **4 columns** (Net Income / Water Footprint / Crop Intensity / Risk Rating).
+
+### Verification
+| Check | Result |
+|:---|:---|
+| `pnpm --filter web build` | ✅ 17/17 routes, 0 errors |
+| `pytest tests/` | ✅ 48/48 passed |
+| Git commit | `5014152` pushed to `origin/master` |
+| Render auto-deploy | Triggered on GitHub push |
