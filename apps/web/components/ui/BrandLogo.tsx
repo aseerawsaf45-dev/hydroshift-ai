@@ -112,16 +112,16 @@ export function BrandLogo({
   }
 
   return (
-    <div className={cn("flex items-center gap-2.5 group select-none", className)}>
-      <div className="p-1 rounded-xl bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-primary/40 transition-colors shadow-sm">
+    <div className={cn("flex items-center gap-2.5 group select-none btn-tactile cursor-pointer", className)}>
+      <div className="p-1.5 rounded-xl bg-white/5 border border-white/10 group-hover:bg-primary/10 group-hover:border-primary/40 transition-all duration-300 shadow-lg shadow-black/40 group-hover:shadow-primary/20">
         <BrandLogoMark size={size} glow={glow} />
       </div>
       <div className="flex flex-col leading-tight">
         <div className="flex items-center gap-1.5">
-          <span className="font-extrabold tracking-tight text-white text-xs uppercase font-sans">
+          <span className="font-extrabold tracking-tight text-white text-xs uppercase font-sans group-hover:text-primary transition-colors">
             HydroShift
           </span>
-          <span className="px-1.5 py-0.5 rounded bg-primary/20 text-primary font-bold text-[9px] font-mono border border-primary/30 leading-none">
+          <span className="px-1.5 py-0.5 rounded-md bg-primary/20 text-primary font-bold text-[9px] font-mono border border-primary/30 leading-none shadow-sm shadow-primary/20">
             AI
           </span>
         </div>

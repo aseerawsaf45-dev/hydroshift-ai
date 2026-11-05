@@ -106,29 +106,100 @@
    Tactical Glassmorphism & Surface Elevation
    ============================================================================== */
 .glass-panel {
-  background: rgba(13, 27, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(8, 19, 31, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .glass-panel-elevated {
-  background: rgba(18, 37, 56, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.45);
+  background: rgba(11, 25, 42, 0.82);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 24px 60px -12px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.12);
 }
 
 .spotlight-card {
   position: relative;
-  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease;
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .spotlight-card:hover {
-  border-color: rgba(87, 214, 208, 0.35);
-  box-shadow: 0 0 30px -5px rgba(87, 214, 208, 0.15);
+  border-color: rgba(87, 214, 208, 0.4);
+  box-shadow: 
+    0 16px 40px -12px rgba(0, 0, 0, 0.6),
+    0 0 35px -5px rgba(87, 214, 208, 0.22);
+  transform: translateY(-2px);
+}
+
+/* Tactile scale-on-press (Principle 12: scale(0.96) feedback) */
+.btn-tactile {
+  transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease, background 0.2s ease;
+}
+.btn-tactile:active {
+  transform: scale(0.96);
+}
+
+/* Animations for multimillion dollar atmosphere */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(40px, -30px) scale(1.08);
+  }
+}
+
+@keyframes floatReverse {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-35px, 35px) scale(0.94);
+  }
+}
+
+@keyframes pulseGentle {
+  0%, 100% {
+    opacity: 0.14;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.24;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes scanSlow {
+  0% {
+    background-position: 0 -400px;
+  }
+  100% {
+    background-position: 0 100vh;
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 20s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: floatReverse 25s ease-in-out infinite;
+}
+
+.animate-pulse-gentle {
+  animation: pulseGentle 14s ease-in-out infinite;
+}
+
+.animate-scan-slow {
+  animation: scanSlow 12s linear infinite;
 }
 
 /* ==============================================================================

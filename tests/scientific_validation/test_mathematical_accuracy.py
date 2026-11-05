@@ -98,3 +98,4 @@ def test_initial_and_boundary_conditions(fourier_pinn):
     # General physical bounds
     assert (ec_mouth >= 0.0).all() and (ec_mouth <= fourier_pinn.u_max).all(), "Mouth EC out of physical bounds"
     assert (ec_intake >= 0.0).all() and (ec_intake <= fourier_pinn.u_max).all(), "Intake EC out of physical bounds"
+

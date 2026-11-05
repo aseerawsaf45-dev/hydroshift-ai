@@ -68,3 +68,4 @@ def test_fourteen_day_horizon_numerical_stability(trained_eval_pinn):
     # Ensure temporal trajectory remains continuous without unbounded oscillations
     diffs = np.abs(np.diff(predictions))
     assert (diffs < 15.0).all(), "Unphysical discontinuous jump detected across 14-day forecast"
+

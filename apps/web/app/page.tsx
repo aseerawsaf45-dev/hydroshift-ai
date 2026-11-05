@@ -23,12 +23,15 @@ export default function Home() {
       <header className="fixed top-5 inset-x-0 z-50 flex justify-center px-4">
         <nav className="w-full max-w-5xl h-14 rounded-full glass-panel-elevated border border-white/15 px-5 flex items-center justify-between shadow-2xl">
           {/* Brand */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary transition-transform duration-500 group-hover:scale-110">
-              <Waves className="w-4 h-4 text-primary" />
+          <Link href="/" className="flex items-center gap-2.5 group btn-tactile">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary/30 to-sky-400/20 border border-primary/40 flex items-center justify-center text-primary transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_15px_rgba(87,214,208,0.5)]">
+              <Waves className="w-4 h-4 text-primary animate-pulse" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold tracking-tight text-xs uppercase text-white font-mono">HydroShift AI</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold tracking-tight text-xs uppercase text-white font-mono">HydroShift</span>
+                <span className="px-1 py-0.2 rounded bg-primary/20 text-primary font-bold text-[8px] font-mono border border-primary/30">AI</span>
+              </div>
               <span className="text-[9px] text-muted-foreground font-mono">Delta Hydrology Platform</span>
             </div>
           </Link>
@@ -78,30 +81,30 @@ export default function Home() {
         <div className="absolute top-1/3 left-1/3 w-[500px] h-[350px] bg-sky-500/10 rounded-full blur-[160px] pointer-events-none -z-10" />
 
         {/* Status Chip */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-muted-foreground backdrop-blur-md mb-8">
+        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-muted-foreground backdrop-blur-xl mb-8 shadow-inner shadow-white/5 hover:border-primary/40 transition-colors">
           <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-          <span className="font-mono text-white text-[11px]">NASA PO.DAAC & BWDB Synchronized</span>
+          <span className="font-mono text-white text-[11px] tracking-wide font-medium">NASA PO.DAAC & BWDB Synchronized // 60/60 VERIFIED</span>
         </div>
 
         {/* 2-Line Iron Rule H1 */}
-        <h1 className="w-full max-w-5xl text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-[1.1] text-balance">
+        <h1 className="w-full max-w-5xl text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.08] text-balance">
           Surface Water Elevation and Salinity Intelligence for the{" "}
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-cyan-300 to-sky-400">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-cyan-200 to-sky-400 drop-shadow-[0_0_35px_rgba(87,214,208,0.3)]">
             Khulna Delta
           </span>
           .
         </h1>
 
         {/* Subtitle */}
-        <p className="mt-8 text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed font-normal text-balance">
-          Harmonizing NASA SWOT wide-swath Ka-band radar interferometry with BWDB tidal stage telemetry and physics-informed neural networks to forecast saltwater intrusion across southwest Bangladesh.
+        <p className="mt-8 text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed font-normal text-pretty">
+          Harmonizing NASA SWOT wide-swath Ka-band radar interferometry with BWDB tidal stage telemetry and physics-informed neural networks to forecast saltwater intrusion across the Lower Ganges Delta.
         </p>
 
-        {/* High-Contrast CTAs */}
+        {/* High-Contrast CTAs with Tactile Feel */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/app/map"
-            className="px-7 py-3.5 rounded-full bg-primary text-black font-bold text-sm transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30 flex items-center gap-2"
+            className="btn-tactile px-7 py-3.5 rounded-full bg-gradient-to-r from-primary to-cyan-400 text-black font-bold text-sm shadow-xl shadow-primary/25 hover:shadow-primary/40 flex items-center gap-2 border border-primary/50"
           >
             <span>Explore Spatial Studio</span>
             <ArrowUpRight className="w-4 h-4" />
@@ -109,7 +112,7 @@ export default function Home() {
 
           <Link
             href="/app/overview"
-            className="px-7 py-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-sm transition-all duration-300 backdrop-blur-md flex items-center gap-2"
+            className="btn-tactile px-7 py-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-semibold text-sm backdrop-blur-xl flex items-center gap-2 shadow-lg"
           >
             <span>Telemetry Dashboard</span>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />

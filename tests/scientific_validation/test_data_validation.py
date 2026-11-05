@@ -50,3 +50,4 @@ def test_data_provenance_isolation(dataset):
     assert len(direct_samples) == 48, f"Expected exactly 48 direct ground truth samples, got {len(direct_samples)}"
     # Direct samples should have realistic physical range
     assert direct_samples["ec_dsm"].mean() > 1.0, "Direct ground truth mean EC unexpectedly low"
+

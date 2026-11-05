@@ -39,7 +39,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col h-full bg-[#08131f] text-foreground border-r border-white/10">
+    <div className="flex flex-col h-full bg-[#08131f]/90 backdrop-blur-2xl text-foreground border-r border-white/10 shadow-2xl">
       {/* Brand */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-white/10 shrink-0">
         <Link 
@@ -53,7 +53,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         {onClose && (
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors"
+            className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors btn-tactile"
           >
             <X className="w-4 h-4" />
           </button>
@@ -62,7 +62,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
       {/* Real-time Status Badge */}
       <div className="px-4 py-3 border-b border-white/5">
-        <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 text-[11px]">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-white/[0.03] border border-white/5 text-[11px] shadow-inner">
           <span className="flex items-center gap-1.5 text-muted-foreground">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             Live SWOT Pass
@@ -81,13 +81,13 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               key={item.href}
               href={item.href}
               onClick={onClose}
-              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all btn-tactile ${
                 isActive 
-                  ? "bg-primary text-primary-foreground font-semibold shadow-md shadow-primary/20" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  ? "bg-gradient-to-r from-primary to-cyan-400 text-black font-bold shadow-lg shadow-primary/25 border border-primary/50" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/5 hover:border-white/5 border border-transparent"
               }`}
             >
-              <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
+              <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-black scale-105" : "text-muted-foreground"}`} />
               <span className="truncate">{item.name}</span>
             </Link>
           );
@@ -99,7 +99,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         <Link 
           href="/app/settings" 
           onClick={onClose}
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors btn-tactile"
         >
           <Settings className="w-4 h-4" />
           <span>System Settings</span>
