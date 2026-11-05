@@ -85,7 +85,7 @@
   - Engine: Pytest 9.1.1 on Python 3.12 (`.venv`).
   - Result: **48 passed out of 48 tests in 17.76s** (including all security, PINN loss, geospatial thalweg, and crop engine suites).
 - **Deployment**:
-  - Git commit `c20b302` pushed to `origin/master` (`https://github.com/aseerawsaf45-dev/swot-khulna.git`).
+  - Git commit `c20b302` pushed to `origin/master` (`https://github.com/aseerawsaf45-dev/hydroshift-ai.git`).
   - Render blueprint auto-sync triggered for live deployment.
 
 

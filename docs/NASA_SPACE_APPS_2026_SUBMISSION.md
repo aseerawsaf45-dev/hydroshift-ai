@@ -1,9 +1,9 @@
-﻿# NASA Space Apps Challenge 2026: Official Submission Package
+# NASA Space Apps Challenge 2026: Official Submission Package
 ## Project: HydroShift AI — Climate-Adaptive Estuarine Salinity & Crop Rotation Decision Platform
 **Challenge:** Field Shift: Adapting Farms with NASA Data  
 **Location / Focus:** Khulna Division, Southwest Coastal Delta, Bangladesh (Passur-Rupsha-Bhairab-Gorai Estuary, Polders 31 & 32 Dacope)  
 **Track:** Global Climate Adaptation & Food Security  
-**Submission Repository:** [github.com/aseerawsaf45-dev/swot-khulna](https://github.com/aseerawsaf45-dev/swot-khulna)  
+**Submission Repository:** [github.com/aseerawsaf45-dev/hydroshift-ai](https://github.com/aseerawsaf45-dev/hydroshift-ai)  
 **Single-Command Verification:** `python scripts/verify_project.py`
 
 ---
