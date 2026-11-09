@@ -10,6 +10,7 @@ import {
   Area,
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -34,6 +35,13 @@ import {
   Layers,
   MapPin,
   ExternalLink,
+  Info,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Search,
+  Filter,
+  Sparkles,
 } from "lucide-react";
 
 interface ReachResult {
@@ -314,6 +322,9 @@ export default function ScenariosPage() {
 
   // Studio View State
   const [chartTab, setChartTab] = useState<"profile" | "hydrograph" | "matrix">("profile");
+  const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
+  const [tableFilter, setTableFilter] = useState<"all" | "critical" | "warning" | "safe">("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [simData, setSimData] = useState<SimulationData>(() =>
     calculateHydrodynamicSimulation({
@@ -427,16 +438,48 @@ export default function ScenariosPage() {
     setSimData(calculated);
   };
 
-  // Matrix bar chart dataset formatting
+  // Matrix bar chart dataset formatting with dynamic hazard color-coding
   const matrixData = useMemo(() => {
     if (!simData) return [];
-    return simData.reaches.map((r) => ({
-      name: r.name.replace(" (Passur River)", "").replace(" (Khulna Core)", "").replace(" Reach", ""),
-      baseline: r.baseline_ec,
-      simulated: r.simulated_ec,
-      delta: r.delta_ec,
-    }));
-  }, [simData]);
+    return simData.reaches.map((r) => {
+      const isCrit = r.simulated_ec >= 4.0;
+      const isWarn = r.simulated_ec >= 2.5 && r.simulated_ec < 4.0;
+      return {
+        id: r.reach_id,
+        fullName: r.name,
+        name: r.name
+          .replace(" (Passur River)", "")
+          .replace(" (Khulna Core)", "")
+          .replace(" Reach", "")
+          .replace(" (Passur-Rupsha River)", ""),
+        distance_km: r.distance_km,
+        baseline: r.baseline_ec,
+        simulated: r.simulated_ec,
+        delta: r.delta_ec,
+        hazard_level: r.hazard_level,
+        color: isCrit ? "#f43f5e" : isWarn ? "#f59e0b" : "#10b981",
+        isSelected: selectedStationId === r.reach_id,
+      };
+    });
+  }, [simData, selectedStationId]);
+
+  // Filtered reaches for table inspection
+  const filteredReaches = useMemo(() => {
+    if (!simData) return [];
+    return simData.reaches.filter((r) => {
+      const matchesFilter =
+        tableFilter === "all" ||
+        (tableFilter === "critical" && r.hazard_level === "CRITICAL") ||
+        (tableFilter === "warning" && r.hazard_level === "WARNING") ||
+        (tableFilter === "safe" && r.hazard_level === "NOMINAL");
+      const matchesSearch =
+        searchQuery === "" ||
+        r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.reach_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.crop_advisory.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesFilter && matchesSearch;
+    });
+  }, [simData, tableFilter, searchQuery]);
 
   return (
     <div className="flex flex-col space-y-6 pb-12 select-none">
@@ -604,6 +647,67 @@ export default function ScenariosPage() {
         </div>
       )}
 
+      {/* 2.4 SALINITY SCALE REFERENCE CHEAT SHEET */}
+      <div className="p-4 rounded-2xl glass-panel border border-white/10 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <Info className="w-4 h-4 text-primary" />
+            <span className="text-xs font-bold uppercase tracking-wider text-white">
+              Salinity Severity Guide (Electrical Conductivity &bull; dS/m)
+            </span>
+          </div>
+          <span className="text-[11px] text-muted-foreground font-mono">
+            How to read these numbers in real life:
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Level 1: Potable Fresh */}
+          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-2.5">
+            <div className="w-3 h-3 rounded-full bg-emerald-400 mt-0.5 shrink-0 shadow-sm shadow-emerald-400/50" />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-emerald-300 font-mono">&lt; 1.0 dS/m &bull; Potable Fresh</span>
+              <span className="text-[11px] text-foreground/80 mt-0.5">
+                Safe for drinking (Khulna WASA) &amp; all sensitive crops.
+              </span>
+            </div>
+          </div>
+
+          {/* Level 2: Mild Brackish */}
+          <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-start gap-2.5">
+            <div className="w-3 h-3 rounded-full bg-cyan-400 mt-0.5 shrink-0 shadow-sm shadow-cyan-400/50" />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-cyan-300 font-mono">1.0 &ndash; 2.5 dS/m &bull; Mild Brackish</span>
+              <span className="text-[11px] text-foreground/80 mt-0.5">
+                Safe for mustard, sesame, and monsoon T.Aman rice.
+              </span>
+            </div>
+          </div>
+
+          {/* Level 3: Moderate Stress */}
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5">
+            <div className="w-3 h-3 rounded-full bg-amber-400 mt-0.5 shrink-0 shadow-sm shadow-amber-400/50" />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-amber-300 font-mono">2.5 &ndash; 4.0 dS/m &bull; Crop Stress</span>
+              <span className="text-[11px] text-foreground/80 mt-0.5">
+                Yield drops in standard crops. Requires BRRI dhan67/97.
+              </span>
+            </div>
+          </div>
+
+          {/* Level 4: Severe Hazard */}
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-2.5">
+            <div className="w-3 h-3 rounded-full bg-rose-500 mt-0.5 shrink-0 shadow-sm shadow-rose-500/50" />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-rose-300 font-mono">&ge; 4.0 dS/m &bull; Severe Hazard</span>
+              <span className="text-[11px] text-foreground/80 mt-0.5">
+                Causes empty rice spikelets (chita). Close polder sluices.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 2.5 DYNAMIC ESTUARINE SALINITY WEDGE CROSS-SECTION */}
       {simData && (
         <SalinityWedgeProfile
@@ -613,12 +717,14 @@ export default function ScenariosPage() {
           sluiceClosed={sluiceClosed}
           dischargeChange={dischargeChange}
           tidalSurge={tidalSurge}
+          selectedStationId={selectedStationId}
+          onSelectStation={(reach) => setSelectedStationId(reach.reach_id)}
         />
       )}
 
       {/* 3. SIMULATION WORKBENCH (CONTROLS + VISUALIZATION STUDIO) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN: INTERACTIVE CONTROL PANEL (5 cols) */}
+        {/* LEFT COLUMN: INTERACTIVE CONTROL PANEL (4 cols) */}
         <div className="lg:col-span-4 glass-panel p-5 sm:p-6 rounded-3xl shadow-2xl flex flex-col space-y-6 border border-white/10">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
@@ -774,34 +880,37 @@ export default function ScenariosPage() {
             <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl">
               <button
                 onClick={() => setChartTab("profile")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  chartTab === "profile" ? "bg-white/15 text-white" : "text-muted-foreground hover:text-white"
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  chartTab === "profile" ? "bg-white/15 text-white shadow-sm" : "text-muted-foreground hover:text-white"
                 }`}
               >
-                Longitudinal Salinity Profile (x vs C)
+                <Waves className="w-3.5 h-3.5 text-cyan-400" />
+                <span>River Corridor Profile</span>
               </button>
               <button
                 onClick={() => setChartTab("hydrograph")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  chartTab === "hydrograph" ? "bg-white/15 text-white" : "text-muted-foreground hover:text-white"
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  chartTab === "hydrograph" ? "bg-white/15 text-white shadow-sm" : "text-muted-foreground hover:text-white"
                 }`}
               >
-                14-Day Hydrograph Projection
+                <Activity className="w-3.5 h-3.5 text-rose-400" />
+                <span>14-Day Tidal Forecast</span>
               </button>
               <button
                 onClick={() => setChartTab("matrix")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  chartTab === "matrix" ? "bg-white/15 text-white" : "text-muted-foreground hover:text-white"
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  chartTab === "matrix" ? "bg-white/15 text-white shadow-sm" : "text-muted-foreground hover:text-white"
                 }`}
               >
-                Station Differential Matrix
+                <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                <span>Station Comparison</span>
               </button>
             </div>
 
             <div className="flex items-center gap-3 text-xs font-mono">
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-slate-500" />
-                <span className="text-muted-foreground">Baseline</span>
+                <span className="text-muted-foreground">Baseline Flow</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-primary" />
@@ -810,19 +919,22 @@ export default function ScenariosPage() {
             </div>
           </div>
 
-          {/* VIEW 1: LONGITUDINAL SALINITY PROFILE */}
+          {/* VIEW 1: RIVER CORRIDOR PROFILE (DISTANCE VS SALINITY) */}
           {chartTab === "profile" && simData && (
             <div className="w-full flex flex-col space-y-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
-                <span>Longitudinal Distance: Bay of Bengal Mouth (0km) &rarr; Khulna City (85km)</span>
-                <span className="text-amber-400 font-bold">Lethal Boro Threshold: 4.0 dS/m</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-muted-foreground font-mono gap-1">
+                <span>Passur-Rupsha Thalweg: Bay of Bengal (0 km) &rarr; Khulna City (88 km)</span>
+                <span className="text-amber-400 font-bold flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 text-amber-400" />
+                  Crop Danger Threshold: 4.0 dS/m
+                </span>
               </div>
-              <div className="w-full h-80 bg-[#040811]/80 rounded-2xl p-2 border border-white/5 relative overflow-hidden">
+              <div className="w-full h-80 bg-[#040811]/90 rounded-2xl p-2 border border-white/5 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={simData.longitudinal_profile} margin={{ top: 20, right: 30, left: 10, bottom: 10 }}>
                     <defs>
                       <linearGradient id="simSalinityGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#57d6d0" stopOpacity={0.4} />
+                        <stop offset="5%" stopColor="#57d6d0" stopOpacity={0.45} />
                         <stop offset="95%" stopColor="#57d6d0" stopOpacity={0.0} />
                       </linearGradient>
                       <linearGradient id="baseSalinityGradient" x1="0" y1="0" x2="0" y2="1">
@@ -845,26 +957,43 @@ export default function ScenariosPage() {
                       domain={[0, 22]}
                     />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#08131f", borderColor: "rgba(255,255,255,0.15)", borderRadius: "14px", backdropFilter: "blur(12px)" }}
-                      labelFormatter={(label) => `River Reach at ${label} km from Bay`}
-                      formatter={(val: unknown, name?: unknown) => [
-                        `${Number(val).toFixed(2)} dS/m`,
-                        name === "simulated_ec" ? "Simulated Shock" : "Baseline",
-                      ]}
+                      contentStyle={{
+                        backgroundColor: "#08131f",
+                        borderColor: "rgba(255,255,255,0.15)",
+                        borderRadius: "14px",
+                        backdropFilter: "blur(12px)",
+                        fontSize: "12px",
+                      }}
+                      labelFormatter={(label) => {
+                        const pt = simData.longitudinal_profile.find((p) => p.distance_km === Number(label));
+                        return `Distance: ${label} km (${pt?.location_name || "River Reach"})`;
+                      }}
+                      formatter={(val: unknown, name?: unknown) => {
+                        const num = Number(val);
+                        const isSim = name === "simulated_ec";
+                        let statusText = "";
+                        if (isSim) {
+                          if (num >= 4.0) statusText = " (🔴 Severe Hazard for Boro Rice)";
+                          else if (num >= 2.5) statusText = " (🟡 Moderate Stress)";
+                          else if (num >= 1.0) statusText = " (🟡 Brackish - Safe for Aman)";
+                          else statusText = " (🟢 Fresh Drinking Standard)";
+                        }
+                        return [`${num.toFixed(2)} dS/m${statusText}`, isSim ? "Simulated Shock" : "Nominal Baseline"];
+                      }}
                     />
                     {/* Agricultural 4.0 dS/m Threshold */}
                     <ReferenceLine
                       y={4.0}
                       stroke="#f59e0b"
                       strokeDasharray="4 4"
-                      label={{ value: "4.0 dS/m Boro Damage Line", fill: "#f59e0b", fontSize: 10, position: "top" }}
+                      label={{ value: "4.0 dS/m Boro Rice Damage Threshold", fill: "#f59e0b", fontSize: 10, position: "top" }}
                     />
                     {/* Drinking Water 1.0 dS/m Threshold */}
                     <ReferenceLine
                       y={1.0}
                       stroke="#38bdf8"
                       strokeDasharray="4 4"
-                      label={{ value: "1.0 dS/m Drinking Limit", fill: "#38bdf8", fontSize: 10, position: "insideBottomLeft" }}
+                      label={{ value: "1.0 dS/m Potable Drinking Limit", fill: "#38bdf8", fontSize: 10, position: "insideBottomLeft" }}
                     />
                     <Area
                       type="monotone"
@@ -891,27 +1020,32 @@ export default function ScenariosPage() {
             </div>
           )}
 
-          {/* VIEW 2: 14-DAY HYDROGRAPH */}
+          {/* VIEW 2: 14-DAY TIDAL FORECAST */}
           {chartTab === "hydrograph" && simData && (
             <div className="w-full flex flex-col space-y-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
-                <span>Passur Estuary 14-Day Tidal Horizon at Mongla Port (SW244)</span>
-                <span>Tidal Spring-Neap Harmonic Superposition</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-muted-foreground font-mono gap-1">
+                <span>Passur Estuary 14-Day Horizon at Mongla Port (SW244 &bull; 35 km)</span>
+                <span className="text-cyan-400 font-bold">Spring Tide Superposition</span>
               </div>
-              <div className="w-full h-80 bg-black/30 rounded-2xl p-2 border border-white/5">
+              <div className="w-full h-80 bg-[#040811]/90 rounded-2xl p-2 border border-white/5">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={simData.hydrograph_14d} margin={{ top: 20, right: 30, left: 10, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                     <XAxis dataKey="date_str" stroke="#718795" fontSize={11} tickMargin={8} />
                     <YAxis stroke="#718795" fontSize={11} tickFormatter={(val) => `${val} dS/m`} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#08131f", borderColor: "#ffffff20", borderRadius: "12px" }}
+                      contentStyle={{ backgroundColor: "#08131f", borderColor: "rgba(255,255,255,0.15)", borderRadius: "14px", fontSize: "12px" }}
                       formatter={(val: unknown, name?: unknown) => [
                         `${Number(val).toFixed(2)} dS/m`,
-                        name === "simulated_ec" ? "Simulated Peak" : "Baseline",
+                        name === "simulated_ec" ? "Simulated Peak Surge" : "Nominal Baseline",
                       ]}
                     />
-                    <ReferenceLine y={4.0} stroke="#f59e0b" strokeDasharray="4 4" />
+                    <ReferenceLine
+                      y={4.0}
+                      stroke="#f59e0b"
+                      strokeDasharray="4 4"
+                      label={{ value: "4.0 dS/m Crop Damage Line", fill: "#f59e0b", fontSize: 10, position: "top" }}
+                    />
                     <Line
                       type="monotone"
                       dataKey="baseline_ec"
@@ -927,7 +1061,8 @@ export default function ScenariosPage() {
                       name="simulated_ec"
                       stroke="#f43f5e"
                       strokeWidth={3}
-                      dot={{ r: 3, fill: "#f43f5e" }}
+                      dot={{ r: 4, fill: "#f43f5e" }}
+                      activeDot={{ r: 7, fill: "#f43f5e", strokeWidth: 2, stroke: "#ffffff" }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -938,41 +1073,108 @@ export default function ScenariosPage() {
           {/* VIEW 3: REACH DIFFERENTIAL MATRIX */}
           {chartTab === "matrix" && (
             <div className="w-full flex flex-col space-y-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
-                <span>Reach by Reach Salinity Elevation (Baseline vs Shock)</span>
-                <span>Difference (&Delta; dS/m)</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-muted-foreground font-mono gap-1">
+                <span>Color-coded reach salinity: Red (&ge;4 dS/m Hazard) &bull; Amber (Stress) &bull; Green (Safe)</span>
+                <span className="text-primary font-bold">Click bar to select station</span>
               </div>
-              <div className="w-full h-80 bg-black/30 rounded-2xl p-2 border border-white/5">
+              <div className="w-full h-80 bg-[#040811]/90 rounded-2xl p-2 border border-white/5">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={matrixData} margin={{ top: 20, right: 30, left: 10, bottom: 30 }}>
+                  <BarChart data={matrixData} margin={{ top: 20, right: 20, left: 10, bottom: 45 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                     <XAxis
                       dataKey="name"
                       stroke="#718795"
                       fontSize={10}
                       interval={0}
-                      angle={-25}
+                      angle={-30}
                       textAnchor="end"
-                      height={40}
+                      height={45}
                     />
                     <YAxis stroke="#718795" fontSize={11} tickFormatter={(val) => `${val} dS/m`} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#08131f", borderColor: "#ffffff20", borderRadius: "12px" }}
-                      formatter={(val: unknown) => [`${Number(val).toFixed(2)} dS/m`]}
+                      contentStyle={{ backgroundColor: "#08131f", borderColor: "rgba(255,255,255,0.15)", borderRadius: "14px", fontSize: "12px" }}
+                      formatter={(val: unknown, name?: unknown) => [
+                        `${Number(val).toFixed(2)} dS/m`,
+                        name === "simulated" ? "Simulated Shock" : "Baseline",
+                      ]}
                     />
-                    <Bar dataKey="baseline" name="Baseline" fill="#718795" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="simulated" name="Simulated Shock" fill="#57d6d0" radius={[4, 4, 0, 0]} />
+                    <ReferenceLine
+                      y={4.0}
+                      stroke="#f59e0b"
+                      strokeDasharray="4 4"
+                      label={{ value: "4.0 dS/m Threshold", fill: "#f59e0b", fontSize: 9, position: "top" }}
+                    />
+                    <Bar
+                      dataKey="simulated"
+                      name="Simulated Shock"
+                      radius={[6, 6, 0, 0]}
+                      onClick={(data) => {
+                        if (data && data.id) setSelectedStationId(data.id);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      {matrixData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color}
+                          stroke={entry.isSelected ? "#ffffff" : "transparent"}
+                          strokeWidth={entry.isSelected ? 2 : 0}
+                        />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
           )}
 
-          {/* Executive Scenario Narrative */}
+          {/* 3.5 EXECUTIVE SCENARIO TAKEAWAY PANEL */}
           {simData && (
-            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex items-start gap-3 text-xs leading-relaxed">
-              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-white/80 font-mono text-[11px]">{simData.executive_summary}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+              {/* Takeaway 1: Agriculture */}
+              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-between">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Droplets className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span className="text-xs font-bold text-white uppercase font-mono">Boro Rice Impact</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-amber-300">{simData.agricultural_hectares_threatened.toLocaleString()} ha</strong> endangered across Rampal and Dacope. Switch to salt-tolerant BRRI dhan67 or early mustard.
+                </p>
+              </div>
+
+              {/* Takeaway 2: Drinking Water */}
+              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-between">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Activity className="w-4 h-4 text-sky-400 shrink-0" />
+                  <span className="text-xs font-bold text-white uppercase font-mono">Khulna WASA Intake</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Raw intake at Bhairab Confluence is{" "}
+                  <strong className={simData.wasa_intake_threatened ? "text-rose-400 font-bold" : "text-emerald-400 font-bold"}>
+                    {simData.wasa_intake_threatened ? "COMPROMISED (>1.0 dS/m)" : "SAFE (<=1.0 dS/m)"}
+                  </strong>
+                  . {simData.wasa_intake_threatened ? "Activate emergency desalination." : "Standard water treatment sufficient."}
+                </p>
+              </div>
+
+              {/* Takeaway 3: Sluice Gate Action */}
+              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-between">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="text-xs font-bold text-white uppercase font-mono">Sluice Defense</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {sluiceClosed ? (
+                    <span className="text-emerald-300">
+                      <strong>Automated gates closed</strong>: Traps freshwater reserve and shields agricultural canals by up to 32%.
+                    </span>
+                  ) : (
+                    <span className="text-rose-300">
+                      <strong>Sluice gates open</strong>: Tidal salt ingress freely enters intra-polder canals. Locking gates recommended!
+                    </span>
+                  )}
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -981,16 +1183,73 @@ export default function ScenariosPage() {
       {/* 4. COMPREHENSIVE REACH IMPACT MATRIX TABLE */}
       {simData && (
         <div className="glass-panel rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col space-y-4 border border-white/10">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
-            <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-primary" />
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                Reach-by-Reach Vulnerability Assessment ({simData.reaches.length} Stations)
-              </h3>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+                <Layers className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Reach-by-Reach Vulnerability Assessment ({filteredReaches.length} of {simData.reaches.length} Stations)
+                </h3>
+                <p className="text-[11px] text-muted-foreground font-mono">
+                  Direct simulation outcomes for each estuarine monitoring point
+                </p>
+              </div>
             </div>
-            <span className="text-xs text-muted-foreground font-mono">
-              Thresholds: 1.0 dS/m (Drinking) &bull; 4.0 dS/m (Boro Rice Lethal)
-            </span>
+
+            {/* Quick Filters and Search */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 text-xs">
+                <button
+                  onClick={() => setTableFilter("all")}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    tableFilter === "all" ? "bg-white/15 text-white" : "text-muted-foreground hover:text-white"
+                  }`}
+                >
+                  All ({simData.reaches.length})
+                </button>
+                <button
+                  onClick={() => setTableFilter("critical")}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                    tableFilter === "critical" ? "bg-rose-500/20 text-rose-300 border border-rose-500/40" : "text-muted-foreground hover:text-rose-300"
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  <span>Hazard ({simData.reaches.filter((r) => r.hazard_level === "CRITICAL").length})</span>
+                </button>
+                <button
+                  onClick={() => setTableFilter("warning")}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                    tableFilter === "warning" ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "text-muted-foreground hover:text-amber-300"
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span>Warning ({simData.reaches.filter((r) => r.hazard_level === "WARNING").length})</span>
+                </button>
+                <button
+                  onClick={() => setTableFilter("safe")}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                    tableFilter === "safe" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "text-muted-foreground hover:text-emerald-300"
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span>Safe ({simData.reaches.filter((r) => r.hazard_level === "NOMINAL").length})</span>
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Filter station..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-xs text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary w-40 sm:w-48"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="overflow-x-auto scrollbar-thin">
@@ -1000,7 +1259,7 @@ export default function ScenariosPage() {
                   <th className="py-2.5 px-3">Reach / Monitoring Station</th>
                   <th className="py-2.5 px-3">Distance</th>
                   <th className="py-2.5 px-3">Baseline</th>
-                  <th className="py-2.5 px-3">Simulated Shock</th>
+                  <th className="py-2.5 px-3">Simulated Salinity</th>
                   <th className="py-2.5 px-3">&Delta; Increase</th>
                   <th className="py-2.5 px-3">Hazard Status</th>
                   <th className="py-2.5 px-3">Agricultural / Polder Advisory</th>
@@ -1008,15 +1267,25 @@ export default function ScenariosPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 font-mono">
-                {simData.reaches.map((r) => {
+                {filteredReaches.map((r) => {
                   const isCrit = r.hazard_level === "CRITICAL";
                   const isWarn = r.hazard_level === "WARNING";
+                  const isSelected = selectedStationId === r.reach_id;
 
                   return (
-                    <tr key={r.reach_id} className="hover:bg-white/5 transition-colors">
+                    <tr
+                      key={r.reach_id}
+                      onClick={() => setSelectedStationId(r.reach_id)}
+                      className={`cursor-pointer transition-colors ${
+                        isSelected ? "bg-white/10 border-l-2 border-primary" : "hover:bg-white/5"
+                      }`}
+                    >
                       <td className="py-3 px-3 font-semibold text-white flex items-center gap-2 font-sans">
-                        <MapPin className="w-3 h-3 text-primary shrink-0" />
-                        <span>{r.name}</span>
+                        <MapPin className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                        <div>
+                          <span>{r.name}</span>
+                          <span className="block text-[10px] text-muted-foreground font-mono">{r.reach_id}</span>
+                        </div>
                       </td>
                       <td className="py-3 px-3 text-muted-foreground font-mono text-[11px]">
                         {r.distance_km.toFixed(1)} km
@@ -1024,12 +1293,25 @@ export default function ScenariosPage() {
                       <td className="py-3 px-3 text-muted-foreground font-mono">
                         {r.baseline_ec.toFixed(1)} dS/m
                       </td>
-                      <td
-                        className={`py-3 px-3 font-bold font-mono text-sm ${
-                          isCrit ? "text-rose-400" : isWarn ? "text-amber-400" : "text-emerald-400"
-                        }`}
-                      >
-                        {r.simulated_ec.toFixed(1)} dS/m
+                      <td className="py-3 px-3 font-mono">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`font-bold text-sm ${
+                              isCrit ? "text-rose-400" : isWarn ? "text-amber-400" : "text-emerald-400"
+                            }`}
+                          >
+                            {r.simulated_ec.toFixed(1)} dS/m
+                          </span>
+                          {/* Mini visual salinity meter bar */}
+                          <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden hidden sm:block">
+                            <div
+                              className={`h-full rounded-full ${
+                                isCrit ? "bg-rose-500" : isWarn ? "bg-amber-400" : "bg-emerald-400"
+                              }`}
+                              style={{ width: `${Math.min(100, (r.simulated_ec / 15.0) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
                       </td>
                       <td
                         className={`py-3 px-3 font-semibold font-mono text-xs ${
@@ -1040,7 +1322,7 @@ export default function ScenariosPage() {
                       </td>
                       <td className="py-3 px-3">
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${
                             isCrit
                               ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
                               : isWarn
@@ -1048,10 +1330,15 @@ export default function ScenariosPage() {
                               : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
                           }`}
                         >
-                          {r.hazard_level}
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              isCrit ? "bg-rose-400" : isWarn ? "bg-amber-400" : "bg-emerald-400"
+                            }`}
+                          />
+                          <span>{r.hazard_level}</span>
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-[11px] text-muted-foreground font-sans max-w-md">
+                      <td className="py-3 px-3 text-[11px] text-muted-foreground font-sans max-w-md leading-relaxed">
                         {r.crop_advisory}
                       </td>
                       <td className="py-3 px-3 text-right">

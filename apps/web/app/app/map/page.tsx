@@ -12,6 +12,7 @@ import {
   CANONICAL_KHULNA_FORECASTS,
   PolderPolygon,
   KhulnaRegion,
+  KHULNA_UPAZILA_REGIONS,
   HydrologicDomain,
   convertPptToEc,
 } from "@/components/map-data";
@@ -53,10 +54,10 @@ const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
 const HOTSPOTS = [
   { name: "Khulna WASA Intake (P-14)", siteId: "khulna-p14", coords: [22.825, 89.575] as [number, number], desc: "Urban Water Extraction & SW241 Rupsha Bridge", risk: "4.6 dS/m" },
   { name: "Mongla Seaport (SW244)", siteId: "SW244", coords: [22.464, 89.600] as [number, number], desc: "Hyper-Saline Passur Marine Surge Corridor", risk: "7.9 dS/m" },
-  { name: "Dacope (Polder 31 & 32)", siteId: "dacope", coords: [22.560, 89.550] as [number, number], desc: "Vulnerable Boro Embankment & Flap Sluice Gates", risk: "8.8 dS/m" },
-  { name: "Batiaghata (Polder 30)", siteId: "batiaghata", coords: [22.710, 89.540] as [number, number], desc: "Alutala 10-Vent Sluice & Agricultural Buffer", risk: "4.1 dS/m" },
-  { name: "Paikgachha (Western Shibsa)", siteId: "paikgachha", coords: [22.580, 89.330] as [number, number], desc: "Western Delta Shrimp Gher & Salinity Barrier", risk: "6.9 dS/m" },
-  { name: "Koyra (Sundarbans Fringe)", siteId: "koyra", coords: [22.340, 89.340] as [number, number], desc: "Southern Marine Front & Severe Soil Salinity", risk: "12.4 dS/m" },
+  { name: "Dacope (Polder 31 & 32)", siteId: "chalna-gauge", regionId: "dacope", coords: [22.560, 89.550] as [number, number], desc: "Vulnerable Boro Embankment & Flap Sluice Gates", risk: "8.8 dS/m" },
+  { name: "Batiaghata (Polder 30)", siteId: "batiaghata-polder", regionId: "batiaghata", coords: [22.710, 89.540] as [number, number], desc: "Alutala 10-Vent Sluice & Agricultural Buffer", risk: "4.1 dS/m" },
+  { name: "Paikgachha (Western Shibsa)", siteId: "paikgachha-station", regionId: "paikgachha", coords: [22.580, 89.330] as [number, number], desc: "Western Delta Shrimp Gher & Salinity Barrier", risk: "6.9 dS/m" },
+  { name: "Koyra (Sundarbans Fringe)", siteId: "sundarbans-gate", regionId: "koyra", coords: [22.340, 89.340] as [number, number], desc: "Southern Marine Front & Severe Soil Salinity", risk: "12.4 dS/m" },
 ];
 
 export default function MapExplorerPage() {
@@ -702,13 +703,22 @@ export default function MapExplorerPage() {
           {/* Quick Hotspot Focus Pills */}
           <div className="flex items-center gap-1 overflow-x-auto py-0.5">
             <span className="text-[10px] font-mono text-muted-foreground hidden lg:inline">Focus:</span>
-            {HOTSPOTS.slice(0, 4).map((h) => (
+            {HOTSPOTS.map((h) => (
               <button
-                key={h.siteId}
+                key={h.name}
                 onClick={() => {
                   setFlyToCoords(h.coords);
-                  const found = allSites.find((s) => s.id === h.siteId);
-                  if (found) handleSelectSite(found);
+                  const foundSite = allSites.find((s) => s.id === h.siteId);
+                  if (foundSite) {
+                    handleSelectSite(foundSite);
+                  } else if ("regionId" in h && h.regionId) {
+                    const foundReg = KHULNA_UPAZILA_REGIONS.find((r) => r.id === h.regionId);
+                    if (foundReg) {
+                      setSelectedRegion(foundReg);
+                      setSelectedSite(null);
+                      setSelectedPolder(null);
+                    }
+                  }
                 }}
                 className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-mono text-white/80 hover:text-white transition-colors shrink-0 cursor-pointer"
               >

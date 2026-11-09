@@ -36,6 +36,8 @@ interface MapToolbarProps {
   onToggleStations: () => void;
   showLabels: boolean;
   onToggleLabels: () => void;
+  showBangladesh?: boolean;
+  onToggleBangladesh?: () => void;
   activeVariable: string;
   onSelectVariable: (v: string) => void;
   isAcademic: boolean;
@@ -63,6 +65,8 @@ export function MapToolbar({
   onToggleStations,
   showLabels,
   onToggleLabels,
+  showBangladesh = true,
+  onToggleBangladesh,
   activeVariable,
   onSelectVariable,
   isAcademic,
@@ -230,6 +234,18 @@ export function MapToolbar({
                 />
                 <span>Khulna District Boundary</span>
               </label>
+
+              {onToggleBangladesh && (
+                <label className="flex items-center gap-2 cursor-pointer hover:text-sky-500">
+                  <input
+                    type="checkbox"
+                    checked={showBangladesh}
+                    onChange={onToggleBangladesh}
+                    className="rounded text-sky-600 focus:ring-0 cursor-pointer"
+                  />
+                  <span>National Bangladesh Map Context</span>
+                </label>
+              )}
 
               {isRasterMode && onToggleRaster && (
                 <label className="flex items-center gap-2 cursor-pointer hover:text-sky-500">

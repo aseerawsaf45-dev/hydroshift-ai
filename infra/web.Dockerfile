@@ -18,6 +18,6 @@ EXPOSE 3000
 
 RUN pnpm --filter web build
 
-RUN chmod +x /app/scripts/start_web.sh
+RUN chmod +x /app/scripts/start_web.sh && sed -i 's/\r$//' /app/scripts/start_web.sh
 
 CMD ["/app/scripts/start_web.sh"]

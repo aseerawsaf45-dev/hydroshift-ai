@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
 import {
   LayoutDashboard,
   Map,
@@ -18,94 +18,153 @@ import {
   Radio,
   Waves,
   Sprout,
+  BookOpen,
 } from "lucide-react";
+import { BrandLogo } from "@/components/ui/BrandLogo";
+import { QuickGuideModal } from "@/components/ui/QuickGuideModal";
 
-export const navItems = [
-  { name: "Overview", href: "/app/overview", icon: LayoutDashboard },
-  { name: "Map Explorer", href: "/app/map", icon: Map },
-  { name: "Crop Rotation DSS", href: "/app/crop-rotation", icon: Sprout },
-  { name: "Forecasts", href: "/app/forecasts", icon: LineChart },
-  { name: "Experiments", href: "/app/experiments/new", icon: FlaskConical },
-  { name: "Scenarios", href: "/app/scenarios", icon: GitCompare },
-  { name: "Data Hub", href: "/app/data", icon: Database },
-  { name: "Models & Validation", href: "/app/models", icon: BrainCircuit },
-  { name: "Alerts", href: "/app/alerts", icon: Bell },
-  { name: "Reports", href: "/app/reports", icon: FileText },
+export const navSections = [
+  {
+    title: "Monitoring & Maps",
+    items: [
+      { name: "Overview", href: "/app/overview", icon: LayoutDashboard },
+      { name: "Map Explorer", href: "/app/map", icon: Map, badge: "GIS" },
+      { name: "Data Hub", href: "/app/data", icon: Database },
+    ],
+  },
+  {
+    title: "Decision Tools",
+    items: [
+      { name: "Crop Rotation DSS", href: "/app/crop-rotation", icon: Sprout, badge: "DSS" },
+      { name: "Scenarios Studio", href: "/app/scenarios", icon: GitCompare, badge: "Sim" },
+      { name: "14D Forecasts", href: "/app/forecasts", icon: LineChart },
+    ],
+  },
+  {
+    title: "Science & AI Models",
+    items: [
+      { name: "Models & Benchmark", href: "/app/models", icon: BrainCircuit, badge: "NASA" },
+      { name: "Experiments", href: "/app/experiments/new", icon: FlaskConical },
+      { name: "Hazard Alerts", href: "/app/alerts", icon: Bell },
+      { name: "Reports", href: "/app/reports", icon: FileText },
+    ],
+  },
 ];
 
-import { BrandLogo } from "@/components/ui/BrandLogo";
+// Flat export for backwards compatibility
+export const navItems = navSections.flatMap((s) => s.items);
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-full bg-[#08131f]/90 backdrop-blur-2xl text-foreground border-r border-white/10 shadow-2xl">
-      {/* Brand */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-white/10 shrink-0">
-        <Link 
-          href="/" 
-          onClick={onClose}
-          className="flex items-center transition-opacity hover:opacity-95"
-        >
-          <BrandLogo size="sm" variant="lockup" />
-        </Link>
-
-        {onClose && (
-          <button
+    <>
+      <div className="flex flex-col h-full bg-[#08131f]/90 backdrop-blur-2xl text-foreground border-r border-white/10 shadow-2xl">
+        {/* Brand */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-white/10 shrink-0">
+          <Link 
+            href="/" 
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors btn-tactile"
+            className="flex items-center transition-opacity hover:opacity-95"
           >
-            <X className="w-4 h-4" />
-          </button>
-        )}
-      </div>
+            <BrandLogo size="sm" variant="lockup" />
+          </Link>
 
-      {/* Real-time Status Badge */}
-      <div className="px-4 py-3 border-b border-white/5">
-        <div className="flex items-center justify-between p-2 rounded-xl bg-white/[0.03] border border-white/5 text-[11px] shadow-inner">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Live SWOT Pass
-          </span>
-          <span className="font-mono text-emerald-400 font-semibold">SW241-244</span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors btn-tactile"
+              aria-label="Close Sidebar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Real-time Status Badge */}
+        <div className="px-3 py-2.5 border-b border-white/5">
+          <div className="flex items-center justify-between p-2 rounded-xl bg-white/[0.03] border border-white/5 text-[11px] shadow-inner">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Live SWOT Pass
+            </span>
+            <span className="font-mono text-emerald-400 font-semibold">SW241-244</span>
+          </div>
+        </div>
+
+        {/* Nav Sections */}
+        <nav className="flex-1 overflow-y-auto py-2.5 px-3 space-y-4 scrollbar-thin">
+          {navSections.map((section, sIdx) => (
+            <div key={sIdx} className="space-y-1">
+              <div className="px-2.5 py-1 text-[10px] font-mono uppercase font-bold tracking-wider text-muted-foreground/70">
+                {section.title}
+              </div>
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href || (item.href !== "/app/overview" && pathname.startsWith(item.href + "/"));
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onClose}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all btn-tactile ${
+                        isActive 
+                          ? "bg-gradient-to-r from-primary to-cyan-400 text-black font-bold shadow-lg shadow-primary/25 border border-primary/50" 
+                          : "text-muted-foreground hover:text-foreground hover:bg-white/5 hover:border-white/5 border border-transparent"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-black scale-105" : "text-muted-foreground"}`} />
+                        <span className="truncate">{item.name}</span>
+                      </div>
+                      {item.badge && (
+                        <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded-full border ${
+                          isActive 
+                            ? "bg-black/20 text-black border-black/30 font-bold" 
+                            : "bg-white/5 text-muted-foreground border-white/10"
+                        }`}>
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        {/* Quick Plain English Guide Card & Settings */}
+        <div className="p-3 border-t border-white/10 shrink-0 space-y-1.5 bg-black/20">
+          <button
+            onClick={() => {
+              if (onClose) onClose();
+              setGuideOpen(true);
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all text-left"
+          >
+            <BookOpen className="w-4 h-4 shrink-0" />
+            <div className="flex flex-col">
+              <span className="leading-tight">Plain-English Guide</span>
+              <span className="text-[10px] text-muted-foreground font-normal">Salinity, Polders &amp; Help</span>
+            </div>
+          </button>
+
+          <Link 
+            href="/app/overview" 
+            onClick={onClose}
+            className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            <span>Telemetry Dashboard</span>
+          </Link>
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-1 scrollbar-thin">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href || (item.href !== "/app/overview" && pathname.startsWith(item.href + "/"));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all btn-tactile ${
-                isActive 
-                  ? "bg-gradient-to-r from-primary to-cyan-400 text-black font-bold shadow-lg shadow-primary/25 border border-primary/50" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5 hover:border-white/5 border border-transparent"
-              }`}
-            >
-              <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-black scale-105" : "text-muted-foreground"}`} />
-              <span className="truncate">{item.name}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Settings / Footer */}
-      <div className="p-3 border-t border-white/10 shrink-0">
-        <Link 
-          href="/app/settings" 
-          onClick={onClose}
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors btn-tactile"
-        >
-          <Settings className="w-4 h-4" />
-          <span>System Settings</span>
-        </Link>
-      </div>
-    </div>
+      <QuickGuideModal isOpen={guideOpen} onClose={() => setGuideOpen(false)} />
+    </>
   );
 }
 

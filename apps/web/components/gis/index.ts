@@ -3,6 +3,7 @@ export * from "./SalinityRasterLayer";
 export * from "./StudyAreaLayer";
 export * from "./SalinityChoroplethLayer";
 export * from "./RiverLayer";
+export * from "./PolderLayer";
 export * from "./ObservationLayer";
 export * from "./MapLegend";
 export * from "./FeatureInspector";

@@ -5,6 +5,7 @@ import { Polygon, Polyline, Marker } from "react-leaflet";
 import L from "leaflet";
 import {
   BANGLADESH_NATIONAL_POLYGONS,
+  SUNDARBANS_MANGROVE_POLYGON,
   BANGLADESH_LANDMARKS,
   BANGLADESH_MAJOR_RIVERS,
 } from "../gis-bangladesh-data";
@@ -25,6 +26,9 @@ export function BangladeshBackgroundLayer({
   const fillColor = isAcademic ? "#cbd5e1" : "#1e293b";
   const strokeColor = isAcademic ? "#94a3b8" : "#475569";
   const riverColor = isAcademic ? "#93c5fd" : "#0284c7";
+
+  const mangroveFill = isAcademic ? "#a7f3d0" : "#064e3b";
+  const mangroveStroke = isAcademic ? "#059669" : "#10b981";
 
   return (
     <React.Fragment>
@@ -48,30 +52,57 @@ export function BangladeshBackgroundLayer({
         />
       ))}
 
-      {/* 2. Major National River Axes (Padma, Jamuna, Meghna, Gorai Branch) */}
-      {BANGLADESH_MAJOR_RIVERS.map((river) => (
-        <Polyline
-          key={`bd-river-${river.id}`}
-          positions={river.coords}
-          pane="bangladeshPane"
-          pathOptions={{
-            color: riverColor,
-            weight: river.id === "gorai-conveyance" ? 2.0 : 1.4,
-            opacity: river.id === "gorai-conveyance" ? opacity * 2.2 : opacity * 1.5,
-            dashArray: river.id === "gorai-conveyance" ? "4, 4" : "5, 7",
-            lineCap: "round",
-          }}
-          interactive={false}
-        />
-      ))}
+      {/* 1.5 Sundarbans Coastal Mangrove Biosphere Buffer (Connecting Khulna to Bay of Bengal) */}
+      <Polygon
+        positions={SUNDARBANS_MANGROVE_POLYGON}
+        pane="bangladeshPane"
+        pathOptions={{
+          fillColor: mangroveFill,
+          fillOpacity: opacity * 0.85,
+          color: mangroveStroke,
+          weight: 1.4,
+          opacity: opacity * 2.0,
+          dashArray: "4, 4",
+          lineCap: "round",
+          lineJoin: "round",
+        }}
+        interactive={false}
+      />
 
-      {/* 3. Subtle Geographic Reference Landmarks (Dhaka, Kushtia, Barisal, Bay of Bengal) */}
+      {/* 2. Major National River Axes & Estuarine Tidal Marine Corridors */}
+      {BANGLADESH_MAJOR_RIVERS.map((river) => {
+        const isMarineCorridor = river.id.includes("corridor");
+        const isGorai = river.id === "gorai-conveyance";
+        return (
+          <Polyline
+            key={`bd-river-${river.id}`}
+            positions={river.coords}
+            pane="bangladeshPane"
+            pathOptions={{
+              color: isMarineCorridor ? (isAcademic ? "#0284c7" : "#38bdf8") : riverColor,
+              weight: isMarineCorridor ? 2.5 : isGorai ? 2.0 : 1.4,
+              opacity: isMarineCorridor ? opacity * 2.8 : isGorai ? opacity * 2.2 : opacity * 1.5,
+              dashArray: isMarineCorridor ? undefined : isGorai ? "4, 4" : "5, 7",
+              lineCap: "round",
+            }}
+            interactive={false}
+          />
+        );
+      })}
+
+      {/* 3. Subtle Geographic Reference Landmarks */}
       {BANGLADESH_LANDMARKS.map((landmark) => {
         const isCountry = landmark.type === "country";
         const isWater = landmark.type === "waterbody";
+        const isKhulnaFocus = landmark.name.includes("Khulna (Study Focus)");
+        const isMongla = landmark.name.includes("Mongla Port");
         const isGorai = landmark.name.includes("Gorai");
 
-        const textColor = isCountry
+        const textColor = isKhulnaFocus
+          ? "#10b981"
+          : isMongla
+          ? "#38bdf8"
+          : isCountry
           ? isAcademic
             ? "#64748b"
             : "#94a3b8"
@@ -87,8 +118,8 @@ export function BangladeshBackgroundLayer({
           ? "#475569"
           : "#94a3b8";
 
-        const fontSize = isCountry ? "14px" : isWater ? "11px" : isGorai ? "9.5px" : "9px";
-        const letterSpacing = isCountry ? "0.25em" : "0.05em";
+        const fontSize = isCountry ? "14px" : isKhulnaFocus ? "11px" : isWater ? "11px" : isGorai ? "9.5px" : "9px";
+        const letterSpacing = isCountry ? "0.25em" : isKhulnaFocus ? "0.08em" : "0.05em";
 
         return (
           <Marker
@@ -101,14 +132,15 @@ export function BangladeshBackgroundLayer({
                 <div style="
                   display: flex;
                   align-items: center;
+                  justify-content: center;
                   gap: 3px;
                   font-family: Georgia, 'Times New Roman', serif;
                   font-style: ${isWater || isCountry ? "italic" : "normal"};
                   font-size: ${fontSize};
-                  font-weight: ${isCountry || isGorai ? "700" : "600"};
+                  font-weight: ${isCountry || isGorai || isKhulnaFocus ? "700" : "600"};
                   letter-spacing: ${letterSpacing};
                   color: ${textColor};
-                  opacity: ${isCountry ? 0.38 : isGorai ? 0.75 : 0.45};
+                  opacity: ${isCountry ? 0.38 : isKhulnaFocus ? 0.95 : isMongla ? 0.85 : isGorai ? 0.75 : 0.45};
                   white-space: nowrap;
                   text-shadow: ${
                     isAcademic
@@ -116,18 +148,23 @@ export function BangladeshBackgroundLayer({
                       : "0 0 4px #000000, 0 0 8px #000000"
                   };
                   pointer-events: none;
-                  transform: translate(-50%, -50%);
+                  ${isKhulnaFocus ? "background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 9999px; border: 1px solid rgba(16, 185, 129, 0.4);" : ""}
                 ">
                   ${
-                    !isCountry && !isWater
+                    !isCountry && !isWater && !isKhulnaFocus
                       ? `<span style="width: 3.5px; height: 3.5px; border-radius: 9999px; background: currentColor; opacity: 0.6;"></span>`
+                      : ""
+                  }
+                  ${
+                    isKhulnaFocus
+                      ? `<span style="width: 6px; height: 6px; border-radius: 9999px; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>`
                       : ""
                   }
                   <span>${landmark.name}</span>
                 </div>
               `,
-              iconSize: [120, 20],
-              iconAnchor: [60, 10],
+              iconSize: [140, 24],
+              iconAnchor: [70, 12],
             })}
             interactive={false}
           />

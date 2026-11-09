@@ -103,27 +103,521 @@ interface RegionSoilWaterProfile {
 }
 
 const REGION_OPTIONS = [
-  { id: "dacope-polder-31", label: "Dacope - Polder 31 (Bajua / Pankhali)" },
-  { id: "dacope-polder-32", label: "Dacope - Polder 32 (Kamarkhola / Sutarkhali)" },
-  { id: "koyra-polder-14", label: "Koyra - Polder 14/1 (Maharajpur / Amadi)" },
-  { id: "paikgachha-polder-22", label: "Paikgachha - Polder 22 (Gadaipur)" },
+  { id: "dacope-polder-31", label: "Dacope - Polder 31 (Bajua / Pankhali)", defaultSoilEc: 6.8, defaultCanalEc: 3.8 },
+  { id: "dacope-polder-32", label: "Dacope - Polder 32 (Kamarkhola / Sutarkhali)", defaultSoilEc: 8.2, defaultCanalEc: 5.2 },
+  { id: "koyra-polder-14", label: "Koyra - Polder 14/1 (Maharajpur / Amadi)", defaultSoilEc: 9.5, defaultCanalEc: 6.1 },
+  { id: "paikgachha-polder-22", label: "Paikgachha - Polder 22 (Gadaipur)", defaultSoilEc: 5.1, defaultCanalEc: 2.9 },
 ];
+
+const CANONICAL_REGIONS: Record<string, RegionSoilWaterProfile> = {
+  "dacope-polder-31": {
+    region_id: "dacope-polder-31",
+    upazila: "Dacope (দাকোপ)",
+    district: "Khulna (খুলনা)",
+    polder: "Polder 31 (Bajua / Pankhali)",
+    coordinates: { lat: 22.572, lon: 89.512 },
+    swot_reach_id: "31241000011",
+    swot_reach_name: "Passur River Reach at Dacope/Chalna",
+    current_wse_pwd: 1.84,
+    river_width_m: 485.0,
+    hydraulic_slope: 0.000019,
+    canal_ec_dsm: 3.8,
+    soil_texture: "Silty Clay",
+    soil_series: "Barisal / Jhalokati",
+    soil_ph: 7.6,
+    organic_matter_pct: 1.45,
+    current_soil_ec_dsm: 6.8,
+    monthly_soil_ec: {
+      Jan: 6.5, Feb: 8.9, Mar: 12.8, Apr: 15.6,
+      May: 11.4, Jun: 4.5, Jul: 2.1, Aug: 1.6,
+      Sep: 1.8, Oct: 2.4, Nov: 3.2, Dec: 4.8
+    },
+    monthly_river_ec: {
+      Jan: 5.4, Feb: 9.2, Mar: 16.5, Apr: 22.4,
+      May: 18.0, Jun: 6.8, Jul: 1.8, Aug: 0.9,
+      Sep: 1.1, Oct: 1.6, Nov: 2.5, Dec: 3.7
+    },
+    drainage_capacity: "Adequate under low tide; vulnerable to monsoon backwater when SWOT WSE > 2.4m PWD"
+  },
+  "dacope-polder-32": {
+    region_id: "dacope-polder-32",
+    upazila: "Dacope (দাকোপ)",
+    district: "Khulna (খুলনা)",
+    polder: "Polder 32 (Kamarkhola / Sutarkhali)",
+    coordinates: { lat: 22.495, lon: 89.488 },
+    swot_reach_id: "31241000011",
+    swot_reach_name: "Passur / Shibsa River Estuary",
+    current_wse_pwd: 1.92,
+    river_width_m: 560.0,
+    hydraulic_slope: 0.000021,
+    canal_ec_dsm: 5.2,
+    soil_texture: "Clay Loam",
+    soil_series: "Dumuria / Barisal",
+    soil_ph: 7.9,
+    organic_matter_pct: 1.28,
+    current_soil_ec_dsm: 8.2,
+    monthly_soil_ec: {
+      Jan: 7.4, Feb: 10.5, Mar: 14.5, Apr: 17.8,
+      May: 13.2, Jun: 5.2, Jul: 2.4, Aug: 1.9,
+      Sep: 2.0, Oct: 2.8, Nov: 3.8, Dec: 5.6
+    },
+    monthly_river_ec: {
+      Jan: 6.8, Feb: 11.5, Mar: 19.8, Apr: 25.0,
+      May: 21.0, Jun: 8.5, Jul: 2.4, Aug: 1.2,
+      Sep: 1.4, Oct: 2.1, Nov: 3.4, Dec: 4.9
+    },
+    drainage_capacity: "Constrained; high siltation in internal khal outfalls requiring pump assistance"
+  },
+  "koyra-polder-14": {
+    region_id: "koyra-polder-14",
+    upazila: "Koyra (কয়রা)",
+    district: "Khulna (খুলনা)",
+    polder: "Polder 14/1 (Maharajpur / Amadi)",
+    coordinates: { lat: 22.341, lon: 89.302 },
+    swot_reach_id: "31241000021",
+    swot_reach_name: "Kobadak / Shakbaria River Reach",
+    current_wse_pwd: 1.75,
+    river_width_m: 420.0,
+    hydraulic_slope: 0.000018,
+    canal_ec_dsm: 6.1,
+    soil_texture: "Silty Clay Loam",
+    soil_series: "Patuakhali / Barisal",
+    soil_ph: 8.1,
+    organic_matter_pct: 1.15,
+    current_soil_ec_dsm: 9.5,
+    monthly_soil_ec: {
+      Jan: 8.1, Feb: 11.2, Mar: 15.8, Apr: 19.2,
+      May: 14.5, Jun: 6.0, Jul: 2.8, Aug: 2.1,
+      Sep: 2.3, Oct: 3.1, Nov: 4.5, Dec: 6.2
+    },
+    monthly_river_ec: {
+      Jan: 8.5, Feb: 13.8, Mar: 22.0, Apr: 28.5,
+      May: 24.0, Jun: 10.2, Jul: 3.1, Aug: 1.5,
+      Sep: 1.8, Oct: 2.6, Nov: 4.2, Dec: 6.0
+    },
+    drainage_capacity: "Moderate; river embankment breach history during Cyclone Aila and Amphan"
+  },
+  "paikgachha-polder-22": {
+    region_id: "paikgachha-polder-22",
+    upazila: "Paikgachha (পাইকগাছা)",
+    district: "Khulna (খুলনা)",
+    polder: "Polder 22 (Gadaipur / Haridhali)",
+    coordinates: { lat: 22.589, lon: 89.336 },
+    swot_reach_id: "31241000021",
+    swot_reach_name: "Shibsa River Inland Reach",
+    current_wse_pwd: 1.68,
+    river_width_m: 390.0,
+    hydraulic_slope: 0.000017,
+    canal_ec_dsm: 2.9,
+    soil_texture: "Clay",
+    soil_series: "Barisal",
+    soil_ph: 7.4,
+    organic_matter_pct: 1.60,
+    current_soil_ec_dsm: 5.1,
+    monthly_soil_ec: {
+      Jan: 5.0, Feb: 7.2, Mar: 10.4, Apr: 12.8,
+      May: 9.1, Jun: 3.8, Jul: 1.8, Aug: 1.4,
+      Sep: 1.5, Oct: 2.0, Nov: 2.6, Dec: 3.8
+    },
+    monthly_river_ec: {
+      Jan: 4.2, Feb: 7.5, Mar: 13.0, Apr: 17.5,
+      May: 14.0, Jun: 5.2, Jul: 1.4, Aug: 0.8,
+      Sep: 0.9, Oct: 1.3, Nov: 1.9, Dec: 2.9
+    },
+    drainage_capacity: "Good; functional network of sluices connecting to Shibsa upper corridor"
+  }
+};
+
+function getCanonicalProfile(
+  regionId: string,
+  soilEcOverride?: number,
+  canalEcOverride?: number,
+  swotWseDelta: number = 0.0
+): RegionSoilWaterProfile {
+  const base = CANONICAL_REGIONS[regionId] || CANONICAL_REGIONS["dacope-polder-31"];
+  return {
+    ...base,
+    current_wse_pwd: Number((base.current_wse_pwd + swotWseDelta).toFixed(2)),
+    current_soil_ec_dsm: soilEcOverride !== undefined ? soilEcOverride : base.current_soil_ec_dsm,
+    canal_ec_dsm: canalEcOverride !== undefined ? canalEcOverride : base.canal_ec_dsm,
+  };
+}
+
+function computeLoss(ece: number, threshold: number, b: number): number {
+  if (ece <= threshold) return 0;
+  return Math.min(100, Math.round(b * (ece - threshold)));
+}
+
+function calculateCandidateRotations(
+  profile: RegionSoilWaterProfile,
+  soilEc: number,
+  canalEc: number,
+  priority: string = "balanced"
+): RotationStrategy[] {
+  const lossTradBoro = computeLoss(soilEc, 3.0, 12.0);
+  const lossSaltBoro = computeLoss(soilEc, 8.0, 8.5);
+  const lossSunflower = computeLoss(soilEc * 0.75, 4.8, 5.5);
+  const lossMung = computeLoss(soilEc * 0.85, 3.5, 9.5);
+
+  const list: RotationStrategy[] = [
+    {
+      id: "rot-cash-crop-diversified",
+      name: "Sunflower/Mustard - Mungbean - Short Aman",
+      strategy_type: "Cash Crop Diversified",
+      description: "Triple-crop climate-smart intensification with low-water duty oilseeds and legumes that escape peak March-April salinity through early maturity.",
+      cropping_intensity_pct: 300,
+      overall_feasibility_score: Math.max(35, Math.round(92 - lossSunflower * 0.4 - lossMung * 0.3)),
+      risk_level: "LOW",
+      total_net_profit_bdt: 245000 - (lossSunflower * 500) - (lossMung * 400),
+      total_water_consumption_m3: 9500,
+      soil_health_impact: "Excellent. Mungbean fixes 40-50 kg atmospheric Nitrogen/ha; straw mulch prevents soil salinization and erosion.",
+      resilience_rating: "Very High. Highest economic return per m3 of fresh water consumed.",
+      seasons: [
+        {
+          season_name: "Rabi (Nov - Feb)",
+          crop_name: "Early Mustard / Sunflower",
+          variety: "BARI Surjamukhi-2 / BARI Sarisha-14",
+          duration_days: 95,
+          water_requirement_mm: 260.0,
+          salt_threshold_ec: 4.8,
+          salt_slope_b: 5.5,
+          expected_yield_loss_pct: lossSunflower,
+          expected_yield_ton_per_ha: Number((2.4 * (1 - lossSunflower / 100)).toFixed(2)),
+          gross_income_bdt_per_ha: Math.round(2.4 * (1 - lossSunflower / 100) * 1000 * 75),
+          production_cost_bdt_per_ha: 42000,
+          net_profit_bdt_per_ha: Math.round(2.4 * (1 - lossSunflower / 100) * 1000 * 75) - 42000,
+          feasibility_status: lossSunflower < 20 ? "OPTIMAL" : "ACCEPTABLE",
+          irrigation_source: "Canal Stored Water (Drip / Furrow Light 2x)",
+          agronomic_advisory: "Harvests by early February BEFORE soil salinity reaches acute threshold. Consumes 75% less water than Boro rice."
+        },
+        {
+          season_name: "Kharif-1 (Mar - Jun)",
+          crop_name: "Mungbean / Green Gram (মুগডাল)",
+          variety: "BARI Mung-6",
+          duration_days: 65,
+          water_requirement_mm: 190.0,
+          salt_threshold_ec: 3.5,
+          salt_slope_b: 9.5,
+          expected_yield_loss_pct: lossMung,
+          expected_yield_ton_per_ha: Number((1.5 * (1 - lossMung / 100)).toFixed(2)),
+          gross_income_bdt_per_ha: Math.round(1.5 * (1 - lossMung / 100) * 1000 * 85),
+          production_cost_bdt_per_ha: 26000,
+          net_profit_bdt_per_ha: Math.round(1.5 * (1 - lossMung / 100) * 1000 * 85) - 26000,
+          feasibility_status: lossMung < 30 ? "OPTIMAL" : "ACCEPTABLE",
+          irrigation_source: "Residual Moisture + Rice Straw Mulch",
+          agronomic_advisory: "Zero-tillage dibbling under rice straw mulch traps soil moisture and inhibits capillary salt encrustation. Fixes nitrogen."
+        },
+        {
+          season_name: "Kharif-2 (Jul - Oct)",
+          crop_name: "Short-Duration High-Yielding T. Aman",
+          variety: "BRRI dhan75 / Bina-7",
+          duration_days: 115,
+          water_requirement_mm: 500.0,
+          salt_threshold_ec: 4.5,
+          salt_slope_b: 7.0,
+          expected_yield_loss_pct: 0,
+          expected_yield_ton_per_ha: 5.5,
+          gross_income_bdt_per_ha: 187000,
+          production_cost_bdt_per_ha: 48000,
+          net_profit_bdt_per_ha: 139000,
+          feasibility_status: "OPTIMAL",
+          irrigation_source: "Rainfed Monsoon",
+          agronomic_advisory: "Short field occupancy vacates land by late October, leaving soil moist and ready for early Rabi oilseeds."
+        }
+      ],
+      sluice_gate_calendar: [
+        "Nov 1 - Dec 1: Retain fresh water in micro-catchment ponds and intra-polder canals.",
+        "Feb 15: Mulch application mandatory to preserve soil moisture after sunflower harvest.",
+        "Jun 15: Early drainage of early pre-monsoon squall waters via low-tide automated flap gates."
+      ]
+    },
+    {
+      id: "rot-salt-tolerant-rice",
+      name: "Salt-Tolerant Boro - Sesame - Modern T.Aman",
+      strategy_type: "Salt-Tolerant Rice",
+      description: "BRRI-engineered saline-tolerant rice varieties coupled with short-duration oilseed sesame to utilize post-monsoon moisture safely.",
+      cropping_intensity_pct: 300,
+      overall_feasibility_score: Math.max(25, Math.round(88 - lossSaltBoro * 0.6)),
+      risk_level: lossSaltBoro > 30 ? "MODERATE" : "LOW",
+      total_net_profit_bdt: 218000 - (lossSaltBoro * 750),
+      total_water_consumption_m3: 15800,
+      soil_health_impact: "Moderate to Good. Sesame leaf litter improves soil organic matter and breaks continuous rice soil compaction.",
+      resilience_rating: "High. Specifically bred for coastal Khulna salinity dynamics.",
+      seasons: [
+        {
+          season_name: "Rabi (Nov - Feb)",
+          crop_name: "Salt-Tolerant Boro Rice",
+          variety: "BRRI dhan67 / BRRI dhan97",
+          duration_days: 140,
+          water_requirement_mm: 850.0,
+          salt_threshold_ec: 8.0,
+          salt_slope_b: 8.5,
+          expected_yield_loss_pct: lossSaltBoro,
+          expected_yield_ton_per_ha: Number((6.8 * (1 - lossSaltBoro / 100)).toFixed(2)),
+          gross_income_bdt_per_ha: Math.round(6.8 * (1 - lossSaltBoro / 100) * 1000 * 31),
+          production_cost_bdt_per_ha: 90000,
+          net_profit_bdt_per_ha: Math.round(6.8 * (1 - lossSaltBoro / 100) * 1000 * 31) - 90000,
+          feasibility_status: lossSaltBoro < 25 ? "OPTIMAL" : "ACCEPTABLE",
+          irrigation_source: "Canal Reserve + AWD (Alternate Wetting & Drying)",
+          agronomic_advisory: "Tolerates electrical conductivity up to 8-10 dS/m during vegetative and 6 dS/m during flowering. Early planting recommended."
+        },
+        {
+          season_name: "Kharif-1 (Mar - Jun)",
+          crop_name: "Saline-Tolerant Sesame (তিল)",
+          variety: "BARI Til-4",
+          duration_days: 85,
+          water_requirement_mm: 180.0,
+          salt_threshold_ec: 6.5,
+          salt_slope_b: 9.0,
+          expected_yield_loss_pct: 18,
+          expected_yield_ton_per_ha: 1.15,
+          gross_income_bdt_per_ha: 103500,
+          production_cost_bdt_per_ha: 28000,
+          net_profit_bdt_per_ha: 75500,
+          feasibility_status: "ACCEPTABLE",
+          irrigation_source: "Residual Soil Moisture + 1 Light Supplemental Irrigation",
+          agronomic_advisory: "Deep taproot extracts residual soil moisture. High market cash return with low irrigation demand."
+        },
+        {
+          season_name: "Kharif-2 (Jul - Oct)",
+          crop_name: "High-Yielding Salt-Tolerant T. Aman",
+          variety: "BRRI dhan73 / BRRI dhan87",
+          duration_days: 125,
+          water_requirement_mm: 550.0,
+          salt_threshold_ec: 6.0,
+          salt_slope_b: 6.0,
+          expected_yield_loss_pct: 0,
+          expected_yield_ton_per_ha: 5.2,
+          gross_income_bdt_per_ha: 171600,
+          production_cost_bdt_per_ha: 52000,
+          net_profit_bdt_per_ha: 119600,
+          feasibility_status: "OPTIMAL",
+          irrigation_source: "Rainfed Monsoon",
+          agronomic_advisory: "Tolerates stagnant water and early post-monsoon salinity up to 6 dS/m with high grain yield."
+        }
+      ],
+      sluice_gate_calendar: [
+        "Oct 25 - Dec 10: Fill internal polder khals to maximum stage using Passur high-tide fresh flushes.",
+        "Dec 20: Seal all intake sluices before EC rises above 3.5 dS/m.",
+        "May 20: Pre-monsoon sluice flush to wash topsoil crust accumulated during sesame harvest."
+      ]
+    },
+    {
+      id: "rot-agro-aquaculture-gher",
+      name: "Integrated Brackish Shrimp - Monsoon Aman Gher",
+      strategy_type: "Agro-Aquaculture",
+      description: "Controlled seasonal dual-production system: brackish shrimp during dry months followed by rainwater-desalinized monsoon paddy.",
+      cropping_intensity_pct: 200,
+      overall_feasibility_score: 78,
+      risk_level: "MODERATE",
+      total_net_profit_bdt: 435000,
+      total_water_consumption_m3: 13500,
+      soil_health_impact: "Warning: High risk of long-term subsoil salinization if monsoon drainage is insufficient to leach pond salts.",
+      resilience_rating: "High financial return, moderate ecological risk to adjacent freshwater plots.",
+      seasons: [
+        {
+          season_name: "Rabi (Nov - Feb)",
+          crop_name: "Brackish Shrimp Nursery / Finfish",
+          variety: "Bagda (*Penaeus monodon*) / Tilapia",
+          duration_days: 110,
+          water_requirement_mm: 400.0,
+          salt_threshold_ec: 15.0,
+          salt_slope_b: 0.0,
+          expected_yield_loss_pct: 0,
+          expected_yield_ton_per_ha: 0.8,
+          gross_income_bdt_per_ha: 520000,
+          production_cost_bdt_per_ha: 140000,
+          net_profit_bdt_per_ha: 380000,
+          feasibility_status: "OPTIMAL",
+          irrigation_source: "Tidal River Saline Intake",
+          agronomic_advisory: "Tolerates and requires brackish water (8-18 dS/m). High commercial export value."
+        },
+        {
+          season_name: "Kharif-1 (Mar - Jun)",
+          crop_name: "Brackish Shrimp Grow-out",
+          variety: "Tiger Shrimp (Bagda)",
+          duration_days: 90,
+          water_requirement_mm: 300.0,
+          salt_threshold_ec: 18.0,
+          salt_slope_b: 0.0,
+          expected_yield_loss_pct: 0,
+          expected_yield_ton_per_ha: 0.6,
+          gross_income_bdt_per_ha: 432000,
+          production_cost_bdt_per_ha: 110000,
+          net_profit_bdt_per_ha: 322000,
+          feasibility_status: "OPTIMAL",
+          irrigation_source: "Controlled Tidal Saline Ingress",
+          agronomic_advisory: "Exploits natural peak marine salinity ingress through monitored intake."
+        },
+        {
+          season_name: "Kharif-2 (Jul - Oct)",
+          crop_name: "Monsoon Rice in Desalinized Gher",
+          variety: "BRRI dhan73 / Sadamota Gher Rice",
+          duration_days: 130,
+          water_requirement_mm: 650.0,
+          salt_threshold_ec: 5.5,
+          salt_slope_b: 7.5,
+          expected_yield_loss_pct: 12,
+          expected_yield_ton_per_ha: 3.34,
+          gross_income_bdt_per_ha: 110220,
+          production_cost_bdt_per_ha: 42000,
+          net_profit_bdt_per_ha: 68220,
+          feasibility_status: "ACCEPTABLE",
+          irrigation_source: "Monsoon Rain Leaching",
+          agronomic_advisory: "Requires heavy monsoon flush (July) to leach surface gher salts down to <4 dS/m before transplanting."
+        }
+      ],
+      sluice_gate_calendar: [
+        "Jan 15 - Apr 30: Regulated saline intake via private gher pipes from tidal river.",
+        "Jun 25 - Jul 15: Full drain-down of gher water; open all sluices to wash sediment with first monsoon downpours.",
+        "Aug 1: Retain freshwater rain head for Aman transplantation."
+      ]
+    },
+    {
+      id: "rot-traditional-rice",
+      name: "Traditional Boro - Fallow - Local T.Aman",
+      strategy_type: "Traditional High-Risk",
+      description: "Conventional mono-culture boro rice relying heavily on canal water irrigation, followed by summer fallow and low-yielding local rainfed Aman.",
+      cropping_intensity_pct: 167,
+      overall_feasibility_score: Math.max(10, Math.round(100 - lossTradBoro * 0.9)),
+      risk_level: lossTradBoro > 50 ? "CRITICAL" : "MODERATE",
+      total_net_profit_bdt: Math.round(135000 - lossTradBoro * 1200),
+      total_water_consumption_m3: 17000,
+      soil_health_impact: "Poor. Continual fresh water pumping depletes water tables; dry season capillary suction draws salts to root zone.",
+      resilience_rating: "Low. Extremely vulnerable to pre-monsoon salinity intrusion and canal drying.",
+      seasons: [
+        {
+          season_name: "Rabi (Nov - Feb)",
+          crop_name: "Boro Rice (Standard Non-Tolerant)",
+          variety: "BRRI dhan28 / BRRI dhan29",
+          duration_days: 145,
+          water_requirement_mm: 1100.0,
+          salt_threshold_ec: 3.0,
+          salt_slope_b: 12.0,
+          expected_yield_loss_pct: lossTradBoro,
+          expected_yield_ton_per_ha: Number((6.2 * (1 - lossTradBoro / 100)).toFixed(2)),
+          gross_income_bdt_per_ha: Math.round(6.2 * (1 - lossTradBoro / 100) * 1000 * 30),
+          production_cost_bdt_per_ha: 95000,
+          net_profit_bdt_per_ha: Math.round(6.2 * (1 - lossTradBoro / 100) * 1000 * 30) - 95000,
+          feasibility_status: lossTradBoro > 50 ? "FAILED" : "HIGH_RISK",
+          irrigation_source: "Canal & Shallow Tube Well (High Salinity)",
+          agronomic_advisory: "Highly sensitive to reproductive stage salinity. Severe spike in March-April causes empty spikelets (chita)."
+        },
+        {
+          season_name: "Kharif-1 (Mar - Jun)",
+          crop_name: "Fallow (অনাবাদি জমি)",
+          variety: "None",
+          duration_days: 0,
+          water_requirement_mm: 0.0,
+          salt_threshold_ec: 0.0,
+          salt_slope_b: 0.0,
+          expected_yield_loss_pct: 0,
+          expected_yield_ton_per_ha: 0,
+          gross_income_bdt_per_ha: 0,
+          production_cost_bdt_per_ha: 0,
+          net_profit_bdt_per_ha: 0,
+          feasibility_status: "ACCEPTABLE",
+          irrigation_source: "None",
+          agronomic_advisory: "Land remains barren due to acute soil salinity (12-16 dS/m) and lack of fresh surface water."
+        },
+        {
+          season_name: "Kharif-2 (Jul - Oct)",
+          crop_name: "T. Aman Rice (Local Traditional)",
+          variety: "Sadamota / Chapshail",
+          duration_days: 135,
+          water_requirement_mm: 600.0,
+          salt_threshold_ec: 4.0,
+          salt_slope_b: 8.0,
+          expected_yield_loss_pct: 0,
+          expected_yield_ton_per_ha: 2.8,
+          gross_income_bdt_per_ha: 89600,
+          production_cost_bdt_per_ha: 45000,
+          net_profit_bdt_per_ha: 44600,
+          feasibility_status: "ACCEPTABLE",
+          irrigation_source: "Rainfed Monsoon",
+          agronomic_advisory: "Tolerates moderate submergence but low yield ceiling. Soil salinity is naturally leached by monsoon rainfall."
+        }
+      ],
+      sluice_gate_calendar: [
+        "Nov-Dec: Keep polder sluice gates open during low tides to trap fresh upstream flush in retention khals.",
+        "Jan 15: Permanently close sluice gates as river salinity surpasses 4.0 dS/m.",
+        "Jul-Aug: Open drainage vents whenever river stage falls below polder level to drain floodwater."
+      ]
+    }
+  ];
+
+  const sorted = [...list];
+  if (priority === "profit") {
+    sorted.sort((a, b) => b.total_net_profit_bdt - a.total_net_profit_bdt);
+  } else if (priority === "water_conservation") {
+    sorted.sort((a, b) => a.total_water_consumption_m3 - b.total_water_consumption_m3);
+  } else if (priority === "risk_aversion") {
+    sorted.sort((a, b) => b.overall_feasibility_score - a.overall_feasibility_score);
+  } else {
+    const maxProfit = Math.max(...sorted.map(r => r.total_net_profit_bdt), 1);
+    sorted.sort((a, b) => {
+      const scoreA = (a.overall_feasibility_score * 0.6) + ((a.total_net_profit_bdt / maxProfit) * 40.0);
+      const scoreB = (b.overall_feasibility_score * 0.6) + ((b.total_net_profit_bdt / maxProfit) * 40.0);
+      return scoreB - scoreA;
+    });
+  }
+  return sorted;
+}
+
+function generateSummaryAdvisory(
+  profile: RegionSoilWaterProfile,
+  bestStrat: RotationStrategy,
+  soilEc: number,
+  canalEc: number,
+  priority: string
+): string {
+  const priorityLabels: Record<string, string> = {
+    profit: "Farmer Priority: Maximize Net Return (Profit)",
+    water_conservation: "Farmer Priority: Minimize Freshwater Consumption",
+    risk_aversion: "Farmer Priority: Avoid Salinity Risk & Crop Failure",
+    balanced: "Farmer Priority: Balanced Multi-Objective Resilience"
+  };
+  const label = priorityLabels[priority] || "Balanced Resilience";
+  const regionName = profile.upazila ? profile.upazila.split(" ")[0] : "Regional";
+  return `${label}: For ${regionName} (${profile.polder}), given current soil ECe of ${soilEc.toFixed(1)} dS/m and canal ECw of ${canalEc.toFixed(1)} dS/m, '${bestStrat.name}' ranks #1. Estimated net return: ৳${bestStrat.total_net_profit_bdt.toLocaleString()}/ha, Water demand: ${bestStrat.total_water_consumption_m3.toLocaleString()} m³/ha.`;
+}
+
+const DEFAULT_DATA_SOURCES: Record<string, string> = {
+  nasa_swot: "PO.DAAC KaRIn River Vector Product (Reach 31241000011)",
+  soil_salinity: "SRDI Upazila Land and Soil Resource Utilization Guide",
+  river_telemetry: "BWDB River Gauge SW242 (Chalna) & SW243 (Mongla)",
+  crop_models: "BRRI / BARI Salt Tolerance Trials (FAO 29 & 56 Guidelines)"
+};
 
 export default function CropRotationPage() {
   const [selectedRegionId, setSelectedRegionId] = useState<string>("dacope-polder-31");
-  const [loading, setLoading] = useState<boolean>(true);
-  const [profile, setProfile] = useState<RegionSoilWaterProfile | null>(null);
-  const [rotations, setRotations] = useState<RotationStrategy[]>([]);
-  const [recommendedId, setRecommendedId] = useState<string>("");
-  const [summaryAdvisory, setSummaryAdvisory] = useState<string>("");
-  const [dataSources, setDataSources] = useState<Record<string, string>>({});
-
-  // Interactive Overrides
   const [soilEcOverride, setSoilEcOverride] = useState<number>(6.8);
   const [canalEcOverride, setCanalEcOverride] = useState<number>(3.8);
   const [swotWseDelta, setSwotWseDelta] = useState<number>(0.0);
   const [priority, setPriority] = useState<string>("balanced");
   const [activeTab, setActiveTab] = useState<"overview" | "seasons" | "analytics" | "calendar">("overview");
+
+  // Rock-solid state initialization: always initialized with complete canonical data
+  const [profile, setProfile] = useState<RegionSoilWaterProfile>(() =>
+    getCanonicalProfile("dacope-polder-31", 6.8, 3.8, 0.0)
+  );
+  const [rotations, setRotations] = useState<RotationStrategy[]>(() => {
+    const initProf = getCanonicalProfile("dacope-polder-31", 6.8, 3.8, 0.0);
+    return calculateCandidateRotations(initProf, 6.8, 3.8, "balanced");
+  });
+  const [recommendedId, setRecommendedId] = useState<string>("rot-cash-crop-diversified");
+  const [summaryAdvisory, setSummaryAdvisory] = useState<string>(() => {
+    const initProf = getCanonicalProfile("dacope-polder-31", 6.8, 3.8, 0.0);
+    const initRots = calculateCandidateRotations(initProf, 6.8, 3.8, "balanced");
+    return generateSummaryAdvisory(initProf, initRots[0], 6.8, 3.8, "balanced");
+  });
+  const [dataSources, setDataSources] = useState<Record<string, string>>(DEFAULT_DATA_SOURCES);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Live Real-World Data Boost State
   const [liveBoostActive, setLiveBoostActive] = useState<boolean>(false);
@@ -134,6 +628,8 @@ export default function CropRotationPage() {
     setLiveBoostLoading(true);
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
       const res = await fetch(`${API_URL}/api/v1/crop-rotation/live-boost`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -141,7 +637,9 @@ export default function CropRotationPage() {
           region_id: selectedRegionId,
           priority_preference: priority,
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
         setLiveBoostPayload(data);
@@ -164,6 +662,7 @@ export default function CropRotationPage() {
     // Client fallback calculation for live boost
     setLiveBoostActive(true);
     const simulatedDelta = 1.6;
+    const newSoilEc = Number((soilEcOverride + simulatedDelta).toFixed(1));
     setLiveBoostPayload({
       live_weather_telemetry: {
         source: "Open-Meteo FAO-56 Reanalysis (Live)",
@@ -180,15 +679,23 @@ export default function CropRotationPage() {
       },
       swot_telemetry: {
         source: "NASA PO.DAAC Hydrocron SWOT L2 KaRIn",
-        reach_id: "31241000011",
-        wse_pwd_m: 1.84,
+        reach_id: profile.swot_reach_id,
+        wse_pwd_m: profile.current_wse_pwd,
         hydrocron_live_verified: true
       },
       baseline_soil_ec_dsm: soilEcOverride,
-      boosted_soil_ec_dsm: Number((soilEcOverride + simulatedDelta).toFixed(1)),
+      boosted_soil_ec_dsm: newSoilEc,
       capillary_ec_delta_dsm: simulatedDelta
     });
-    setSoilEcOverride((prev) => Number((prev + simulatedDelta).toFixed(1)));
+    setSoilEcOverride(newSoilEc);
+
+    // Synchronously update rotations with boosted salinity
+    const boostedProf = getCanonicalProfile(selectedRegionId, newSoilEc, canalEcOverride, swotWseDelta);
+    const boostedRots = calculateCandidateRotations(boostedProf, newSoilEc, canalEcOverride, priority);
+    setProfile(boostedProf);
+    setRotations(boostedRots);
+    setRecommendedId(boostedRots[0].id);
+    setSummaryAdvisory(generateSummaryAdvisory(boostedProf, boostedRots[0], newSoilEc, canalEcOverride, priority));
     setLiveBoostLoading(false);
   };
 
@@ -196,7 +703,10 @@ export default function CropRotationPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
       const res = await fetch(`${API_URL}/api/v1/crop-rotation/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -207,388 +717,35 @@ export default function CropRotationPage() {
           swot_wse_delta_m: swotWseDelta,
           priority_preference: priority,
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         const data = await res.json();
-        setProfile(data.profile);
-        setRotations(data.evaluated_rotations);
-        setRecommendedId(data.recommended_rotation_id);
-        setSummaryAdvisory(data.summary_advisory);
-        setDataSources(data.data_sources);
-        setLoading(false);
-        return;
+        if (data.profile && data.evaluated_rotations && data.evaluated_rotations.length > 0) {
+          setProfile(data.profile);
+          setRotations(data.evaluated_rotations);
+          setRecommendedId(data.recommended_rotation_id || data.evaluated_rotations[0].id);
+          setSummaryAdvisory(data.summary_advisory);
+          setDataSources(data.data_sources || DEFAULT_DATA_SOURCES);
+          setLoading(false);
+          return;
+        }
       }
     } catch {
-      // Fallback calculation for standalone client demonstration
+      // Offline fallback: compute immediately using local canonical agronomic models
     }
 
-    // Default Fallback for Dacope Polder 31
-    const fallbackProfile: RegionSoilWaterProfile = {
-      region_id: "dacope-polder-31",
-      upazila: "Dacope (দাকোপ)",
-      district: "Khulna (খুলনা)",
-      polder: "Polder 31 (Bajua / Pankhali)",
-      coordinates: { lat: 22.572, lon: 89.512 },
-      swot_reach_id: "31241000011",
-      swot_reach_name: "Passur River Reach at Dacope/Chalna",
-      current_wse_pwd: 1.84 + swotWseDelta,
-      river_width_m: 485.0,
-      hydraulic_slope: 0.000019,
-      canal_ec_dsm: canalEcOverride,
-      soil_texture: "Silty Clay",
-      soil_series: "Barisal / Jhalokati",
-      soil_ph: 7.6,
-      organic_matter_pct: 1.45,
-      current_soil_ec_dsm: soilEcOverride,
-      monthly_soil_ec: {
-        Jan: 6.5, Feb: 8.9, Mar: 12.8, Apr: 15.6,
-        May: 11.4, Jun: 4.5, Jul: 2.1, Aug: 1.6,
-        Sep: 1.8, Oct: 2.4, Nov: 3.2, Dec: 4.8
-      },
-      monthly_river_ec: {
-        Jan: 5.4, Feb: 9.2, Mar: 16.5, Apr: 22.4,
-        May: 18.0, Jun: 6.8, Jul: 1.8, Aug: 0.9,
-        Sep: 1.1, Oct: 1.6, Nov: 2.5, Dec: 3.7
-      },
-      drainage_capacity: "Adequate under low tide; vulnerable to monsoon backwater when SWOT WSE > 2.4m PWD"
-    };
+    const localProfile = getCanonicalProfile(selectedRegionId, soilEcOverride, canalEcOverride, swotWseDelta);
+    const localRotations = calculateCandidateRotations(localProfile, soilEcOverride, canalEcOverride, priority);
+    const bestStrat = localRotations[0];
 
-    // Calculate yield loss via Maas-Hoffman
-    const computeLoss = (ece: number, threshold: number, b: number) => {
-      if (ece <= threshold) return 0;
-      return Math.min(100, Math.round(b * (ece - threshold)));
-    };
-
-    const lossTradBoro = computeLoss(soilEcOverride, 3.0, 12.0);
-    const lossSaltBoro = computeLoss(soilEcOverride, 8.0, 8.5);
-    const lossSunflower = computeLoss(soilEcOverride * 0.75, 4.8, 5.5);
-    const lossMung = computeLoss(soilEcOverride * 0.85, 3.5, 9.5);
-
-    const fallbackRotations: RotationStrategy[] = [
-      {
-        id: "rot-cash-crop-diversified",
-        name: "Sunflower/Mustard - Mungbean - Short Aman",
-        strategy_type: "Cash Crop Diversified",
-        description: "Triple-crop climate-smart intensification with low-water duty oilseeds and legumes that escape peak March-April salinity through early maturity.",
-        cropping_intensity_pct: 300,
-        overall_feasibility_score: Math.max(35, Math.round(92 - lossSunflower * 0.4 - lossMung * 0.3)),
-        risk_level: "LOW",
-        total_net_profit_bdt: 245000 - (lossSunflower * 500) - (lossMung * 400),
-        total_water_consumption_m3: 9500,
-        soil_health_impact: "Excellent. Mungbean fixes 40-50 kg atmospheric Nitrogen/ha; straw mulch prevents soil salinization and erosion.",
-        resilience_rating: "Very High. Highest economic return per m3 of fresh water consumed.",
-        seasons: [
-          {
-            season_name: "Rabi (Nov - Feb)",
-            crop_name: "Early Mustard / Sunflower",
-            variety: "BARI Surjamukhi-2 / BARI Sarisha-14",
-            duration_days: 95,
-            water_requirement_mm: 260.0,
-            salt_threshold_ec: 4.8,
-            salt_slope_b: 5.5,
-            expected_yield_loss_pct: lossSunflower,
-            expected_yield_ton_per_ha: Number((2.4 * (1 - lossSunflower / 100)).toFixed(2)),
-            gross_income_bdt_per_ha: Math.round(2.4 * (1 - lossSunflower / 100) * 1000 * 75),
-            production_cost_bdt_per_ha: 42000,
-            net_profit_bdt_per_ha: Math.round(2.4 * (1 - lossSunflower / 100) * 1000 * 75) - 42000,
-            feasibility_status: lossSunflower < 20 ? "OPTIMAL" : "ACCEPTABLE",
-            irrigation_source: "Canal Stored Water (Drip / Furrow Light 2x)",
-            agronomic_advisory: "Harvests by early February BEFORE soil salinity reaches acute threshold. Consumes 75% less water than Boro rice."
-          },
-          {
-            season_name: "Kharif-1 (Mar - Jun)",
-            crop_name: "Mungbean / Green Gram (মুগডাল)",
-            variety: "BARI Mung-6",
-            duration_days: 65,
-            water_requirement_mm: 190.0,
-            salt_threshold_ec: 3.5,
-            salt_slope_b: 9.5,
-            expected_yield_loss_pct: lossMung,
-            expected_yield_ton_per_ha: Number((1.5 * (1 - lossMung / 100)).toFixed(2)),
-            gross_income_bdt_per_ha: Math.round(1.5 * (1 - lossMung / 100) * 1000 * 85),
-            production_cost_bdt_per_ha: 26000,
-            net_profit_bdt_per_ha: Math.round(1.5 * (1 - lossMung / 100) * 1000 * 85) - 26000,
-            feasibility_status: lossMung < 30 ? "OPTIMAL" : "ACCEPTABLE",
-            irrigation_source: "Residual Moisture + Rice Straw Mulch",
-            agronomic_advisory: "Zero-tillage dibbling under rice straw mulch traps soil moisture and inhibits capillary salt encrustation. Fixes nitrogen."
-          },
-          {
-            season_name: "Kharif-2 (Jul - Oct)",
-            crop_name: "Short-Duration High-Yielding T. Aman",
-            variety: "BRRI dhan75 / Bina-7",
-            duration_days: 115,
-            water_requirement_mm: 500.0,
-            salt_threshold_ec: 4.5,
-            salt_slope_b: 7.0,
-            expected_yield_loss_pct: 0,
-            expected_yield_ton_per_ha: 5.5,
-            gross_income_bdt_per_ha: 187000,
-            production_cost_bdt_per_ha: 48000,
-            net_profit_bdt_per_ha: 139000,
-            feasibility_status: "OPTIMAL",
-            irrigation_source: "Rainfed Monsoon",
-            agronomic_advisory: "Short field occupancy vacates land by late October, leaving soil moist and ready for early Rabi oilseeds."
-          }
-        ],
-        sluice_gate_calendar: [
-          "Nov 1 - Dec 1: Retain fresh water in micro-catchment ponds and intra-polder canals.",
-          "Feb 15: Mulch application mandatory to preserve soil moisture after sunflower harvest.",
-          "Jun 15: Early drainage of early pre-monsoon squall waters via low-tide automated flap gates."
-        ]
-      },
-      {
-        id: "rot-salt-tolerant-rice",
-        name: "Salt-Tolerant Boro - Sesame - Modern T.Aman",
-        strategy_type: "Salt-Tolerant Rice",
-        description: "BRRI-engineered saline-tolerant rice varieties coupled with short-duration oilseed sesame to utilize post-monsoon moisture safely.",
-        cropping_intensity_pct: 300,
-        overall_feasibility_score: Math.max(25, Math.round(88 - lossSaltBoro * 0.6)),
-        risk_level: lossSaltBoro > 30 ? "MODERATE" : "LOW",
-        total_net_profit_bdt: 218000 - (lossSaltBoro * 750),
-        total_water_consumption_m3: 15800,
-        soil_health_impact: "Moderate to Good. Sesame leaf litter improves soil organic matter and breaks continuous rice soil compaction.",
-        resilience_rating: "High. Specifically bred for coastal Khulna salinity dynamics.",
-        seasons: [
-          {
-            season_name: "Rabi (Nov - Feb)",
-            crop_name: "Salt-Tolerant Boro Rice",
-            variety: "BRRI dhan67 / BRRI dhan97",
-            duration_days: 140,
-            water_requirement_mm: 850.0,
-            salt_threshold_ec: 8.0,
-            salt_slope_b: 8.5,
-            expected_yield_loss_pct: lossSaltBoro,
-            expected_yield_ton_per_ha: Number((6.8 * (1 - lossSaltBoro / 100)).toFixed(2)),
-            gross_income_bdt_per_ha: Math.round(6.8 * (1 - lossSaltBoro / 100) * 1000 * 31),
-            production_cost_bdt_per_ha: 90000,
-            net_profit_bdt_per_ha: Math.round(6.8 * (1 - lossSaltBoro / 100) * 1000 * 31) - 90000,
-            feasibility_status: lossSaltBoro < 25 ? "OPTIMAL" : "ACCEPTABLE",
-            irrigation_source: "Canal Reserve + AWD (Alternate Wetting & Drying)",
-            agronomic_advisory: "Tolerates electrical conductivity up to 8-10 dS/m during vegetative and 6 dS/m during flowering. Early planting recommended."
-          },
-          {
-            season_name: "Kharif-1 (Mar - Jun)",
-            crop_name: "Saline-Tolerant Sesame (তিল)",
-            variety: "BARI Til-4",
-            duration_days: 85,
-            water_requirement_mm: 180.0,
-            salt_threshold_ec: 6.5,
-            salt_slope_b: 9.0,
-            expected_yield_loss_pct: 18,
-            expected_yield_ton_per_ha: 1.15,
-            gross_income_bdt_per_ha: 103500,
-            production_cost_bdt_per_ha: 28000,
-            net_profit_bdt_per_ha: 75500,
-            feasibility_status: "ACCEPTABLE",
-            irrigation_source: "Residual Soil Moisture + 1 Light Supplemental Irrigation",
-            agronomic_advisory: "Deep taproot extracts residual soil moisture. High market cash return with low irrigation demand."
-          },
-          {
-            season_name: "Kharif-2 (Jul - Oct)",
-            crop_name: "High-Yielding Salt-Tolerant T. Aman",
-            variety: "BRRI dhan73 / BRRI dhan87",
-            duration_days: 125,
-            water_requirement_mm: 550.0,
-            salt_threshold_ec: 6.0,
-            salt_slope_b: 6.0,
-            expected_yield_loss_pct: 0,
-            expected_yield_ton_per_ha: 5.2,
-            gross_income_bdt_per_ha: 171600,
-            production_cost_bdt_per_ha: 52000,
-            net_profit_bdt_per_ha: 119600,
-            feasibility_status: "OPTIMAL",
-            irrigation_source: "Rainfed Monsoon",
-            agronomic_advisory: "Tolerates stagnant water and early post-monsoon salinity up to 6 dS/m with high grain yield."
-          }
-        ],
-        sluice_gate_calendar: [
-          "Oct 25 - Dec 10: Fill internal polder khals to maximum stage using Passur high-tide fresh flushes.",
-          "Dec 20: Seal all intake sluices before EC rises above 3.5 dS/m.",
-          "May 20: Pre-monsoon sluice flush to wash topsoil crust accumulated during sesame harvest."
-        ]
-      },
-      {
-        id: "rot-agro-aquaculture-gher",
-        name: "Integrated Brackish Shrimp - Monsoon Aman Gher",
-        strategy_type: "Agro-Aquaculture",
-        description: "Controlled seasonal dual-production system: brackish shrimp during dry months followed by rainwater-desalinized monsoon paddy.",
-        cropping_intensity_pct: 200,
-        overall_feasibility_score: 78,
-        risk_level: "MODERATE",
-        total_net_profit_bdt: 435000,
-        total_water_consumption_m3: 13500,
-        soil_health_impact: "Warning: High risk of long-term subsoil salinization if monsoon drainage is insufficient to leach pond salts.",
-        resilience_rating: "High financial return, moderate ecological risk to adjacent freshwater plots.",
-        seasons: [
-          {
-            season_name: "Rabi (Nov - Feb)",
-            crop_name: "Brackish Shrimp Nursery / Finfish",
-            variety: "Bagda (*Penaeus monodon*) / Tilapia",
-            duration_days: 110,
-            water_requirement_mm: 400.0,
-            salt_threshold_ec: 15.0,
-            salt_slope_b: 0.0,
-            expected_yield_loss_pct: 0,
-            expected_yield_ton_per_ha: 0.8,
-            gross_income_bdt_per_ha: 520000,
-            production_cost_bdt_per_ha: 140000,
-            net_profit_bdt_per_ha: 380000,
-            feasibility_status: "OPTIMAL",
-            irrigation_source: "Tidal River Saline Intake",
-            agronomic_advisory: "Tolerates and requires brackish water (8-18 dS/m). High commercial export value."
-          },
-          {
-            season_name: "Kharif-1 (Mar - Jun)",
-            crop_name: "Brackish Shrimp Grow-out",
-            variety: "Tiger Shrimp (Bagda)",
-            duration_days: 90,
-            water_requirement_mm: 300.0,
-            salt_threshold_ec: 18.0,
-            salt_slope_b: 0.0,
-            expected_yield_loss_pct: 0,
-            expected_yield_ton_per_ha: 0.6,
-            gross_income_bdt_per_ha: 432000,
-            production_cost_bdt_per_ha: 110000,
-            net_profit_bdt_per_ha: 322000,
-            feasibility_status: "OPTIMAL",
-            irrigation_source: "Controlled Tidal Saline Ingress",
-            agronomic_advisory: "Exploits natural peak marine salinity ingress of Passur River through monitored intake."
-          },
-          {
-            season_name: "Kharif-2 (Jul - Oct)",
-            crop_name: "Monsoon Rice in Desalinized Gher",
-            variety: "BRRI dhan73 / Sadamota Gher Rice",
-            duration_days: 130,
-            water_requirement_mm: 650.0,
-            salt_threshold_ec: 5.5,
-            salt_slope_b: 7.5,
-            expected_yield_loss_pct: 12,
-            expected_yield_ton_per_ha: 3.34,
-            gross_income_bdt_per_ha: 110220,
-            production_cost_bdt_per_ha: 42000,
-            net_profit_bdt_per_ha: 68220,
-            feasibility_status: "ACCEPTABLE",
-            irrigation_source: "Monsoon Rain Leaching",
-            agronomic_advisory: "Requires heavy monsoon flush (July) to leach surface gher salts down to <4 dS/m before transplanting."
-          }
-        ],
-        sluice_gate_calendar: [
-          "Jan 15 - Apr 30: Regulated saline intake via private gher pipes from Passur River.",
-          "Jun 25 - Jul 15: Full drain-down of gher water; open all sluices to wash sediment with first monsoon downpours.",
-          "Aug 1: Retain freshwater rain head for Aman transplantation."
-        ]
-      },
-      {
-        id: "rot-traditional-rice",
-        name: "Traditional Boro - Fallow - Local T.Aman",
-        strategy_type: "Traditional High-Risk",
-        description: "Conventional mono-culture boro rice relying heavily on canal water irrigation, followed by summer fallow and low-yielding local rainfed Aman.",
-        cropping_intensity_pct: 167,
-        overall_feasibility_score: Math.max(10, Math.round(100 - lossTradBoro * 0.9)),
-        risk_level: lossTradBoro > 50 ? "CRITICAL" : "MODERATE",
-        total_net_profit_bdt: Math.round(135000 - lossTradBoro * 1200),
-        total_water_consumption_m3: 17000,
-        soil_health_impact: "Poor. Continual fresh water pumping depletes water tables; dry season capillary suction draws salts to root zone.",
-        resilience_rating: "Low. Extremely vulnerable to pre-monsoon salinity intrusion and canal drying.",
-        seasons: [
-          {
-            season_name: "Rabi (Nov - Feb)",
-            crop_name: "Boro Rice (Standard Non-Tolerant)",
-            variety: "BRRI dhan28 / BRRI dhan29",
-            duration_days: 145,
-            water_requirement_mm: 1100.0,
-            salt_threshold_ec: 3.0,
-            salt_slope_b: 12.0,
-            expected_yield_loss_pct: lossTradBoro,
-            expected_yield_ton_per_ha: Number((6.2 * (1 - lossTradBoro / 100)).toFixed(2)),
-            gross_income_bdt_per_ha: Math.round(6.2 * (1 - lossTradBoro / 100) * 1000 * 30),
-            production_cost_bdt_per_ha: 95000,
-            net_profit_bdt_per_ha: Math.round(6.2 * (1 - lossTradBoro / 100) * 1000 * 30) - 95000,
-            feasibility_status: lossTradBoro > 50 ? "FAILED" : "HIGH_RISK",
-            irrigation_source: "Canal & Shallow Tube Well (High Salinity)",
-            agronomic_advisory: "Highly sensitive to reproductive stage salinity. Severe spike in March-April causes empty spikelets (chita)."
-          },
-          {
-            season_name: "Kharif-1 (Mar - Jun)",
-            crop_name: "Fallow (অনাবাদি জমি)",
-            variety: "None",
-            duration_days: 0,
-            water_requirement_mm: 0.0,
-            salt_threshold_ec: 0.0,
-            salt_slope_b: 0.0,
-            expected_yield_loss_pct: 0,
-            expected_yield_ton_per_ha: 0,
-            gross_income_bdt_per_ha: 0,
-            production_cost_bdt_per_ha: 0,
-            net_profit_bdt_per_ha: 0,
-            feasibility_status: "ACCEPTABLE",
-            irrigation_source: "None",
-            agronomic_advisory: "Land remains barren due to acute soil salinity (12-16 dS/m) and lack of fresh surface water."
-          },
-          {
-            season_name: "Kharif-2 (Jul - Oct)",
-            crop_name: "T. Aman Rice (Local Traditional)",
-            variety: "Sadamota / Chapshail",
-            duration_days: 135,
-            water_requirement_mm: 600.0,
-            salt_threshold_ec: 4.0,
-            salt_slope_b: 8.0,
-            expected_yield_loss_pct: 0,
-            expected_yield_ton_per_ha: 2.8,
-            gross_income_bdt_per_ha: 89600,
-            production_cost_bdt_per_ha: 45000,
-            net_profit_bdt_per_ha: 44600,
-            feasibility_status: "ACCEPTABLE",
-            irrigation_source: "Rainfed Monsoon",
-            agronomic_advisory: "Tolerates moderate submergence but low yield ceiling. Soil salinity is naturally leached by monsoon rainfall."
-          }
-        ],
-        sluice_gate_calendar: [
-          "Nov-Dec: Keep polder sluice gates open during low tides to trap fresh upstream flush in retention khals.",
-          "Jan 15: Permanently close sluice gates as Passur/Shibsa salinity surpasses 4.0 dS/m.",
-          "Jul-Aug: Open drainage vents whenever river stage falls below polder level to drain floodwater."
-        ]
-      }
-    ];
-
-    let sortedRotations = [...fallbackRotations];
-    if (priority === "profit") {
-      sortedRotations.sort((a, b) => b.total_net_profit_bdt - a.total_net_profit_bdt);
-    } else if (priority === "water_conservation") {
-      sortedRotations.sort((a, b) => a.total_water_consumption_m3 - b.total_water_consumption_m3);
-    } else if (priority === "risk_aversion") {
-      sortedRotations.sort((a, b) => b.overall_feasibility_score - a.overall_feasibility_score);
-    } else { // balanced
-      const maxProfit = Math.max(...sortedRotations.map(r => r.total_net_profit_bdt), 1);
-      sortedRotations.sort((a, b) => {
-        const scoreA = (a.overall_feasibility_score * 0.6) + ((a.total_net_profit_bdt / maxProfit) * 40.0);
-        const scoreB = (b.overall_feasibility_score * 0.6) + ((b.total_net_profit_bdt / maxProfit) * 40.0);
-        return scoreB - scoreA;
-      });
-    }
-
-    const bestStrat = sortedRotations[0];
-    setProfile(fallbackProfile);
-    setRotations(sortedRotations);
+    setProfile(localProfile);
+    setRotations(localRotations);
     setRecommendedId(bestStrat.id);
-
-    const priorityLabelMap: Record<string, string> = {
-      profit: "Farmer Priority: Maximize Net Return (Profit)",
-      water_conservation: "Farmer Priority: Minimize Freshwater Consumption",
-      risk_aversion: "Farmer Priority: Avoid Salinity Risk & Crop Failure",
-      balanced: "Farmer Priority: Balanced Multi-Objective Resilience"
-    };
-
-    setSummaryAdvisory(
-      `${priorityLabelMap[priority] || "Balanced Resilience"}: For Dacope (Polder 31), given current soil ECe of ${soilEcOverride} dS/m and canal ECw of ${canalEcOverride} dS/m, '${bestStrat.name}' ranks #1. Estimated net return: ৳${bestStrat.total_net_profit_bdt.toLocaleString()}/ha, Water demand: ${bestStrat.total_water_consumption_m3.toLocaleString()} m³/ha.`
-    );
-    setDataSources({
-      nasa_swot: "PO.DAAC KaRIn River Vector Product (Reach 31241000011)",
-      soil_salinity: "SRDI Upazila Land and Soil Resource Utilization Guide (Dacope)",
-      river_telemetry: "BWDB River Gauge SW242 (Chalna) & SW243 (Mongla)",
-      crop_models: "BRRI / BARI Salt Tolerance Trials (FAO 29 & 56 Guidelines)"
-    });
+    setSummaryAdvisory(generateSummaryAdvisory(localProfile, bestStrat, soilEcOverride, canalEcOverride, priority));
+    setDataSources(DEFAULT_DATA_SOURCES);
     setLoading(false);
   }, [selectedRegionId, soilEcOverride, canalEcOverride, swotWseDelta, priority]);
 
@@ -596,22 +753,34 @@ export default function CropRotationPage() {
     loadData();
   }, [loadData]);
 
-  // Handle region switch and update baseline default sliders
+  // Handle region switch and update baseline default sliders & data instantly
   const handleRegionChange = (newRegionId: string) => {
     setSelectedRegionId(newRegionId);
+    let newSoil = 6.8;
+    let newCanal = 3.8;
     if (newRegionId === "dacope-polder-31") {
-      setSoilEcOverride(6.8);
-      setCanalEcOverride(3.8);
+      newSoil = 6.8;
+      newCanal = 3.8;
     } else if (newRegionId === "dacope-polder-32") {
-      setSoilEcOverride(8.2);
-      setCanalEcOverride(5.2);
+      newSoil = 8.2;
+      newCanal = 5.2;
     } else if (newRegionId === "koyra-polder-14") {
-      setSoilEcOverride(9.5);
-      setCanalEcOverride(6.1);
+      newSoil = 9.5;
+      newCanal = 6.1;
     } else if (newRegionId === "paikgachha-polder-22") {
-      setSoilEcOverride(5.1);
-      setCanalEcOverride(2.9);
+      newSoil = 5.1;
+      newCanal = 2.9;
     }
+    setSoilEcOverride(newSoil);
+    setCanalEcOverride(newCanal);
+
+    // Immediately update local profile and rotations for instant zero-latency UI response
+    const newProf = getCanonicalProfile(newRegionId, newSoil, newCanal, swotWseDelta);
+    const newRots = calculateCandidateRotations(newProf, newSoil, newCanal, priority);
+    setProfile(newProf);
+    setRotations(newRots);
+    setRecommendedId(newRots[0].id);
+    setSummaryAdvisory(generateSummaryAdvisory(newProf, newRots[0], newSoil, newCanal, priority));
   };
 
   const resetOverrides = () => {
@@ -620,31 +789,44 @@ export default function CropRotationPage() {
     setPriority("balanced");
   };
 
+  // Resilient candidate rotations: guaranteed non-empty fallback
+  const displayRotations = useMemo(() => {
+    if (rotations && rotations.length > 0) return rotations;
+    const fallbackProf = profile || getCanonicalProfile(selectedRegionId, soilEcOverride, canalEcOverride, swotWseDelta);
+    return calculateCandidateRotations(fallbackProf, soilEcOverride, canalEcOverride, priority);
+  }, [rotations, profile, selectedRegionId, soilEcOverride, canalEcOverride, swotWseDelta, priority]);
+
   // Chart data: Monthly Soil Salinity vs River Salinity Curve
   const salinityTimelineData = useMemo(() => {
-    if (!profile) return [];
+    const activeProf = profile || getCanonicalProfile(selectedRegionId, soilEcOverride, canalEcOverride, swotWseDelta);
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return months.map((m) => ({
-      month: m,
-      soil_ec: profile.monthly_soil_ec[m] || 0,
-      river_ec: profile.monthly_river_ec[m] || 0,
-      rice_threshold: 4.0,
-      salt_rice_threshold: 8.0,
-      sunflower_threshold: 4.8,
-    }));
-  }, [profile]);
+    const fallbackSoil = CANONICAL_REGIONS["dacope-polder-31"].monthly_soil_ec;
+    const fallbackRiver = CANONICAL_REGIONS["dacope-polder-31"].monthly_river_ec;
+    return months.map((m) => {
+      const soilVal = activeProf.monthly_soil_ec?.[m] ?? fallbackSoil[m] ?? 0;
+      const riverVal = activeProf.monthly_river_ec?.[m] ?? fallbackRiver[m] ?? 0;
+      return {
+        month: m,
+        soil_ec: Number(Number(soilVal).toFixed(1)),
+        river_ec: Number(Number(riverVal).toFixed(1)),
+        rice_threshold: 4.0,
+        salt_rice_threshold: 8.0,
+        sunflower_threshold: 4.8,
+      };
+    });
+  }, [profile, selectedRegionId, soilEcOverride, canalEcOverride, swotWseDelta]);
 
   // Chart data: Profit Comparison Bar
   const profitComparisonData = useMemo(() => {
-    return rotations.map((r) => ({
-      name: r.name.length > 22 ? r.name.substring(0, 20) + "..." : r.name,
+    return displayRotations.map((r) => ({
+      name: r.name.length > 20 ? r.name.substring(0, 18) + "..." : r.name,
       fullName: r.name,
-      profit_bdt: Math.max(0, r.total_net_profit_bdt),
+      profit_bdt: Math.max(0, Number(r.total_net_profit_bdt) || 0),
       score: r.overall_feasibility_score,
       water_m3: r.total_water_consumption_m3,
       isRecommended: r.id === recommendedId,
     }));
-  }, [rotations, recommendedId]);
+  }, [displayRotations, recommendedId]);
 
   return (
     <div className="flex flex-col space-y-6 max-w-7xl mx-auto pb-16">
@@ -1095,7 +1277,7 @@ export default function CropRotationPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {rotations.map((strat) => {
+          {displayRotations.map((strat) => {
             const isRec = strat.id === recommendedId;
             return (
               <div
@@ -1253,7 +1435,7 @@ export default function CropRotationPage() {
       {/* ------------------------------------------------------------- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Profit Comparison Bar Chart */}
-        <div className="p-5 glass-panel-elevated spotlight-card rounded-3xl border border-white/15 shadow-xl">
+        <div className="p-5 glass-panel-elevated spotlight-card rounded-3xl border border-white/15 shadow-xl flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-emerald-400" />
@@ -1263,49 +1445,100 @@ export default function CropRotationPage() {
             </div>
             <span className="text-[10px] font-mono text-muted-foreground">Yield Loss Deducted</span>
           </div>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={profitComparisonData} margin={{ top: 10, right: 10, left: 10, bottom: 25 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-                <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 10 }} angle={-15} textAnchor="end" />
-                <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} tickFormatter={(val) => `৳${(val / 1000).toFixed(0)}k`} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "#0b1727", borderColor: "#ffffff20", borderRadius: "10px", fontSize: "11px" }}
-                  formatter={(val: any) => [`৳${Number(val).toLocaleString()}`, "Net Profit"]}
-                />
-                <Bar dataKey="profit_bdt" fill="#10b981" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="w-full min-h-[280px] h-[280px] flex items-center justify-center">
+            {!mounted ? (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground animate-pulse font-mono text-xs">
+                <Activity className="w-6 h-6 text-emerald-400 animate-spin" />
+                <span>Computing Annual Yield Economics...</span>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={270} minHeight={270}>
+                <BarChart data={profitComparisonData} margin={{ top: 12, right: 12, left: 10, bottom: 35 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#94a3b8"
+                    tick={{ fill: "#94a3b8", fontSize: 10 }}
+                    angle={-15}
+                    textAnchor="end"
+                    interval={0}
+                    height={40}
+                  />
+                  <YAxis
+                    stroke="#94a3b8"
+                    domain={[0, 'auto']}
+                    tick={{ fill: "#94a3b8", fontSize: 10 }}
+                    tickFormatter={(val) => `৳${(Number(val) / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#0b1727", borderColor: "#ffffff20", borderRadius: "10px", fontSize: "11px" }}
+                    formatter={(val: any) => [`৳${Number(val).toLocaleString()}`, "Net Profit"]}
+                  />
+                  <Bar dataKey="profit_bdt" fill="#10b981" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
         {/* 12-Month Salinity Curve with Critical Thresholds */}
-        <div className="p-5 glass-panel-elevated spotlight-card rounded-3xl border border-white/15 shadow-xl">
+        <div className="p-5 glass-panel-elevated spotlight-card rounded-3xl border border-white/15 shadow-xl flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-amber-400" />
               <h3 className="text-sm font-semibold text-white uppercase font-mono">
-                Dacope Seasonal Salinity vs Crop Tolerance Curve
+                {profile?.upazila ? profile.upazila.split(" ")[0] : "Regional"} Seasonal Salinity vs Crop Tolerance Curve
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground">SRDI & Passur River</span>
+            <span className="text-[10px] font-mono text-muted-foreground">
+              SRDI & {profile?.swot_reach_name ? profile.swot_reach_name.split(" ")[0] + " River" : "Passur River"}
+            </span>
           </div>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={salinityTimelineData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-                <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} label={{ value: "EC (dS/m)", angle: -90, position: "insideLeft", fill: "#64748b", fontSize: 10 }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "#0b1727", borderColor: "#ffffff20", borderRadius: "10px", fontSize: "11px" }}
-                />
-                <Legend wrapperStyle={{ fontSize: "10px", paddingTop: "10px" }} />
-                <ReferenceLine y={4.0} stroke="#ef4444" strokeDasharray="4 4" label={{ value: "Std Boro Limit (4 dS/m)", fill: "#ef4444", fontSize: 9 }} />
-                <ReferenceLine y={8.0} stroke="#10b981" strokeDasharray="4 4" label={{ value: "BRRI dhan67/97 Limit (8 dS/m)", fill: "#10b981", fontSize: 9 }} />
-                <Line type="monotone" dataKey="river_ec" stroke="#38bdf8" strokeWidth={2} name="Passur River ECw" dot={false} />
-                <Line type="monotone" dataKey="soil_ec" stroke="#f59e0b" strokeWidth={2.5} name="SRDI Soil ECe" dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="w-full min-h-[280px] h-[280px] flex items-center justify-center">
+            {!mounted ? (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground animate-pulse font-mono text-xs">
+                <TrendingUp className="w-6 h-6 text-amber-400 animate-spin" />
+                <span>Simulating 12-Month Estuarine Salinity Curve...</span>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={270} minHeight={270}>
+                <LineChart data={salinityTimelineData} margin={{ top: 12, right: 15, left: -5, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                  <XAxis dataKey="month" stroke="#94a3b8" tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <YAxis
+                    stroke="#94a3b8"
+                    domain={[0, 25]}
+                    tick={{ fill: "#94a3b8", fontSize: 11 }}
+                    label={{ value: "EC (dS/m)", angle: -90, position: "insideLeft", fill: "#64748b", fontSize: 10 }}
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#0b1727", borderColor: "#ffffff20", borderRadius: "10px", fontSize: "11px" }}
+                    formatter={(val: any, name: any) => [`${Number(val).toFixed(1)} dS/m`, name]}
+                  />
+                  <Legend wrapperStyle={{ fontSize: "10px", paddingTop: "8px" }} />
+                  <ReferenceLine y={4.0} stroke="#ef4444" strokeDasharray="4 4" label={{ value: "Std Boro Limit (4 dS/m)", fill: "#ef4444", fontSize: 9 }} />
+                  <ReferenceLine y={8.0} stroke="#10b981" strokeDasharray="4 4" label={{ value: "BRRI dhan67/97 Limit (8 dS/m)", fill: "#10b981", fontSize: 9 }} />
+                  <Line
+                    type="monotone"
+                    dataKey="river_ec"
+                    stroke="#38bdf8"
+                    strokeWidth={2}
+                    name={`${profile?.swot_reach_name ? profile.swot_reach_name.split(" ")[0] : "River"} ECw`}
+                    dot={{ r: 3, fill: "#38bdf8" }}
+                    isAnimationActive={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="soil_ec"
+                    stroke="#f59e0b"
+                    strokeWidth={2.5}
+                    name="SRDI Soil ECe"
+                    dot={{ r: 3, fill: "#f59e0b" }}
+                    isAnimationActive={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>

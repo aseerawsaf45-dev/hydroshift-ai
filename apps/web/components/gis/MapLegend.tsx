@@ -39,7 +39,7 @@ export function MapLegend({
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="absolute top-16 right-4 z-[490] pointer-events-none animate-in fade-in duration-300 max-w-[270px]">
+    <div className="absolute bottom-14 left-4 z-[490] pointer-events-none animate-in fade-in duration-300 max-w-[270px]">
       <div
         className={`p-3 rounded-xl shadow-xl pointer-events-auto border transition-all ${
           isAcademic

@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir uv && uv pip install --system --no-cache -e .[dev
 
 COPY . .
 
-RUN chmod +x /app/scripts/start_api.sh
+RUN chmod +x /app/scripts/start_api.sh && sed -i 's/\r$//' /app/scripts/start_api.sh
 
 EXPOSE 8000
 
