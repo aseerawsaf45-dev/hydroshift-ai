@@ -2,14 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Menu, Bell, Search, Waves, BookOpen, Command } from "lucide-react";
+import { Menu, Bell, Search, Waves, Command } from "lucide-react";
 import Link from "next/link";
-import { QuickGuideModal } from "@/components/ui/QuickGuideModal";
 import { GlobalSearchDialog } from "@/components/ui/GlobalSearchDialog";
 
 export function TopContextBar({ onToggleMobileNav }: { onToggleMobileNav?: () => void }) {
   const [stats, setStats] = useState<{ status: string; total_monitoring_sites: number; total_hydro_observations: number } | null>(null);
-  const [guideOpen, setGuideOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
@@ -63,17 +61,6 @@ export function TopContextBar({ onToggleMobileNav }: { onToggleMobileNav?: () =>
 
         {/* Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Quick Plain-English Guide Button */}
-          <button
-            onClick={() => setGuideOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 text-xs font-semibold transition-all shadow-sm shadow-primary/10 hover:scale-[1.02]"
-            title="Open Plain English Guide & Salinity Reference"
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Plain-English Guide</span>
-            <span className="sm:hidden">Guide</span>
-          </button>
-
           {/* Interactive Fast Search */}
           <button
             onClick={() => setSearchOpen(true)}
@@ -108,7 +95,6 @@ export function TopContextBar({ onToggleMobileNav }: { onToggleMobileNav?: () =>
       </header>
 
       {/* Global Modals */}
-      <QuickGuideModal isOpen={guideOpen} onClose={() => setGuideOpen(false)} />
       <GlobalSearchDialog isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );

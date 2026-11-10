@@ -18,10 +18,8 @@ import {
   Radio,
   Waves,
   Sprout,
-  BookOpen,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/BrandLogo";
-import { QuickGuideModal } from "@/components/ui/QuickGuideModal";
 
 export const navSections = [
   {
@@ -56,7 +54,6 @@ export const navItems = navSections.flatMap((s) => s.items);
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
-  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <>
@@ -136,34 +133,18 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           ))}
         </nav>
 
-        {/* Quick Plain English Guide Card & Settings */}
-        <div className="p-3 border-t border-white/10 shrink-0 space-y-1.5 bg-black/20">
-          <button
-            onClick={() => {
-              if (onClose) onClose();
-              setGuideOpen(true);
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all text-left"
-          >
-            <BookOpen className="w-4 h-4 shrink-0" />
-            <div className="flex flex-col">
-              <span className="leading-tight">Plain-English Guide</span>
-              <span className="text-[10px] text-muted-foreground font-normal">Salinity, Polders &amp; Help</span>
-            </div>
-          </button>
-
+        {/* Quick Settings & Dashboard Link */}
+        <div className="p-3 border-t border-white/10 shrink-0 space-y-1 bg-black/20">
           <Link 
             href="/app/overview" 
             onClick={onClose}
-            className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all"
           >
-            <Settings className="w-3.5 h-3.5" />
-            <span>Telemetry Dashboard</span>
+            <Settings className="w-4 h-4 shrink-0" />
+            <span className="leading-tight">Telemetry Dashboard</span>
           </Link>
         </div>
       </div>
-
-      <QuickGuideModal isOpen={guideOpen} onClose={() => setGuideOpen(false)} />
     </>
   );
 }

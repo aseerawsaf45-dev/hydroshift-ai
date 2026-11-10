@@ -91,8 +91,7 @@ export default function Home() {
           Surface Water Elevation and Salinity Intelligence for the{" "}
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-cyan-200 to-sky-400 drop-shadow-[0_0_35px_rgba(87,214,208,0.3)]">
             Khulna Delta
-          </span>
-          .
+          </span>.
         </h1>
 
         {/* Subtitle */}
