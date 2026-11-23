@@ -22,6 +22,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/BrandLogo";
+import { SalinitySpectrumInfographic } from "@/components/infographics/SalinitySpectrumInfographic";
 
 export default function Home() {
   const [lang, setLang] = useState<"en" | "bn">("en");
@@ -410,6 +411,11 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* 3.5 SALINITY SPECTRUM INFOGRAPHIC */}
+        <div className="w-full">
+          <SalinitySpectrumInfographic lang={lang} />
         </div>
 
         {/* 4. FACILITATOR & SERVICE TRUST CARDS */}

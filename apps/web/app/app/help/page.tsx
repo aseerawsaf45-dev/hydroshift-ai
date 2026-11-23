@@ -19,6 +19,7 @@ import {
   MessageSquare,
   FileCheck,
 } from "lucide-react";
+import { SalinitySpectrumInfographic } from "@/components/infographics/SalinitySpectrumInfographic";
 
 export default function HelpPage() {
   const [lang, setLang] = useState<"en" | "bn">("en");
@@ -158,75 +159,7 @@ export default function HelpPage() {
       </div>
 
       {/* 3. UNDERSTANDING WATER SALINITY CLASSES (C1 - C4) */}
-      <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-2xl">
-        <div className="bezel-core p-6 rounded-[20px] bg-[#081320] space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-white/10">
-            <div className="flex items-center gap-2">
-              <Droplets className="w-5 h-5 text-primary" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                {lang === "en" ? "Water Salinity Classification Guide (C1 – C4)" : "পানির লবণাক্ততার শ্রেণিবিভাগ নির্দেশিকা"}
-              </h3>
-            </div>
-            <span className="text-[10px] text-muted-foreground font-mono">FAO 29 & USDA Standards</span>
-          </div>
-
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {lang === "en"
-              ? "Water electrical conductivity (ECw) is measured in deciSiemens per meter (dS/m) standardized to 25°C. Soil root-zone salinity (ECe) is generally 1.5 times higher than the applied irrigation water."
-              : "পানির তড়িৎ পরিবাহিতা (ECw) ২৫° সেলসিয়াসে dS/m এককে মাপা হয়। মাটির মূল স্তরের লবণাক্ততা (ECe) সাধারণত সেচের পানির তুলনায় প্রায় ১.৫ গুণ বেশি হয়ে থাকে।"}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 space-y-1.5 shadow-sm shadow-emerald-950/40">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 font-mono tabular-nums">
-                C1: &lt; 0.75 dS/m
-              </span>
-              <div className="font-bold text-sm text-white">{lang === "en" ? "Low Salinity" : "মিষ্টি পানি"}</div>
-              <p className="text-[11px] text-emerald-200/80 leading-relaxed">
-                {lang === "en"
-                  ? "Safe for all crops, young seedbeds, and sensitive vegetables. No special leaching required."
-                  : "সকল ফসল, বীজতলা এবং শাকসবজির জন্য সম্পূর্ণ নিরাপদ। বিশেষ কোনো সতর্কতা প্রয়োজন নেই।"}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/25 space-y-1.5 shadow-sm shadow-sky-950/40">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-sky-500/20 text-sky-400 font-mono tabular-nums">
-                C2: 0.75 – 1.5 dS/m
-              </span>
-              <div className="font-bold text-sm text-white">{lang === "en" ? "Medium Salinity" : "সহনীয় পানি"}</div>
-              <p className="text-[11px] text-sky-200/80 leading-relaxed">
-                {lang === "en"
-                  ? "Suitable for most crops (Mungbean, Mustard, Maize, Aman). Moderate leaching recommended."
-                  : "অধিকাংশ রবি ফসল এবং আমন ধানের জন্য উপযোগী। বীজতলায় কিছুটা সতর্কতা অবলম্বন করুন।"}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5 shadow-sm shadow-amber-950/40">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 font-mono tabular-nums">
-                C3: 1.5 – 3.0 dS/m
-              </span>
-              <div className="font-bold text-sm text-white">{lang === "en" ? "High Salinity" : "মধ্যম নোনা পানি"}</div>
-              <p className="text-[11px] text-amber-200/80 leading-relaxed">
-                {lang === "en"
-                  ? "Restricted use. Safe for salt-tolerant crops (BRRI dhan67, Sunflower). Risky for traditional Boro."
-                  : "সীমিত ব্যবহার। শুধুমাত্র লবণ-সহনশীল ফসলে (ব্রি ৬৭, সূর্যমুখী) ব্যবহার্য। সাধারণ বোরোয় ক্ষতিকর।"}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 space-y-1.5 shadow-sm shadow-rose-950/40">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-500/20 text-rose-400 font-mono tabular-nums">
-                C4: &gt; 3.0 dS/m
-              </span>
-              <div className="font-bold text-sm text-white">{lang === "en" ? "Very High Salinity" : "তীব্র নোনা পানি"}</div>
-              <p className="text-[11px] text-rose-200/80 leading-relaxed">
-                {lang === "en"
-                  ? "Severe hazard! Unsuitable for freshwater irrigation. Causes crop failure and soil salinization."
-                  : "চরম বিপদ! ফসলে এই পানি সেচ দেওয়া সম্পূর্ণ নিষিদ্ধ। জমির মাটি নষ্ট হয়ে যাবে।"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SalinitySpectrumInfographic lang={lang} />
 
       {/* 4. REPORT AN ISSUE / DISPUTE A READING */}
       <Card className="p-6 bg-[#081320] border-white/15 rounded-2xl shadow-xl space-y-4">

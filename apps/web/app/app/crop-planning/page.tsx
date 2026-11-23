@@ -24,6 +24,8 @@ import {
   CloudRain,
   Flame,
 } from "lucide-react";
+import { CropRotationTimelineInfographic } from "@/components/infographics/CropRotationTimelineInfographic";
+import { CapillaryMulchInfographic } from "@/components/infographics/CapillaryMulchInfographic";
 
 // ---------------------------------------------------------------------------
 // Crops & Varieties Data
@@ -577,6 +579,11 @@ export default function CropPlanningPage() {
               </div>
             </div>
           </div>
+
+          {/* Sowing Science Infographic */}
+          <div className="pt-2">
+            <CapillaryMulchInfographic lang={lang} />
+          </div>
         </div>
       )}
 
@@ -585,6 +592,8 @@ export default function CropPlanningPage() {
       {/* ===================================================================== */}
       {activeTab === "season" && (
         <div className="space-y-6">
+          {/* Interactive Seasonal Timeline Infographic */}
+          <CropRotationTimelineInfographic lang={lang} />
           {/* Historical Scenarios Disclaimer */}
           <div className="bezel-shell p-1 rounded-2xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border border-amber-500/30">
             <div className="bezel-core p-3.5 rounded-[14px] bg-[#071322]/90 flex items-start gap-3 text-xs text-amber-200">

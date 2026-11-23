@@ -16,6 +16,7 @@ import {
   CheckCircle2, 
   AlertTriangle 
 } from "lucide-react";
+import { PolderSluiceInfographic } from "@/components/infographics/PolderSluiceInfographic";
 
 interface ReachInfo {
   id: string;
@@ -350,6 +351,15 @@ function ReachDetailContent() {
               </div>
             </div>
 
+          </div>
+
+          {/* Sluice Gate Visual Physical Cross-Section Infographic */}
+          <div className="pt-2">
+            <PolderSluiceInfographic
+              riverWse={drainage?.river_wse_m_pwd || 1.85}
+              canalStage={canalStage}
+              interactive={false}
+            />
           </div>
 
           {/* SWORD Reach Hydraulics Strip */}

@@ -25,6 +25,8 @@ import {
   RefreshCw,
   Sparkles,
 } from "lucide-react";
+import { SalinitySpectrumInfographic } from "@/components/infographics/SalinitySpectrumInfographic";
+import { PolderSluiceInfographic } from "@/components/infographics/PolderSluiceInfographic";
 
 interface WaterSourceData {
   id: string;
@@ -713,6 +715,12 @@ export default function MyWaterPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 3. VISUAL INFOGRAPHICS SECTION */}
+      <div className="space-y-6 pt-2">
+        <SalinitySpectrumInfographic lang={lang} />
+        <PolderSluiceInfographic riverWse={1.85} canalStage={1.30} interactive={true} />
       </div>
     </div>
   );
