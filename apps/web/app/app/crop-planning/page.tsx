@@ -355,215 +355,226 @@ export default function CropPlanningPage() {
       {/* ===================================================================== */}
       {activeTab === "sowing" && (
         <div className="space-y-6">
-          {/* Plain Scope Callout */}
-          <div className="p-3.5 rounded-xl bg-sky-500/10 border border-sky-500/25 flex items-start gap-3 text-xs text-sky-200">
-            <Info className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
-            <p>
-              {lang === "en"
-                ? "Important: This view evaluates the immediate establishment and sowing window (next 7–14 days) based on current water salinity and local seedbed conditions. It does not guarantee whole-season suitability."
-                : "সতর্কবার্তা: এই অংশটি শুধুমাত্র আগামী ৭–১৪ দিনের প্রাথমিক বীজ বপন ও চারার প্রতিষ্ঠার উপযুক্ততা যাচাই করে। এটি পুরো মৌসুমের ফসল নিরাপত্তার নিশ্চয়তা দেয় না।"}
-            </p>
+          {/* Sowing Scope Callout */}
+          <div className="bezel-shell p-1 rounded-2xl bg-gradient-to-r from-sky-500/20 via-sky-500/10 to-transparent border border-sky-500/30">
+            <div className="bezel-core p-3.5 rounded-[14px] bg-[#071322]/90 flex items-start gap-3 text-xs text-sky-200">
+              <Info className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                {lang === "en"
+                  ? "Important Scope: This view evaluates the immediate establishment and sowing window (next 7–14 days) based on current water salinity and local seedbed conditions. It does not guarantee whole-season suitability."
+                  : "সতর্কবার্তা: এই অংশটি শুধুমাত্র আগামী ৭–১৪ দিনের প্রাথমিক বীজ বপন ও চারার প্রতিষ্ঠার উপযুক্ততা যাচাই করে। এটি পুরো মৌসুমের ফসল নিরাপত্তার নিশ্চয়তা দেয় না।"}
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Input Form (5 cols) */}
             <div className="lg:col-span-5 space-y-5">
-              <Card className="p-5 bg-[#081320] border-white/15 rounded-2xl shadow-xl space-y-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <span>{lang === "en" ? "1. Select Intended Crop & Variety" : "১. প্রস্তাবিত ফসল ও জাত নির্বাচন"}</span>
-                </h3>
+              <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-2xl">
+                <div className="bezel-core p-5 rounded-[20px] bg-[#081320] space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-primary" />
+                      <span>{lang === "en" ? "1. Select Crop & Variety" : "১. ফসল ও জাত নির্বাচন"}</span>
+                    </h3>
+                    <span className="text-[10px] font-mono text-muted-foreground uppercase">Dacope Rabi/Kharif</span>
+                  </div>
 
-                <div className="space-y-2">
-                  {CROP_CATALOG.map((crop) => {
-                    const isSelected = crop.id === selectedCropId;
-                    return (
-                      <button
-                        key={crop.id}
-                        onClick={() => setSelectedCropId(crop.id)}
-                        className={`w-full p-3 rounded-xl text-left border transition-all flex items-center justify-between ${
-                          isSelected
-                            ? "bg-primary/10 border-primary text-white shadow-md shadow-primary/20"
-                            : "bg-white/[0.02] border-white/10 text-muted-foreground hover:text-white hover:bg-white/5"
-                        }`}
-                      >
-                        <div>
-                          <div className="font-semibold text-xs text-white">
-                            {lang === "en" ? crop.name : crop.nameBn}
-                          </div>
-                          <div className="text-[11px] text-muted-foreground">
-                            {crop.season} • {crop.durationDays} days • Threshold: {crop.saltThresholdEce} dS/m
-                          </div>
-                        </div>
-                        <span
-                          className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                  <div className="space-y-2">
+                    {CROP_CATALOG.map((crop) => {
+                      const isSelected = crop.id === selectedCropId;
+                      return (
+                        <button
+                          key={crop.id}
+                          onClick={() => setSelectedCropId(crop.id)}
+                          className={`w-full p-3 rounded-xl text-left border transition-all flex items-center justify-between ${
                             isSelected
-                              ? "bg-primary text-black font-bold border-primary"
-                              : "bg-white/5 text-muted-foreground border-white/10"
+                              ? "bg-primary/10 border-primary text-white shadow-md shadow-primary/20 scale-[1.01]"
+                              : "bg-white/[0.02] border-white/10 text-muted-foreground hover:text-white hover:bg-white/5"
                           }`}
                         >
-                          {crop.type}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                          <div>
+                            <div className="font-semibold text-xs text-white">
+                              {lang === "en" ? crop.name : crop.nameBn}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              {crop.season} • <span className="tabular-nums font-mono">{crop.durationDays}</span> days • Limit: <span className="tabular-nums font-mono">{crop.saltThresholdEce}</span> dS/m
+                            </div>
+                          </div>
+                          <span
+                            className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                              isSelected
+                                ? "bg-primary text-black font-bold border-primary shadow-sm"
+                                : "bg-white/5 text-muted-foreground border-white/10"
+                            }`}
+                          >
+                            {crop.type}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                {/* Sowing Date Input */}
-                <div className="pt-3 border-t border-white/10 space-y-1.5">
-                  <label className="text-xs text-muted-foreground font-medium block">
-                    {lang === "en" ? "Planned Sowing / Transplanting Date:" : "বপন বা চারা রোপণের সম্ভাব্য তারিখ:"}
-                  </label>
-                  <input
-                    type="date"
-                    value={sowingDate}
-                    onChange={(e) => setSowingDate(e.target.value)}
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-primary"
-                  />
-                </div>
+                  {/* Sowing Date Input */}
+                  <div className="pt-3 border-t border-white/10 space-y-1.5">
+                    <label className="text-xs text-muted-foreground font-medium block">
+                      {lang === "en" ? "Planned Sowing / Transplanting Date:" : "বপন বা চারা রোপণের সম্ভাব্য তারিখ:"}
+                    </label>
+                    <input
+                      type="date"
+                      value={sowingDate}
+                      onChange={(e) => setSowingDate(e.target.value)}
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
 
-                {/* Seedbed Condition */}
-                <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground font-medium block">
-                    {lang === "en" ? "Field / Seedbed Condition:" : "জমির বর্তমান অবস্থা:"}
-                  </label>
-                  <select
-                    value={seedbedCondition}
-                    onChange={(e: any) => setSeedbedCondition(e.target.value)}
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary"
-                  >
-                    <option value="MOIST_GOOD">Moist soil, rice-straw mulch available (ভালো আর্দ্রতা ও খড় আছে)</option>
-                    <option value="SLIGHT_CRUST">Slight surface salt crust visible (হালকা লবণের স্তর দৃশ্যমান)</option>
-                    <option value="DRY_HARD">Dry, hard cracked soil (শুকনো ও শক্ত ফাটলযুক্ত)</option>
-                  </select>
-                </div>
+                  {/* Seedbed Condition */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground font-medium block">
+                      {lang === "en" ? "Field / Seedbed Condition:" : "জমির বর্তমান অবস্থা:"}
+                    </label>
+                    <select
+                      value={seedbedCondition}
+                      onChange={(e: any) => setSeedbedCondition(e.target.value)}
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary transition-colors"
+                    >
+                      <option value="MOIST_GOOD">Moist soil, rice-straw mulch available (ভালো আর্দ্রতা ও খড় আছে)</option>
+                      <option value="SLIGHT_CRUST">Slight surface salt crust visible (হালকা লবণের স্তর দৃশ্যমান)</option>
+                      <option value="DRY_HARD">Dry, hard cracked soil (শুকনো ও শক্ত ফাটলযুক্ত)</option>
+                    </select>
+                  </div>
 
-                {/* Water Access */}
-                <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground font-medium block">
-                    {lang === "en" ? "Initial Irrigation Water Source:" : "প্রাথমিক সেচের পানির উৎস:"}
-                  </label>
-                  <select
-                    value={waterAccess}
-                    onChange={(e: any) => setWaterAccess(e.target.value)}
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary"
-                  >
-                    <option value="CANAL_VERIFIED">Bajua Canal (Verified EC: 1.8 dS/m - C3)</option>
-                    <option value="POND_FRESH">Pankhali Retention Pond (Verified EC: 0.95 dS/m - C2)</option>
-                    <option value="RIVER_UNCHECKED">Direct Passur River intake (Unchecked tide)</option>
-                  </select>
+                  {/* Water Access */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground font-medium block">
+                      {lang === "en" ? "Initial Irrigation Water Source:" : "প্রাথমিক সেচের পানির উৎস:"}
+                    </label>
+                    <select
+                      value={waterAccess}
+                      onChange={(e: any) => setWaterAccess(e.target.value)}
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary transition-colors"
+                    >
+                      <option value="CANAL_VERIFIED">Bajua Canal (Verified EC: 1.8 dS/m - C3)</option>
+                      <option value="POND_FRESH">Pankhali Retention Pond (Verified EC: 0.95 dS/m - C2)</option>
+                      <option value="RIVER_UNCHECKED">Direct Passur River intake (Unchecked tide)</option>
+                    </select>
+                  </div>
                 </div>
-              </Card>
+              </div>
             </div>
 
             {/* Right: Sowing Window Advisory Output (7 cols) */}
             <div className="lg:col-span-7 space-y-5">
-              <Card
-                className={`p-6 rounded-2xl border shadow-2xl relative overflow-hidden ${
+              <div
+                className={`bezel-shell p-1 rounded-3xl border shadow-2xl transition-all ${
                   sowingAdvisory.status === "SUITABLE_WINDOW"
-                    ? "bg-gradient-to-br from-emerald-950/40 to-[#081320] border-emerald-500/40"
+                    ? "bg-gradient-to-br from-emerald-500/30 via-emerald-500/10 to-transparent border-emerald-500/40"
                     : sowingAdvisory.status === "CAUTION"
-                    ? "bg-gradient-to-br from-amber-950/40 to-[#081320] border-amber-500/40"
-                    : "bg-gradient-to-br from-rose-950/40 to-[#081320] border-rose-500/40"
+                    ? "bg-gradient-to-br from-amber-500/30 via-amber-500/10 to-transparent border-amber-500/40"
+                    : "bg-gradient-to-br from-rose-500/30 via-rose-500/10 to-transparent border-rose-500/40"
                 }`}
               >
-                <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                  <div className="flex items-center gap-2">
-                    {sowingAdvisory.status === "SUITABLE_WINDOW" ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    ) : sowingAdvisory.status === "CAUTION" ? (
-                      <AlertTriangle className="w-5 h-5 text-amber-400" />
-                    ) : (
-                      <HelpCircle className="w-5 h-5 text-rose-400" />
-                    )}
-                    <span className="text-xs font-bold font-mono tracking-wider uppercase text-white">
-                      {lang === "en" ? "Reviewed Establishment Advisory" : "যাচাইকৃত বপন পরামর্শ"}
-                    </span>
-                  </div>
+                <div className="bezel-core p-6 rounded-[20px] bg-[#081320] space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                      {sowingAdvisory.status === "SUITABLE_WINDOW" ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                      ) : sowingAdvisory.status === "CAUTION" ? (
+                        <AlertTriangle className="w-5 h-5 text-amber-400" />
+                      ) : (
+                        <HelpCircle className="w-5 h-5 text-rose-400" />
+                      )}
+                      <span className="text-xs font-bold font-mono tracking-wider uppercase text-white">
+                        {lang === "en" ? "Reviewed Establishment Advisory" : "যাচাইকৃত বপন পরামর্শ"}
+                      </span>
+                    </div>
 
-                  <Badge
-                    className={`text-[10px] font-bold uppercase ${
-                      sowingAdvisory.status === "SUITABLE_WINDOW"
-                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                    <Badge
+                      className={`text-[10px] font-bold uppercase ${
+                        sowingAdvisory.status === "SUITABLE_WINDOW"
+                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                          : sowingAdvisory.status === "CAUTION"
+                          ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
+                          : "bg-rose-500/20 text-rose-400 border-rose-500/40"
+                      }`}
+                    >
+                      {sowingAdvisory.status === "SUITABLE_WINDOW"
+                        ? lang === "en" ? "Potentially Suitable Window" : "উপযোগী সময়"
                         : sowingAdvisory.status === "CAUTION"
-                        ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
-                        : "bg-rose-500/20 text-rose-400 border-rose-500/40"
-                    }`}
-                  >
-                    {sowingAdvisory.status === "SUITABLE_WINDOW"
-                      ? lang === "en" ? "Potentially Suitable Window" : "উপযোগী সময়"
-                      : sowingAdvisory.status === "CAUTION"
-                      ? lang === "en" ? "Caution Required" : "সতর্কতা আবশ্যক"
-                      : lang === "en" ? "More Info Needed" : "তথ্য যাচাই প্রয়োজন"}
-                  </Badge>
-                </div>
-
-                <div className="my-4 space-y-3">
-                  <h4 className="text-base sm:text-lg font-bold text-white leading-snug">
-                    {lang === "en" ? sowingAdvisory.message : sowingAdvisory.messageBn}
-                  </h4>
-
-                  {/* Seedbed Guidance */}
-                  <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                    <span className="text-[11px] font-semibold text-primary block">
-                      {lang === "en" ? "Agronomic & Seedbed Guidance:" : "কৃষিতাত্ত্বিক ও বীজতলা নির্দেশনা:"}
-                    </span>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {selectedCrop.seedbedAdvice}
-                    </p>
+                        ? lang === "en" ? "Caution Required" : "সতর্কতা আবশ্যক"
+                        : lang === "en" ? "More Info Needed" : "তথ্য যাচাই প্রয়োজন"}
+                    </Badge>
                   </div>
-                </div>
 
-                {/* Metrics Matrix */}
-                <div className="grid grid-cols-3 gap-2 text-center pt-3 border-t border-white/10 text-xs">
-                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
-                    <span className="text-[10px] text-muted-foreground block">
-                      {lang === "en" ? "Crop Salt Threshold" : "ফসলের লবণের সীমা"}
-                    </span>
-                    <span className="text-sm font-bold text-white font-mono mt-0.5 block">
-                      {selectedCrop.saltThresholdEce} dS/m
-                    </span>
+                  <div className="my-2 space-y-3">
+                    <h4 className="text-base sm:text-lg font-bold text-white leading-snug">
+                      {lang === "en" ? sowingAdvisory.message : sowingAdvisory.messageBn}
+                    </h4>
+
+                    {/* Seedbed Guidance */}
+                    <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                      <span className="text-[11px] font-semibold text-primary block">
+                        {lang === "en" ? "Agronomic & Seedbed Guidance:" : "কৃষিতাত্ত্বিক ও বীজতলা নির্দেশনা:"}
+                      </span>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {selectedCrop.seedbedAdvice}
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
-                    <span className="text-[10px] text-muted-foreground block">
-                      {lang === "en" ? "Estimated Water EC" : "পানির আনুমানিক ইসি"}
-                    </span>
-                    <span className="text-sm font-bold text-emerald-400 font-mono mt-0.5 block">
-                      1.8 dS/m (C3)
-                    </span>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
-                    <span className="text-[10px] text-muted-foreground block">
-                      {lang === "en" ? "Establishment Water Need" : "চারার পানির চাহিদা"}
-                    </span>
-                    <span className="text-sm font-bold text-white font-mono mt-0.5 block">
-                      {Math.round(selectedCrop.waterNeedMm * 0.25)} mm
-                    </span>
+
+                  {/* Metrics Matrix with Tabular Numerals */}
+                  <div className="grid grid-cols-3 gap-2 text-center pt-3 border-t border-white/10 text-xs">
+                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                      <span className="text-[10px] text-muted-foreground block">
+                        {lang === "en" ? "Crop Salt Threshold" : "ফসলের লবণের সীমা"}
+                      </span>
+                      <span className="text-sm font-bold text-white font-mono tabular-nums mt-0.5 block">
+                        {selectedCrop.saltThresholdEce} dS/m
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                      <span className="text-[10px] text-muted-foreground block">
+                        {lang === "en" ? "Estimated Water EC" : "পানির আনুমানিক ইসি"}
+                      </span>
+                      <span className="text-sm font-bold text-emerald-400 font-mono tabular-nums mt-0.5 block">
+                        1.8 dS/m (C3)
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                      <span className="text-[10px] text-muted-foreground block">
+                        {lang === "en" ? "Establishment Need" : "চারার পানির চাহিদা"}
+                      </span>
+                      <span className="text-sm font-bold text-white font-mono tabular-nums mt-0.5 block">
+                        {Math.round(selectedCrop.waterNeedMm * 0.25)} mm
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </Card>
+              </div>
 
               {/* What To Do Next Card */}
-              <Card className="p-5 bg-[#081320] border-white/15 rounded-2xl shadow-xl space-y-3">
-                <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>{lang === "en" ? "Next Verification Step" : "পরবর্তী যাচাইকরণ পদক্ষেপ"}</span>
-                </span>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {lang === "en"
-                    ? "Before releasing canal water into the furrow, request a 1-minute EC reading from Dacope Community Water Facilitator M. Rahman. Confirm that external tidal gate has been locked."
-                    : "নালায় পানি ছাড়ার পূর্বে দাকোপ কমিউনিটি পানি ফ্যাসিলিটেটরের মাধ্যমে ১ মিনিটের একটি ইসি রিডিং নিশ্চিত করুন। বহিস্থ জোয়ারের গেট বন্ধ আছে কিনা দেখে নিন।"}
-                </p>
-                <div className="flex items-center justify-between pt-2 text-xs">
-                  <Link href="/app/my-water" className="text-primary hover:underline font-semibold flex items-center gap-1">
-                    <span>{lang === "en" ? "Check Current Canal Salinity" : "খালের বর্তমান লবণাক্ততা দেখুন"}</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
-                  <Link href="/app/help" className="text-muted-foreground hover:text-white">
-                    {lang === "en" ? "Contact Facilitator" : "যোগাযোগ করুন"}
-                  </Link>
+              <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-xl">
+                <div className="bezel-core p-5 rounded-[20px] bg-[#081320] space-y-3">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>{lang === "en" ? "Next Verification Step" : "পরবর্তী যাচাইকরণ পদক্ষেপ"}</span>
+                  </span>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {lang === "en"
+                      ? "Before releasing canal water into the furrow, request a 1-minute EC reading from Dacope Community Water Facilitator M. Rahman. Confirm that external tidal gate has been locked."
+                      : "নালায় পানি ছাড়ার পূর্বে দাকোপ কমিউনিটি পানি ফ্যাসিলিটেটরের মাধ্যমে ১ মিনিটের একটি ইসি রিডিং নিশ্চিত করুন। বহিস্থ জোয়ারের গেট বন্ধ আছে কিনা দেখে নিন।"}
+                  </p>
+                  <div className="flex items-center justify-between pt-2 text-xs">
+                    <Link href="/app/my-water" className="text-primary hover:underline font-semibold flex items-center gap-1">
+                      <span>{lang === "en" ? "Check Current Canal Salinity" : "খালের বর্তমান লবণাক্ততা দেখুন"}</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                    <Link href="/app/help" className="text-muted-foreground hover:text-white">
+                      {lang === "en" ? "Contact Facilitator" : "যোগাযোগ করুন"}
+                    </Link>
+                  </div>
                 </div>
-              </Card>
+              </div>
             </div>
           </div>
         </div>
@@ -575,62 +586,66 @@ export default function CropPlanningPage() {
       {activeTab === "season" && (
         <div className="space-y-6">
           {/* Historical Scenarios Disclaimer */}
-          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3 text-xs text-amber-200">
-            <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <p>
-              {lang === "en"
-                ? "Methodology: Seasonal comparisons use reviewed historical monthly salinity patterns (Dry, Typical, and Wet years) and verified crop budgets from BARI/BRRI. They are not direct extrapolations of the 7-day hydrodynamic model."
-                : "পদ্ধতি: মৌসুমভিত্তিক ফসল তুলনা ঐতিহাসিক মাসিক লবণাক্ততা (শুকনো, স্বাভাবিক ও আর্দ্র বছর) এবং বারি/বিআরআরআই-এর পরীক্ষিত তথ্যের ওপর ভিত্তি করে তৈরি। এটি ৭-দিনের মডেলের সরাসরি সম্প্রসারণ নয়।"}
-            </p>
+          <div className="bezel-shell p-1 rounded-2xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border border-amber-500/30">
+            <div className="bezel-core p-3.5 rounded-[14px] bg-[#071322]/90 flex items-start gap-3 text-xs text-amber-200">
+              <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                {lang === "en"
+                  ? "Methodology Note: Seasonal comparisons use reviewed historical monthly salinity patterns (Dry, Typical, and Wet years) and verified crop budgets from BARI/BRRI. They are not direct extrapolations of the 7-day hydrodynamic model."
+                  : "পদ্ধতি: মৌসুমভিত্তিক ফসল তুলনা ঐতিহাসিক মাসিক লবণাক্ততা (শুকনো, স্বাভাবিক ও আর্দ্র বছর) এবং বারি/বিআরআরআই-এর পরীক্ষিত তথ্যের ওপর ভিত্তি করে তৈরি। এটি ৭-দিনের মডেলের সরাসরি সম্প্রসারণ নয়।"}
+              </p>
+            </div>
           </div>
 
           {/* Historical Salinity Pattern Strip */}
-          <Card className="p-4 bg-[#081320] border-white/10 rounded-2xl shadow-xl">
-            <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/10">
-              <span className="text-xs font-bold text-white flex items-center gap-2">
-                <Activity className="w-4 h-4 text-primary" />
-                <span>{lang === "en" ? "Dacope Historical Monthly Salinity Trajectory (Typical Year)" : "দাকোপের ঐতিহাসিক মাসিক লবণাক্ততার গতিধারা (স্বাভাবিক বছর)"}</span>
-              </span>
-              <span className="text-[11px] text-muted-foreground font-mono">SRDI & BWDB Historical Data</span>
-            </div>
+          <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-xl">
+            <div className="bezel-core p-5 rounded-[20px] bg-[#081320] space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                <span className="text-xs font-bold text-white flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-primary" />
+                  <span>{lang === "en" ? "Dacope Historical Monthly Salinity Trajectory (Typical Year)" : "দাকোপের ঐতিহাসিক মাসিক লবণাক্ততার গতিধারা (স্বাভাবিক বছর)"}</span>
+                </span>
+                <span className="text-[10px] text-muted-foreground font-mono">SRDI & BWDB Historical Data</span>
+              </div>
 
-            <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-1.5 text-center text-xs">
-              {[
-                { m: "Nov", ec: 3.2, note: "Fresh" },
-                { m: "Dec", ec: 4.8, note: "Low" },
-                { m: "Jan", ec: 6.5, note: "Moderate" },
-                { m: "Feb", ec: 8.9, note: "Rising" },
-                { m: "Mar", ec: 12.8, note: "Peak Alert" },
-                { m: "Apr", ec: 15.6, note: "Severe" },
-                { m: "May", ec: 11.4, note: "High" },
-                { m: "Jun", ec: 4.5, note: "Rain Wash" },
-                { m: "Jul", ec: 2.1, note: "Fresh" },
-                { m: "Aug", ec: 1.6, note: "Fresh" },
-                { m: "Sep", ec: 1.8, note: "Fresh" },
-                { m: "Oct", ec: 2.4, note: "Fresh" },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`p-2 rounded-xl border ${
-                    item.ec > 10
-                      ? "bg-rose-500/10 border-rose-500/25 text-rose-300"
-                      : item.ec > 5
-                      ? "bg-amber-500/10 border-amber-500/25 text-amber-300"
-                      : "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
-                  }`}
-                >
-                  <span className="text-[10px] font-mono block text-muted-foreground">{item.m}</span>
-                  <span className="font-bold text-xs font-mono">{item.ec}</span>
-                  <span className="text-[9px] block opacity-80">{item.note}</span>
-                </div>
-              ))}
+              <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2 text-center text-xs">
+                {[
+                  { m: "Nov", ec: 3.2, note: "Fresh" },
+                  { m: "Dec", ec: 4.8, note: "Low" },
+                  { m: "Jan", ec: 6.5, note: "Moderate" },
+                  { m: "Feb", ec: 8.9, note: "Rising" },
+                  { m: "Mar", ec: 12.8, note: "Peak Alert" },
+                  { m: "Apr", ec: 15.6, note: "Severe" },
+                  { m: "May", ec: 11.4, note: "High" },
+                  { m: "Jun", ec: 4.5, note: "Rain Wash" },
+                  { m: "Jul", ec: 2.1, note: "Fresh" },
+                  { m: "Aug", ec: 1.6, note: "Fresh" },
+                  { m: "Sep", ec: 1.8, note: "Fresh" },
+                  { m: "Oct", ec: 2.4, note: "Fresh" },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-2.5 rounded-xl border transition-all ${
+                      item.ec > 10
+                        ? "bg-rose-500/10 border-rose-500/25 text-rose-300 shadow-sm shadow-rose-950/40"
+                        : item.ec > 5
+                        ? "bg-amber-500/10 border-amber-500/25 text-amber-300 shadow-sm shadow-amber-950/40"
+                        : "bg-emerald-500/10 border-emerald-500/25 text-emerald-300 shadow-sm shadow-emerald-950/40"
+                    }`}
+                  >
+                    <span className="text-[10px] font-mono block text-muted-foreground">{item.m}</span>
+                    <span className="font-bold text-xs font-mono tabular-nums">{item.ec}</span>
+                    <span className="text-[9px] block opacity-80 truncate">{item.note}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </Card>
+          </div>
 
           {/* Comparison Cards for Rotations */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
                 <Layers className="w-4 h-4 text-primary" />
                 <span>{lang === "en" ? "Reviewed Seasonal Crop Rotations" : "যাচাইকৃত মৌসুমভিত্তিক ফসলের পর্যায়ক্রম"}</span>
               </h3>
@@ -645,95 +660,97 @@ export default function CropPlanningPage() {
                 const isDanger = rot.overallRating === "HIGH_RISK";
 
                 return (
-                  <Card
+                  <div
                     key={rot.id}
-                    className={`p-5 rounded-2xl border shadow-xl transition-all ${
+                    className={`bezel-shell p-1 rounded-3xl border shadow-xl transition-all ${
                       isRecommended
-                        ? "bg-gradient-to-r from-emerald-950/30 to-[#081320] border-emerald-500/40"
+                        ? "bg-gradient-to-r from-emerald-500/20 via-emerald-500/5 to-transparent border-emerald-500/40"
                         : isDanger
-                        ? "bg-gradient-to-r from-rose-950/20 to-[#081320] border-rose-500/30"
-                        : "bg-[#081320] border-white/15"
+                        ? "bg-gradient-to-r from-rose-500/20 via-rose-500/5 to-transparent border-rose-500/30"
+                        : "bg-white/[0.03] border-white/10"
                     }`}
                   >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-white/10">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-base font-bold text-white">
-                            {lang === "en" ? rot.title : rot.titleBn}
-                          </h4>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
-                              isRecommended
-                                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
-                                : isDanger
-                                ? "bg-rose-500/20 text-rose-400 border-rose-500/40"
-                                : "bg-sky-500/20 text-sky-400 border-sky-500/40"
-                            }`}
-                          >
-                            {rot.overallRating === "RECOMMENDED"
-                              ? lang === "en" ? "Recommended Choice" : "সর্বোত্তম সুপারিশ"
-                              : rot.overallRating === "HIGH_RISK"
-                              ? lang === "en" ? "High Salt Risk" : "চরম লবণাক্ততার ঝুঁকি"
-                              : lang === "en" ? "Feasible" : "ব্যবহারযোগ্য"}
-                          </span>
+                    <div className="bezel-core p-5 rounded-[20px] bg-[#081320] space-y-4">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-white/10">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-base font-bold text-white">
+                              {lang === "en" ? rot.title : rot.titleBn}
+                            </h4>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                                isRecommended
+                                  ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                                  : isDanger
+                                  ? "bg-rose-500/20 text-rose-400 border-rose-500/40"
+                                  : "bg-sky-500/20 text-sky-400 border-sky-500/40"
+                              }`}
+                            >
+                              {rot.overallRating === "RECOMMENDED"
+                                ? lang === "en" ? "Recommended Choice" : "সর্বোত্তম সুপারিশ"
+                                : rot.overallRating === "HIGH_RISK"
+                                ? lang === "en" ? "High Salt Risk" : "চরম লবণাক্ততার ঝুঁকি"
+                                : lang === "en" ? "Feasible" : "ব্যবহারযোগ্য"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {rot.soilHealthAssessment}
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {rot.soilHealthAssessment}
-                        </p>
-                      </div>
 
-                      {/* Economic Net Profit & Water */}
-                      <div className="flex items-center gap-4 shrink-0">
-                        <div className="text-right">
-                          <span className="text-[10px] text-muted-foreground uppercase font-mono block">
-                            {lang === "en" ? "Annual Net Profit" : "বার্ষিক নিট লাভ"}
-                          </span>
-                          <span
-                            className={`text-lg font-black font-mono ${
-                              isDanger ? "text-rose-400" : "text-emerald-400"
-                            }`}
-                          >
-                            ৳ {rot.netProfitBdtPerHa.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="text-right pl-3 border-l border-white/10">
-                          <span className="text-[10px] text-muted-foreground uppercase font-mono block">
-                            {lang === "en" ? "Water Footprint" : "পানির খরচ"}
-                          </span>
-                          <span className="text-sm font-bold font-mono text-white">
-                            {rot.waterConsumptionM3.toLocaleString()} m³
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 3 Season Visual Step Bar */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-4">
-                      {rot.seasons.map((s, sIdx) => (
-                        <div key={sIdx} className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                          <span className="text-[10px] font-mono text-primary uppercase font-bold block">
-                            {s.name}
-                          </span>
-                          <div className="font-semibold text-xs text-white">{s.crop}</div>
-                          <div className="text-[11px] text-muted-foreground">{s.waterSource}</div>
-                          <div className="text-[10px] text-emerald-400 font-mono pt-1">
-                            {s.expectedYieldTonHa > 0 ? `Est. Yield: ${s.expectedYieldTonHa} ton/ha` : "Fallow (পতিত)"}
+                        {/* Economic Net Profit & Water */}
+                        <div className="flex items-center gap-4 shrink-0">
+                          <div className="text-right">
+                            <span className="text-[10px] text-muted-foreground uppercase font-mono block">
+                              {lang === "en" ? "Annual Net Profit" : "বার্ষিক নিট লাভ"}
+                            </span>
+                            <span
+                              className={`text-lg font-black font-mono tabular-nums ${
+                                isDanger ? "text-rose-400" : "text-emerald-400"
+                              }`}
+                            >
+                              ৳ {rot.netProfitBdtPerHa.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="text-right pl-3 border-l border-white/10">
+                            <span className="text-[10px] text-muted-foreground uppercase font-mono block">
+                              {lang === "en" ? "Water Footprint" : "পানির খরচ"}
+                            </span>
+                            <span className="text-sm font-bold font-mono text-white tabular-nums">
+                              {rot.waterConsumptionM3.toLocaleString()} m³
+                            </span>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
 
-                    {/* Sluice Gate Calendar Advice */}
-                    <div className="pt-2 text-xs text-muted-foreground flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
-                        <span>{rot.calendarSluiceAdvice}</span>
-                      </span>
-                      <span className="font-mono text-white text-[11px] font-semibold shrink-0">
-                        Cropping Intensity: {rot.intensityPct}%
-                      </span>
+                      {/* 3 Season Visual Step Bar */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-2">
+                        {rot.seasons.map((s, sIdx) => (
+                          <div key={sIdx} className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                            <span className="text-[10px] font-mono text-primary uppercase font-bold block">
+                              {s.name}
+                            </span>
+                            <div className="font-semibold text-xs text-white">{s.crop}</div>
+                            <div className="text-[11px] text-muted-foreground">{s.waterSource}</div>
+                            <div className="text-[10px] text-emerald-400 font-mono pt-1">
+                              {s.expectedYieldTonHa > 0 ? `Est. Yield: ${s.expectedYieldTonHa} ton/ha` : "Fallow (পতিত)"}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Sluice Gate Calendar Advice */}
+                      <div className="pt-2 text-xs text-muted-foreground flex items-center justify-between border-t border-white/5">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
+                          <span>{rot.calendarSluiceAdvice}</span>
+                        </span>
+                        <span className="font-mono text-white text-[11px] font-semibold shrink-0">
+                          Cropping Intensity: <span className="tabular-nums">{rot.intensityPct}</span>%
+                        </span>
+                      </div>
                     </div>
-                  </Card>
+                  </div>
                 );
               })}
             </div>

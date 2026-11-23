@@ -331,7 +331,7 @@ export default function OverviewPage() {
         {/* Friendly Quick-Glance Health Status Bar */}
         <div className="mt-5 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
             <div className="min-w-0">
               <span className="font-bold text-white block">Upper Khulna Drinking Water</span>
               <span className="text-[11px] text-emerald-300/90 truncate block">Safe (&lt; 1.0 dS/m) • Intakes Protected</span>
@@ -357,95 +357,103 @@ export default function OverviewPage() {
       </div>
 
       {/* 2. GAPLESS HIGH-CONTRAST BENTO METRIC TILES */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Metric 1: Water Level */}
-        <div className="p-5 flex flex-col justify-between space-y-3 glass-panel spotlight-card border border-white/10 hover:border-primary/40 transition-all rounded-2xl shadow-lg">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Tidal Elevation</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-bold">Normal Spring Tide</span>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold font-mono text-white">
-                {stats ? stats.water_elevation_m.toFixed(2) : "12.57"}
-              </span>
-              <span className="text-xs text-muted-foreground font-mono">
-                {stats?.water_elevation_unit || "m (PWD)"}
-              </span>
+        <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-xl transition-all hover:border-primary/40">
+          <div className="bezel-core p-5 rounded-[20px] bg-[#081320] flex flex-col justify-between space-y-3 h-full">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Tidal Elevation</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-bold">Normal Spring Tide</span>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-1">Average Southwest Basin Stage</p>
-          </div>
-          <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono">
-            <span className="text-primary font-semibold">BWDB Automated Gauge</span>
-            <span className="text-muted-foreground">Latest Pass</span>
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold font-mono text-white tabular-nums">
+                  {stats ? stats.water_elevation_m.toFixed(2) : "12.57"}
+                </span>
+                <span className="text-xs text-muted-foreground font-mono">
+                  {stats?.water_elevation_unit || "m (PWD)"}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">Average Southwest Basin Stage</p>
+            </div>
+            <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono">
+              <span className="text-primary font-semibold">BWDB Automated Gauge</span>
+              <span className="text-muted-foreground">Latest Pass</span>
+            </div>
           </div>
         </div>
 
         {/* Metric 2: Salinity EC */}
-        <div className="p-5 flex flex-col justify-between space-y-3 glass-panel spotlight-card border border-white/10 hover:border-rose-500/40 transition-all rounded-2xl shadow-lg">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Max Field Salinity</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold">Severe Salt Peak</span>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold font-mono text-rose-400">
-                {stats ? stats.salinity_ec_val.toFixed(1) : "7.9"}
-              </span>
-              <span className="text-xs text-muted-foreground font-mono">
-                {stats?.salinity_ec_unit || "dS/m"}
-              </span>
+        <div className="bezel-shell p-1 rounded-3xl bg-gradient-to-br from-rose-500/20 via-rose-500/5 to-transparent border border-rose-500/30 shadow-xl transition-all hover:border-rose-500/50">
+          <div className="bezel-core p-5 rounded-[20px] bg-[#081320] flex flex-col justify-between space-y-3 h-full">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Max Field Salinity</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold">Severe Salt Peak</span>
             </div>
-            <p className="text-[11px] text-rose-300/80 mt-1">Critical Boro Rice Hazard Threshold: 4.0 dS/m</p>
-          </div>
-          <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono">
-            <span className="text-rose-400 font-semibold">Mongla Port (SW244)</span>
-            <span className="text-rose-300/70">197% Danger Limit</span>
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold font-mono text-rose-400 tabular-nums">
+                  {stats ? stats.salinity_ec_val.toFixed(1) : "7.9"}
+                </span>
+                <span className="text-xs text-muted-foreground font-mono">
+                  {stats?.salinity_ec_unit || "dS/m"}
+                </span>
+              </div>
+              <p className="text-[11px] text-rose-300/80 mt-1">Critical Boro Rice Limit: 4.0 dS/m</p>
+            </div>
+            <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono">
+              <span className="text-rose-400 font-semibold">Mongla Port (SW244)</span>
+              <span className="text-rose-300/70">197% Danger Limit</span>
+            </div>
           </div>
         </div>
 
         {/* Metric 3: Data Coverage */}
-        <div className="p-5 flex flex-col justify-between space-y-3 glass-panel spotlight-card border border-white/10 hover:border-sky-500/40 transition-all rounded-2xl shadow-lg">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Dataset Completeness</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">Satellite Sync OK</span>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold font-mono text-white">
-                {stats ? stats.coverage_percent : "94"}
-              </span>
-              <span className="text-xs text-muted-foreground font-mono">%</span>
+        <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-xl transition-all hover:border-sky-500/40">
+          <div className="bezel-core p-5 rounded-[20px] bg-[#081320] flex flex-col justify-between space-y-3 h-full">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Dataset Completeness</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">Satellite Sync OK</span>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              {stats ? `${stats.total_hydro_observations} observations loaded` : "831 passes harmonized"}
-            </p>
-          </div>
-          <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono">
-            <span className="text-emerald-400 font-semibold">NASA PO.DAAC + BWDB</span>
-            <span className="text-muted-foreground">Validated</span>
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold font-mono text-white tabular-nums">
+                  {stats ? stats.coverage_percent : "94"}
+                </span>
+                <span className="text-xs text-muted-foreground font-mono">%</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {stats ? `${stats.total_hydro_observations} observations loaded` : "831 passes harmonized"}
+              </p>
+            </div>
+            <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono">
+              <span className="text-emerald-400 font-semibold">NASA PO.DAAC + BWDB</span>
+              <span className="text-muted-foreground">Validated</span>
+            </div>
           </div>
         </div>
 
         {/* Metric 4: Forecast Engine */}
-        <div className="p-5 flex flex-col justify-between space-y-3 glass-panel spotlight-card border border-white/10 hover:border-amber-500/40 transition-all rounded-2xl shadow-lg">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Neural Forecaster</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold">7-14 Day Warning</span>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold font-mono text-white">
-                {stats ? stats.active_forecasts_count : "10"}
-              </span>
-              <span className="text-xs text-muted-foreground font-mono">Active Streams</span>
+        <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-xl transition-all hover:border-amber-500/40">
+          <div className="bezel-core p-5 rounded-[20px] bg-[#081320] flex flex-col justify-between space-y-3 h-full">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">Neural Forecaster</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold">7-14 Day Warning</span>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-1">Physics-Constrained Saint-Venant 1D</p>
-          </div>
-          <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono">
-            <span className="text-amber-400 font-semibold">7 - 14 Days Lead</span>
-            <span className="text-muted-foreground">R² = 0.941</span>
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold font-mono text-white tabular-nums">
+                  {stats ? stats.active_forecasts_count : "10"}
+                </span>
+                <span className="text-xs text-muted-foreground font-mono">Active Streams</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">Physics-Constrained Saint-Venant 1D</p>
+            </div>
+            <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono">
+              <span className="text-amber-400 font-semibold">7 - 14 Days Lead</span>
+              <span className="text-muted-foreground">R² = 0.941</span>
+            </div>
           </div>
         </div>
 

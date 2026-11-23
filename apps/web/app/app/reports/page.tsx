@@ -36,13 +36,15 @@ export default function ReportsPage() {
     <div className="flex flex-col space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
       
       {/* Header */}
-      <div className="p-6 rounded-3xl glass-panel-elevated spotlight-card border border-white/15 flex flex-col space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-          Intelligence Reports
-        </h1>
-        <p className="text-sm text-muted-foreground max-w-2xl">
-          Curated analytics, seasonal assessments, and technical validations derived from the HydroShift AI pipeline. Export ready for institutional stakeholders.
-        </p>
+      <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/15 shadow-2xl">
+        <div className="bezel-core p-6 rounded-[20px] bg-[#081320] flex flex-col space-y-3">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+            Intelligence Reports &amp; Exports
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
+            Curated analytics, seasonal assessments, and technical validations derived from the HydroShift AI pipeline. Export ready for institutional stakeholders and agricultural researchers.
+          </p>
+        </div>
       </div>
 
       {/* Reports Grid */}
@@ -50,44 +52,46 @@ export default function ReportsPage() {
         {reports.map((report) => (
           <div 
             key={report.id} 
-            className={`relative overflow-hidden group glass-panel spotlight-card rounded-3xl border border-white/10 hover:border-primary/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer p-6 flex flex-col justify-between min-h-[220px]`}
+            className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-primary/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer group"
           >
-            {/* Background Gradient Effect */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${report.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
-            
-            <div className="relative z-10 flex flex-col space-y-4">
-              <div className="flex justify-between items-start">
-                <Badge variant="outline" className="bg-black/40 text-xs font-mono border-white/10 backdrop-blur-md">
-                  {report.id}
-                </Badge>
-                <Badge variant={report.status === 'Draft' ? 'secondary' : 'default'} className="bg-primary/10 text-primary border-primary/20 text-xs font-mono">
-                  {report.status}
-                </Badge>
-              </div>
+            <div className="bezel-core p-6 rounded-[20px] bg-[#081320] flex flex-col justify-between min-h-[220px] relative overflow-hidden h-full">
+              {/* Background Gradient Effect */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${report.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
               
-              <div className="flex flex-col space-y-1">
-                <h3 className="font-semibold text-lg leading-tight group-hover:text-white transition-colors duration-300">
-                  {report.title}
-                </h3>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-1 font-mono">
-                  {report.type}
-                </span>
+              <div className="relative z-10 flex flex-col space-y-4">
+                <div className="flex justify-between items-start">
+                  <Badge variant="outline" className="bg-black/40 text-[10px] font-mono border-white/10 backdrop-blur-md">
+                    {report.id}
+                  </Badge>
+                  <Badge variant={report.status === 'Draft' ? 'secondary' : 'default'} className="bg-primary/10 text-primary border-primary/20 text-[10px] font-mono font-bold">
+                    {report.status}
+                  </Badge>
+                </div>
+                
+                <div className="flex flex-col space-y-1">
+                  <h3 className="font-bold text-base leading-tight group-hover:text-white transition-colors duration-300">
+                    {report.title}
+                  </h3>
+                  <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium mt-1 font-mono">
+                    {report.type}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            <div className="relative z-10 flex items-center justify-between pt-4 border-t border-white/5 mt-4">
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground font-medium">{report.date}</span>
-                <span className="text-xs text-muted-foreground opacity-70 font-mono">{report.size} • PDF</span>
+              <div className="relative z-10 flex items-center justify-between pt-4 border-t border-white/5 mt-4">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground font-medium">{report.date}</span>
+                  <span className="text-[11px] text-muted-foreground opacity-70 font-mono tabular-nums">{report.size} • PDF</span>
+                </div>
+                
+                <button className="h-9 w-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all duration-300 transform group-hover:scale-105 shadow-md">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </button>
               </div>
-              
-              <button className="h-9 w-9 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all duration-300 transform group-hover:scale-110">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              </button>
             </div>
           </div>
         ))}

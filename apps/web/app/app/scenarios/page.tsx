@@ -239,12 +239,12 @@ function calculateHydrodynamicSimulation(params: SimulationParams): SimulationDa
         km <= 20
           ? "Sundarbans Mouth"
           : km <= 40
-          ? "Mongla Port"
-          : km <= 55
-          ? "Rampal Polders"
-          : km <= 75
-          ? "Batiaghata"
-          : "Khulna City",
+            ? "Mongla Port"
+            : km <= 55
+              ? "Rampal Polders"
+              : km <= 75
+                ? "Batiaghata"
+                : "Khulna City",
       baseline_ec: base,
       simulated_ec: simVal,
     });
@@ -519,11 +519,10 @@ export default function ScenariosPage() {
             <button
               key={p.id}
               onClick={() => handleApplyPreset(p)}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-2 cursor-pointer ${
-                activePreset === p.id
+              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-2 cursor-pointer ${activePreset === p.id
                   ? "bg-white/15 text-white border-primary shadow-lg shadow-primary/10"
                   : "bg-white/5 text-muted-foreground hover:text-white border-white/10"
-              }`}
+                }`}
               title={p.desc}
             >
               <span>{p.name}</span>
@@ -552,19 +551,18 @@ export default function ScenariosPage() {
                 <span className="text-xs font-mono text-muted-foreground">km from Bay</span>
               </div>
               <span
-                className={`text-xs font-mono font-bold mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full ${
-                  simData.delta_intrusion_km > 0
+                className={`text-xs font-mono font-bold mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full ${simData.delta_intrusion_km > 0
                     ? "bg-rose-500/15 text-rose-300 border border-rose-500/30"
                     : simData.delta_intrusion_km < 0
-                    ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
-                    : "bg-white/5 text-muted-foreground"
-                }`}
+                      ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                      : "bg-white/5 text-muted-foreground"
+                  }`}
               >
                 {simData.delta_intrusion_km > 0
                   ? `+${simData.delta_intrusion_km.toFixed(1)} km inland advance`
                   : simData.delta_intrusion_km < 0
-                  ? `${simData.delta_intrusion_km.toFixed(1)} km seaward retreat`
-                  : "Stationary at baseline"}
+                    ? `${simData.delta_intrusion_km.toFixed(1)} km seaward retreat`
+                    : "Stationary at baseline"}
               </span>
             </div>
             <span className="text-[11px] text-muted-foreground">
@@ -625,11 +623,10 @@ export default function ScenariosPage() {
             <div className="my-2.5">
               <div className="flex items-baseline gap-2">
                 <span
-                  className={`text-xl font-extrabold font-mono px-2.5 py-1 rounded-lg ${
-                    simData.wasa_intake_threatened
+                  className={`text-xl font-extrabold font-mono px-2.5 py-1 rounded-lg ${simData.wasa_intake_threatened
                       ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
                       : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                  }`}
+                    }`}
                 >
                   {simData.wasa_intake_threatened ? "COMPROMISED" : "SECURED"}
                 </span>
@@ -653,7 +650,7 @@ export default function ScenariosPage() {
           <div className="flex items-center gap-2">
             <Info className="w-4 h-4 text-primary" />
             <span className="text-xs font-bold uppercase tracking-wider text-white">
-              Salinity Severity Guide (Electrical Conductivity &bull; dS/m)
+              Salinity Severity Guide (Electrical Conductivity • dS/m)
             </span>
           </div>
           <span className="text-[11px] text-muted-foreground font-mono">
@@ -666,7 +663,7 @@ export default function ScenariosPage() {
           <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-2.5">
             <div className="w-3 h-3 rounded-full bg-emerald-400 mt-0.5 shrink-0 shadow-sm shadow-emerald-400/50" />
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-emerald-300 font-mono">&lt; 1.0 dS/m &bull; Potable Fresh</span>
+              <span className="text-xs font-bold text-emerald-300 font-mono">&lt; 1.0 dS/m • Potable Fresh</span>
               <span className="text-[11px] text-foreground/80 mt-0.5">
                 Safe for drinking (Khulna WASA) &amp; all sensitive crops.
               </span>
@@ -677,7 +674,7 @@ export default function ScenariosPage() {
           <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-start gap-2.5">
             <div className="w-3 h-3 rounded-full bg-cyan-400 mt-0.5 shrink-0 shadow-sm shadow-cyan-400/50" />
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-cyan-300 font-mono">1.0 &ndash; 2.5 dS/m &bull; Mild Brackish</span>
+              <span className="text-xs font-bold text-cyan-300 font-mono">1.0 – 2.5 dS/m • Mild Brackish</span>
               <span className="text-[11px] text-foreground/80 mt-0.5">
                 Safe for mustard, sesame, and monsoon T.Aman rice.
               </span>
@@ -688,7 +685,7 @@ export default function ScenariosPage() {
           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5">
             <div className="w-3 h-3 rounded-full bg-amber-400 mt-0.5 shrink-0 shadow-sm shadow-amber-400/50" />
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-amber-300 font-mono">2.5 &ndash; 4.0 dS/m &bull; Crop Stress</span>
+              <span className="text-xs font-bold text-amber-300 font-mono">2.5 – 4.0 dS/m • Crop Stress</span>
               <span className="text-[11px] text-foreground/80 mt-0.5">
                 Yield drops in standard crops. Requires BRRI dhan67/97.
               </span>
@@ -699,7 +696,7 @@ export default function ScenariosPage() {
           <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-2.5">
             <div className="w-3 h-3 rounded-full bg-rose-500 mt-0.5 shrink-0 shadow-sm shadow-rose-500/50" />
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-rose-300 font-mono">&ge; 4.0 dS/m &bull; Severe Hazard</span>
+              <span className="text-xs font-bold text-rose-300 font-mono">≥ 4.0 dS/m • Severe Hazard</span>
               <span className="text-[11px] text-foreground/80 mt-0.5">
                 Causes empty rice spikelets (chita). Close polder sluices.
               </span>
@@ -880,27 +877,24 @@ export default function ScenariosPage() {
             <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl">
               <button
                 onClick={() => setChartTab("profile")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  chartTab === "profile" ? "bg-white/15 text-white shadow-sm" : "text-muted-foreground hover:text-white"
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${chartTab === "profile" ? "bg-white/15 text-white shadow-sm" : "text-muted-foreground hover:text-white"
+                  }`}
               >
                 <Waves className="w-3.5 h-3.5 text-cyan-400" />
                 <span>River Corridor Profile</span>
               </button>
               <button
                 onClick={() => setChartTab("hydrograph")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  chartTab === "hydrograph" ? "bg-white/15 text-white shadow-sm" : "text-muted-foreground hover:text-white"
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${chartTab === "hydrograph" ? "bg-white/15 text-white shadow-sm" : "text-muted-foreground hover:text-white"
+                  }`}
               >
                 <Activity className="w-3.5 h-3.5 text-rose-400" />
                 <span>14-Day Tidal Forecast</span>
               </button>
               <button
                 onClick={() => setChartTab("matrix")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  chartTab === "matrix" ? "bg-white/15 text-white shadow-sm" : "text-muted-foreground hover:text-white"
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${chartTab === "matrix" ? "bg-white/15 text-white shadow-sm" : "text-muted-foreground hover:text-white"
+                  }`}
               >
                 <TrendingUp className="w-3.5 h-3.5 text-primary" />
                 <span>Station Comparison</span>
@@ -1203,35 +1197,31 @@ export default function ScenariosPage() {
               <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 text-xs">
                 <button
                   onClick={() => setTableFilter("all")}
-                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
-                    tableFilter === "all" ? "bg-white/15 text-white" : "text-muted-foreground hover:text-white"
-                  }`}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${tableFilter === "all" ? "bg-white/15 text-white" : "text-muted-foreground hover:text-white"
+                    }`}
                 >
                   All ({simData.reaches.length})
                 </button>
                 <button
                   onClick={() => setTableFilter("critical")}
-                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
-                    tableFilter === "critical" ? "bg-rose-500/20 text-rose-300 border border-rose-500/40" : "text-muted-foreground hover:text-rose-300"
-                  }`}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${tableFilter === "critical" ? "bg-rose-500/20 text-rose-300 border border-rose-500/40" : "text-muted-foreground hover:text-rose-300"
+                    }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-rose-500" />
                   <span>Hazard ({simData.reaches.filter((r) => r.hazard_level === "CRITICAL").length})</span>
                 </button>
                 <button
                   onClick={() => setTableFilter("warning")}
-                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
-                    tableFilter === "warning" ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "text-muted-foreground hover:text-amber-300"
-                  }`}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${tableFilter === "warning" ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "text-muted-foreground hover:text-amber-300"
+                    }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-amber-400" />
                   <span>Warning ({simData.reaches.filter((r) => r.hazard_level === "WARNING").length})</span>
                 </button>
                 <button
                   onClick={() => setTableFilter("safe")}
-                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
-                    tableFilter === "safe" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "text-muted-foreground hover:text-emerald-300"
-                  }`}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${tableFilter === "safe" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "text-muted-foreground hover:text-emerald-300"
+                    }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   <span>Safe ({simData.reaches.filter((r) => r.hazard_level === "NOMINAL").length})</span>
@@ -1276,9 +1266,8 @@ export default function ScenariosPage() {
                     <tr
                       key={r.reach_id}
                       onClick={() => setSelectedStationId(r.reach_id)}
-                      className={`cursor-pointer transition-colors ${
-                        isSelected ? "bg-white/10 border-l-2 border-primary" : "hover:bg-white/5"
-                      }`}
+                      className={`cursor-pointer transition-colors ${isSelected ? "bg-white/10 border-l-2 border-primary" : "hover:bg-white/5"
+                        }`}
                     >
                       <td className="py-3 px-3 font-semibold text-white flex items-center gap-2 font-sans">
                         <MapPin className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
@@ -1296,44 +1285,39 @@ export default function ScenariosPage() {
                       <td className="py-3 px-3 font-mono">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`font-bold text-sm ${
-                              isCrit ? "text-rose-400" : isWarn ? "text-amber-400" : "text-emerald-400"
-                            }`}
+                            className={`font-bold text-sm ${isCrit ? "text-rose-400" : isWarn ? "text-amber-400" : "text-emerald-400"
+                              }`}
                           >
                             {r.simulated_ec.toFixed(1)} dS/m
                           </span>
                           {/* Mini visual salinity meter bar */}
                           <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden hidden sm:block">
                             <div
-                              className={`h-full rounded-full ${
-                                isCrit ? "bg-rose-500" : isWarn ? "bg-amber-400" : "bg-emerald-400"
-                              }`}
+                              className={`h-full rounded-full ${isCrit ? "bg-rose-500" : isWarn ? "bg-amber-400" : "bg-emerald-400"
+                                }`}
                               style={{ width: `${Math.min(100, (r.simulated_ec / 15.0) * 100)}%` }}
                             />
                           </div>
                         </div>
                       </td>
                       <td
-                        className={`py-3 px-3 font-semibold font-mono text-xs ${
-                          r.delta_ec > 0 ? "text-rose-300" : "text-emerald-300"
-                        }`}
+                        className={`py-3 px-3 font-semibold font-mono text-xs ${r.delta_ec > 0 ? "text-rose-300" : "text-emerald-300"
+                          }`}
                       >
                         {r.delta_ec > 0 ? `+${r.delta_ec.toFixed(1)}` : `${r.delta_ec.toFixed(1)}`}
                       </td>
                       <td className="py-3 px-3">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${
-                            isCrit
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${isCrit
                               ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
                               : isWarn
-                              ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                              : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                          }`}
+                                ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                                : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                            }`}
                         >
                           <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isCrit ? "bg-rose-400" : isWarn ? "bg-amber-400" : "bg-emerald-400"
-                            }`}
+                            className={`w-1.5 h-1.5 rounded-full ${isCrit ? "bg-rose-400" : isWarn ? "bg-amber-400" : "bg-emerald-400"
+                              }`}
                           />
                           <span>{r.hazard_level}</span>
                         </span>

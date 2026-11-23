@@ -16,14 +16,14 @@ import {
   ShieldCheck,
   ChevronRight,
   TrendingUp,
-  TrendingDown,
   Info,
   Layers,
   Sprout,
   Activity,
   ArrowRight,
+  ArrowUpRight,
   RefreshCw,
-  SlidersHorizontal,
+  Sparkles,
 } from "lucide-react";
 
 interface WaterSourceData {
@@ -293,87 +293,94 @@ const PILOT_SOURCES: WaterSourceData[] = [
 export default function MyWaterPage() {
   const [selectedSourceId, setSelectedSourceId] = useState<string>("dacope-bajua-canal");
   const [lang, setLang] = useState<"en" | "bn">("en");
-  const [viewMode, setViewMode] = useState<"card" | "map">("card");
 
   const source = PILOT_SOURCES.find((s) => s.id === selectedSourceId) || PILOT_SOURCES[0];
 
-  const getCClassBadge = (cClass: "C1" | "C2" | "C3" | "C4") => {
+  const getCClassMeta = (cClass: "C1" | "C2" | "C3" | "C4") => {
     switch (cClass) {
       case "C1":
         return {
-          label: "C1 - Low Salinity (< 0.75 dS/m)",
-          labelBn: "C1 - মিষ্টি পানি (০.৭৫ dS/m এর নিচে)",
-          color: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-          desc: "Excellent freshwater. Safe for all crops.",
-          descBn: "উত্তম মিষ্টি পানি। সকল ফসলের জন্য সম্পূর্ণ নিরাপদ।",
+          label: "C1: Low Salinity",
+          labelBn: "C1: মিষ্টি পানি (< ০.৭৫ dS/m)",
+          colorClass: "from-emerald-950/40 to-[#070e17] border-emerald-500/40 text-emerald-300",
+          badgeColor: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+          desc: "Excellent freshwater. Safe for all crops, young seedbeds, and sensitive vegetables.",
+          descBn: "উত্তম মিষ্টি পানি। সকল ফসল, বীজতলা এবং শাকসবজির জন্য সম্পূর্ণ নিরাপদ।",
+          gaugeWidth: "15%",
         };
       case "C2":
         return {
-          label: "C2 - Medium Salinity (0.75 - 1.5 dS/m)",
-          labelBn: "C2 - সহনীয় পানি (০.৭৫ - ১.৫ dS/m)",
-          color: "bg-sky-500/15 text-sky-400 border-sky-500/30",
+          label: "C2: Medium Salinity",
+          labelBn: "C2: সহনীয় পানি (০.৭৫ - ১.৫ dS/m)",
+          colorClass: "from-sky-950/40 to-[#070e17] border-sky-500/40 text-sky-300",
+          badgeColor: "bg-sky-500/20 text-sky-400 border-sky-500/30",
           desc: "Good quality. Suitable for most crops; slight caution on young rice nurseries.",
           descBn: "ভালো মান। অধিকাংশ ফসলে ব্যবহারযোগ্য; বীজতলায় কিছুটা সতর্কতা দরকার।",
+          gaugeWidth: "35%",
         };
       case "C3":
         return {
-          label: "C3 - High Salinity (1.5 - 3.0 dS/m)",
-          labelBn: "C3 - মধ্যম নোনা পানি (১.৫ - ৩.০ dS/m)",
-          color: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+          label: "C3: High Salinity",
+          labelBn: "C3: মধ্যম নোনা পানি (১.৫ - ৩.০ dS/m)",
+          colorClass: "from-amber-950/40 to-[#070e17] border-amber-500/40 text-amber-300",
+          badgeColor: "bg-amber-500/20 text-amber-400 border-amber-500/30",
           desc: "Moderate salinity. Safe for salt-tolerant varieties (BRRI 67, Sunflower); risky for traditional Boro.",
           descBn: "লবণাক্ততা বেশি। শুধুমাত্র লবণ-সহনশীল ফসলে (ব্রি ৬৭, সূর্যমুখী) ব্যবহারযোগ্য।",
+          gaugeWidth: "60%",
         };
       case "C4":
         return {
-          label: "C4 - Very High Salinity (> 3.0 dS/m)",
-          labelBn: "C4 - তীব্র নোনা পানি (৩.০ dS/m এর বেশি)",
-          color: "bg-rose-500/15 text-rose-400 border-rose-500/30",
+          label: "C4: Very High Salinity",
+          labelBn: "C4: তীব্র নোনা পানি (> ৩.০ dS/m)",
+          colorClass: "from-rose-950/40 to-[#070e17] border-rose-500/40 text-rose-300",
+          badgeColor: "bg-rose-500/20 text-rose-400 border-rose-500/30",
           desc: "Severe salinity hazard. Unsuitable for freshwater irrigation. Sluice gates must be locked.",
-          descBn: "চরম নোনা পানি। ফসলে সেচ দেওয়া নিষেধ। গেট বন্ধ রাখতে হবে।",
+          descBn: "চরম নোনা পানি। ফসলে সেচ দেওয়া সম্পূর্ণ নিষেধ। গেট বন্ধ রাখতে হবে।",
+          gaugeWidth: "90%",
         };
     }
   };
 
-  const cBadge = getCClassBadge(source.cClass);
+  const cMeta = getCClassMeta(source.cClass);
 
   return (
-    <div className="min-h-[100dvh] bg-[#05070d] text-foreground p-3 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
-      {/* 1. TOP HEADER & PILOT SELECTOR */}
+    <div className="min-h-[100dvh] bg-[#04070e] text-foreground p-3 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+      {/* 1. TOP HEADER & BILINGUAL TOGGLE */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <Badge variant="outline" className="text-[11px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+            <Badge variant="outline" className="text-[11px] font-mono uppercase bg-emerald-500/10 text-emerald-300 border-emerald-500/25">
               Dacope Pilot Community // দাকোপ পাইলট
             </Badge>
             <span className="text-xs text-muted-foreground font-mono">Polders 31 & 32</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
             <Droplets className="w-7 h-7 text-primary" />
             <span>{lang === "en" ? "My Water: Local Salinity & Decisions" : "আমার পানি: স্থানীয় লবণাক্ততা ও সিদ্ধান্ত"}</span>
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl [text-wrap:pretty]">
             {lang === "en"
               ? "Verified field measurements and short-term salinity guidance for irrigation and sowing in Dacope."
               : "দাকোপের কৃষকদের জন্য যাচাইকৃত মাঠ পর্যায়ের পানির লবণাক্ততা এবং সেচ ও বপনের সময়োপযোগী সিদ্ধান্ত।"}
           </p>
         </div>
 
-        {/* Language & View Switchers */}
-        <div className="flex items-center gap-2.5 self-start sm:self-center">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-1 flex items-center text-xs">
+        {/* Action & Language */}
+        <div className="flex items-center gap-3 self-start sm:self-center">
+          <div className="bg-white/5 border border-white/10 rounded-full p-0.5 flex items-center text-xs">
             <button
               onClick={() => setLang("en")}
-              className={`px-3 py-1 rounded-lg font-medium transition-colors ${
-                lang === "en" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
+              className={`px-3 py-1 rounded-full font-medium transition-colors ${
+                lang === "en" ? "bg-primary text-black font-bold shadow-sm" : "text-muted-foreground hover:text-white"
               }`}
             >
               English
             </button>
             <button
               onClick={() => setLang("bn")}
-              className={`px-3 py-1 rounded-lg font-medium transition-colors ${
-                lang === "bn" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
+              className={`px-3 py-1 rounded-full font-medium transition-colors ${
+                lang === "bn" ? "bg-primary text-black font-bold shadow-sm" : "text-muted-foreground hover:text-white"
               }`}
             >
               বাংলা
@@ -382,7 +389,7 @@ export default function MyWaterPage() {
 
           <Link
             href="/app/crop-planning"
-            className="px-3.5 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 text-xs font-semibold flex items-center gap-1.5 transition-all"
+            className="btn-tactile px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 text-xs font-semibold flex items-center gap-1.5 transition-all"
           >
             <span>{lang === "en" ? "Crop Planning" : "ফসল পরিকল্পনা"}</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -390,298 +397,321 @@ export default function MyWaterPage() {
         </div>
       </div>
 
-      {/* 2. VILLAGE & WATER SOURCE SELECTOR BAR */}
-      <Card className="p-4 bg-[#0a121e]/80 border-white/10 backdrop-blur-xl rounded-2xl shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <MapPin className="w-4 h-4 text-primary shrink-0" />
-            <span className="font-semibold text-white">
-              {lang === "en" ? "Select Local Water Source:" : "স্থানীয় পানির উৎস নির্বাচন করুন:"}
-            </span>
-          </div>
+      {/* 2. LOCAL WATER SOURCE SELECTOR (DOUBLE-BEZEL) */}
+      <div className="bezel-shell">
+        <div className="bezel-core p-4 sm:p-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-white">
+              <MapPin className="w-4 h-4 text-primary shrink-0" />
+              <span>{lang === "en" ? "Select Waterway / Point:" : "পানির উৎস নির্বাচন করুন:"}</span>
+            </div>
 
-          {/* Quick Source Radio Buttons */}
-          <div className="flex flex-wrap items-center gap-2">
-            {PILOT_SOURCES.map((s) => {
-              const isSelected = s.id === selectedSourceId;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => setSelectedSourceId(s.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all text-left flex items-center gap-2 border ${
-                    isSelected
-                      ? "bg-primary text-black font-bold border-primary shadow-lg shadow-primary/25"
-                      : "bg-white/5 text-muted-foreground hover:text-white hover:bg-white/10 border-white/10"
-                  }`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-black" : "bg-primary"}`} />
-                  <span>{lang === "en" ? s.name : s.nameBn}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
-                      isSelected ? "bg-black/20 text-black font-bold" : "bg-black/40 text-muted-foreground"
+            {/* Source Pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              {PILOT_SOURCES.map((s) => {
+                const isSelected = s.id === selectedSourceId;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => setSelectedSourceId(s.id)}
+                    className={`btn-tactile px-3.5 py-1.5 rounded-full text-xs font-medium transition-all text-left flex items-center gap-2 border ${
+                      isSelected
+                        ? "bg-primary text-black font-bold border-primary shadow-md shadow-primary/25"
+                        : "bg-white/[0.04] text-muted-foreground hover:text-white hover:bg-white/10 border-white/10"
                     }`}
                   >
-                    {s.cClass}
-                  </span>
-                </button>
-              );
-            })}
+                    <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-black" : "bg-primary"}`} />
+                    <span>{lang === "en" ? s.name : s.nameBn}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono tabular-nums ${
+                        isSelected ? "bg-black/20 text-black font-bold" : "bg-black/40 text-muted-foreground"
+                      }`}
+                    >
+                      {s.cClass}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* 3. CORE WATER STATUS & ACTION HERO GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Current Reading & Salinity Class (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Main Reading Card */}
-          <Card className="p-5 sm:p-6 bg-[#081320] border-white/15 rounded-2xl shadow-2xl relative overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
-              <div>
-                <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-                  {lang === "en" ? "Selected Source" : "নির্বাচিত উৎস"} • {source.polder}
-                </span>
-                <h2 className="text-xl font-bold text-white mt-0.5">
-                  {lang === "en" ? source.name : source.nameBn}
-                </h2>
-                <span className="text-xs text-muted-foreground">
-                  {lang === "en" ? source.village : source.villageBn} • {lang === "en" ? source.sourceType : source.sourceTypeBn}
-                </span>
-              </div>
-
-              {/* Provenance Badge */}
-              <div className="flex flex-col items-end">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>{lang === "en" ? "Verified Field Reading" : "মাঠে যাচাইকৃত মান"}</span>
-                </span>
-                <span className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {source.lastSampleTime}
-                </span>
-              </div>
-            </div>
-
-            {/* Salinity Gauge Metric */}
-            <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="text-center sm:text-left">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {lang === "en" ? "Electrical Conductivity (EC @ 25°C)" : "তড়িৎ পরিবাহিতা (EC ২৫° সেলসিয়াসে)"}
-                </span>
-                <div className="flex items-baseline gap-2 mt-1 justify-center sm:justify-start">
-                  <span className="text-5xl sm:text-6xl font-black font-mono text-white tracking-tight">
-                    {source.ec25.toFixed(1)}
+          {/* Main Reading Card: Double-Bezel */}
+          <div className="bezel-shell">
+            <div className="bezel-core p-6 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
+                <div>
+                  <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+                    {lang === "en" ? "Selected Source" : "নির্বাচিত উৎস"} • {source.polder}
                   </span>
-                  <span className="text-lg font-bold text-primary font-mono">dS/m</span>
-                  <span className="text-xs text-muted-foreground font-mono">({source.tds} mg/L TDS)</span>
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">
+                    {lang === "en" ? source.name : source.nameBn}
+                  </h2>
+                  <span className="text-xs text-muted-foreground">
+                    {lang === "en" ? source.village : source.villageBn} • {lang === "en" ? source.sourceType : source.sourceTypeBn}
+                  </span>
+                </div>
+
+                {/* Provenance Badge */}
+                <div className="flex flex-col items-start sm:items-end">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>{lang === "en" ? "Verified Field Reading" : "মাঠে যাচাইকৃত মান"}</span>
+                  </span>
+                  <span className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1 font-mono">
+                    <Clock className="w-3 h-3 text-primary" />
+                    {source.lastSampleTime}
+                  </span>
                 </div>
               </div>
 
-              {/* Salinity Class Box */}
-              <div className={`p-4 rounded-2xl border text-center max-w-xs ${cBadge.color}`}>
-                <span className="text-xs font-mono font-bold tracking-widest uppercase">
-                  {lang === "en" ? "Water Class" : "পানির শ্রেণি"}
-                </span>
-                <div className="text-3xl font-black font-mono my-0.5">{source.cClass}</div>
-                <p className="text-[11px] font-medium leading-snug">
-                  {lang === "en" ? cBadge.desc : cBadge.descBn}
-                </p>
-              </div>
-            </div>
+              {/* Salinity Gauge Metric */}
+              <div className="py-2 flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="text-center sm:text-left">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {lang === "en" ? "Electrical Conductivity (EC @ 25°C)" : "তড়িৎ পরিবাহিতা (EC ২৫° সেলসিয়াসে)"}
+                  </span>
+                  <div className="flex items-baseline gap-2 mt-1.5 justify-center sm:justify-start">
+                    <span className="text-5xl sm:text-6xl font-black font-mono text-white tracking-tight tabular-nums">
+                      {source.ec25.toFixed(1)}
+                    </span>
+                    <span className="text-lg font-bold text-primary font-mono">dS/m</span>
+                    <span className="text-xs text-muted-foreground font-mono tabular-nums">({source.tds} mg/L TDS)</span>
+                  </div>
+                </div>
 
-            {/* Short-Term 7-14 Day Forecast Strip */}
-            <div className="pt-4 border-t border-white/10 bg-white/[0.02] -mx-5 -mb-5 p-4 sm:p-5 rounded-b-2xl">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                {/* Salinity Class Box */}
+                <div className={`p-4 rounded-2xl border text-center max-w-xs ${cMeta.badgeColor}`}>
+                  <span className="text-xs font-mono font-bold tracking-widest uppercase">
+                    {lang === "en" ? "Water Class" : "পানির শ্রেণি"}
+                  </span>
+                  <div className="text-3xl font-black font-mono my-0.5">{source.cClass}</div>
+                  <p className="text-[11px] font-medium leading-snug">
+                    {lang === "en" ? cMeta.desc : cMeta.descBn}
+                  </p>
+                </div>
+              </div>
+
+              {/* Visual Salinity Spectrum Track Bar */}
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-muted-foreground">Salinity Scale Position:</span>
+                  <span className="text-white font-bold">{source.ec25} dS/m</span>
+                </div>
+                <div className="h-2.5 w-full rounded-full bg-white/10 overflow-hidden relative">
+                  <div
+                    className={`h-full transition-all duration-700 rounded-full ${
+                      source.ec25 <= 1.5
+                        ? "bg-gradient-to-r from-emerald-400 to-sky-400"
+                        : source.ec25 <= 3.0
+                        ? "bg-gradient-to-r from-sky-400 via-amber-400 to-orange-400"
+                        : "bg-gradient-to-r from-orange-500 to-rose-500"
+                    }`}
+                    style={{ width: cMeta.gaugeWidth }}
+                  />
+                </div>
+                <div className="flex justify-between text-[9px] font-mono text-muted-foreground pt-0.5">
+                  <span>C1 (&lt; 0.75)</span>
+                  <span>C2 (0.75 - 1.5)</span>
+                  <span>C3 (1.5 - 3.0)</span>
+                  <span>C4 (&gt; 3.0 dS/m)</span>
+                </div>
+              </div>
+
+              {/* Short-Term 7-14 Day Forecast Strip */}
+              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-bold text-white">
-                    {lang === "en" ? "7–14 Day Forecast Window" : "৭–১৪ দিনের পূর্বাভাস ও প্রবণতা"}
+                  <span className="font-bold text-white">
+                    {lang === "en" ? "7–14 Day Forecast Window:" : "৭–১৪ দিনের পূর্বাভাস সীমা:"}
                   </span>
-                  <Badge variant="outline" className="text-[10px] bg-white/5 border-white/10 text-muted-foreground">
-                    {source.forecastTrend === "RISING"
-                      ? lang === "en" ? "Rising Tide Trend" : "লবণাক্ততা বৃদ্ধি প্রবণতা"
-                      : lang === "en" ? "Stable Tide" : "স্থিতিশীল"}
-                  </Badge>
+                  <span className="font-mono text-primary font-bold tabular-nums">
+                    {source.forecast7dRange[0]} – {source.forecast7dRange[1]} dS/m
+                  </span>
                 </div>
                 <span className="text-[11px] text-muted-foreground font-mono">
-                  {lang === "en" ? "Expected Range:" : "প্রত্যাশিত সীমা:"} {source.forecast7dRange[0]} – {source.forecast7dRange[1]} dS/m
+                  {source.forecastTrend === "RISING"
+                    ? lang === "en" ? "Rising Tide Alert" : "জোয়ারে লবণ বৃদ্ধির পূর্বাভাস"
+                    : "Stable Tide"}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {lang === "en"
-                  ? `External Passur River tides are approaching spring cycle. Water in ${source.name} is expected to fluctuate between ${source.forecast7dRange[0]} and ${source.forecast7dRange[1]} dS/m (${source.potentialCClasses.join(", ")} class). Plan sowing before the weekend surge.`
-                  : `পশুর নদীর অমাবস্যার জোয়ার আসন্ন। আগামী সপ্তাহে খালের লবণাক্ততা ${source.forecast7dRange[0]} থেকে ${source.forecast7dRange[1]} dS/m এর মধ্যে থাকতে পারে। সপ্তাহান্তের জোয়ারের আগেই বীজ বপন ও সেচ শেষ করুন।`}
-              </p>
             </div>
-          </Card>
+          </div>
 
-          {/* Intended Use & Crop Stage Interpretation */}
-          <Card className="p-5 bg-[#081320] border-white/15 rounded-2xl shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <Sprout className="w-5 h-5 text-primary" />
-                <h3 className="text-sm font-bold text-white">
-                  {lang === "en" ? "What Does This Water Mean For Your Crop?" : "আপনার ফসলের জন্য এই পানির অর্থ কী?"}
-                </h3>
-              </div>
-              <span className="text-[11px] text-muted-foreground font-mono">
-                {lang === "en" ? "Reviewed Crop Stage Rules" : "যাচাইকৃত ফসলের নিয়মাবলী"}
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {source.intendedUses.map((u, i) => (
-                <div
-                  key={i}
-                  className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-white/15 transition-colors"
-                >
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-xs text-white">
-                        {lang === "en" ? u.use : u.useBn}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground font-mono">({u.stage})</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {lang === "en" ? u.guidance : u.guidanceBn}
-                    </p>
-                  </div>
-
-                  <span
-                    className={`self-start sm:self-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase shrink-0 border ${
-                      u.status === "SUITABLE"
-                        ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-                        : u.status === "CAUTION"
-                        ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
-                        : "bg-rose-500/15 text-rose-400 border-rose-500/30"
-                    }`}
-                  >
-                    {u.status === "SUITABLE"
-                      ? lang === "en" ? "Suitable" : "উপযোগী"
-                      : u.status === "CAUTION"
-                      ? lang === "en" ? "Caution" : "সতর্কতা"
-                      : lang === "en" ? "Unsuitable" : "অনুপযোগী"}
-                  </span>
+          {/* Intended Use & Crop Stage Meaning */}
+          <div className="bezel-shell">
+            <div className="bezel-core p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <Sprout className="w-5 h-5 text-primary" />
+                  <h3 className="text-sm font-bold text-white">
+                    {lang === "en" ? "What Does This Water Mean For Your Crop?" : "আপনার ফসলের জন্য এই পানির অর্থ কী?"}
+                  </h3>
                 </div>
-              ))}
+                <span className="text-[11px] text-muted-foreground font-mono">Reviewed Agronomic Rules</span>
+              </div>
+
+              <div className="space-y-3">
+                {source.intendedUses.map((u, i) => (
+                  <div
+                    key={i}
+                    className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-white/15 transition-colors"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-white">
+                          {lang === "en" ? u.use : u.useBn}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground font-mono">({u.stage})</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground [text-wrap:pretty]">
+                        {lang === "en" ? u.guidance : u.guidanceBn}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`self-start sm:self-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase shrink-0 border ${
+                        u.status === "SUITABLE"
+                          ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                          : u.status === "CAUTION"
+                          ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                          : "bg-rose-500/15 text-rose-400 border-rose-500/30"
+                      }`}
+                    >
+                      {u.status === "SUITABLE"
+                        ? lang === "en" ? "Suitable" : "উপযোগী"
+                        : u.status === "CAUTION"
+                        ? lang === "en" ? "Caution" : "সতর্কতা"
+                        : lang === "en" ? "Unsuitable" : "অনুপযোগী"}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </Card>
+          </div>
         </div>
 
         {/* Right Column: Reviewed Action Card, Local Contacts & Safe Alternatives (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Action Card */}
-          <Card className="p-5 sm:p-6 bg-gradient-to-br from-[#0c1a2d] to-[#081320] border-primary/30 rounded-2xl shadow-2xl relative">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-primary uppercase font-mono tracking-wide">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                {lang === "en" ? "Reviewed Action Card" : "অনুমোদিত পদক্ষেপ নির্দেশনা"}
-              </span>
-              <Badge className="bg-primary/20 text-primary border-primary/40 text-[10px]">
-                {source.reviewedAction.status === "APPROVED"
-                  ? lang === "en" ? "Locally Approved" : "স্থানীয়ভাবে অনুমোদিত"
-                  : "Pending"}
-              </Badge>
-            </div>
-
-            <div className="my-4 space-y-3">
-              <h4 className="text-base font-bold text-white leading-snug">
-                {lang === "en" ? source.reviewedAction.instruction : source.reviewedAction.instructionBn}
-              </h4>
-              <div className="grid grid-cols-2 gap-2 text-xs pt-2">
-                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5">
-                  <span className="text-[10px] text-muted-foreground block">
-                    {lang === "en" ? "Window Validity" : "কার্যকারিতার মেয়াদ"}
-                  </span>
-                  <span className="font-bold text-white font-mono mt-0.5 block">
-                    {source.reviewedAction.validityHours} Hours
-                  </span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5">
-                  <span className="text-[10px] text-muted-foreground block">
-                    {lang === "en" ? "Next Scheduled Check" : "পরবর্তী মাপার সময়"}
-                  </span>
-                  <span className="font-bold text-emerald-400 font-mono mt-0.5 block">
-                    {source.reviewedAction.nextCheckTime}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-white/10 text-[11px] text-muted-foreground flex items-center justify-between">
-              <span>{lang === "en" ? "Sign-off Authority:" : "অনুমোদনকারী:"}</span>
-              <span className="font-semibold text-white">{source.reviewedAction.reviewer}</span>
-            </div>
-          </Card>
-
-          {/* Safe Alternative Water Source */}
-          <Card className="p-5 bg-[#081320] border-white/15 rounded-2xl shadow-xl space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
-              <Layers className="w-4 h-4 text-emerald-400" />
-              <span>{lang === "en" ? "Nearby Safe Alternative Source" : "নিকটবর্তী বিকল্প নিরাপদ উৎস"}</span>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-emerald-500/[0.05] border border-emerald-500/20 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-sm text-white">{source.safeAlternative.name}</span>
-                <span className="text-xs font-bold font-mono text-emerald-400">
-                  {source.safeAlternative.ec25} dS/m (C2)
+          {/* Action Card: Double-Bezel */}
+          <div className="bezel-shell">
+            <div className="bezel-core p-6 bg-gradient-to-br from-[#0c1a2d] to-[#081320] border-primary/25 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <span className="flex items-center gap-2 text-xs font-bold text-primary uppercase font-mono tracking-wide">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  {lang === "en" ? "Reviewed Action Card" : "অনুমোদিত পদক্ষেপ নির্দেশনা"}
                 </span>
-              </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{source.safeAlternative.type} • {source.safeAlternative.distanceMeters}m away</span>
-                <span className="text-[11px] text-emerald-300 font-medium">{source.safeAlternative.accessPermission}</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              {lang === "en"
-                ? "Note: Permissions have been verified by the community committee. Only use alternatives for seedbeds or emergency seedling rescue."
-                : "নির্দেশনা: স্থানীয় কমিটির সাথে কথা বলে নিশ্চিত করা হয়েছে। শুধুমাত্র বীজতলা বা জরুরি প্রয়োজনে এই পানি ব্যবহার করুন।"}
-            </p>
-          </Card>
-
-          {/* Local Facilitator & Help Contacts */}
-          <Card className="p-5 bg-[#081320] border-white/15 rounded-2xl shadow-xl space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
-              <Phone className="w-4 h-4 text-primary" />
-              <span>{lang === "en" ? "Local Support & Facilitator" : "স্থানীয় সাহায্য ও ফ্যাসিলিটেটর"}</span>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <div>
-                  <div className="font-bold text-white">M. Rahman (রহমান)</div>
-                  <div className="text-[11px] text-muted-foreground">
-                    {lang === "en" ? "Dacope Community Water Facilitator" : "দাকোপ কমিউনিটি পানি ফ্যাসিলিটেটর"}
-                  </div>
-                </div>
-                <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
-                  Dacope SAAO Liaison
+                <Badge className="bg-primary/20 text-primary border-primary/40 text-[10px] font-mono">
+                  {source.reviewedAction.status === "APPROVED" ? "VERIFIED" : "PENDING"}
                 </Badge>
               </div>
-              <div className="text-xs text-primary font-mono font-semibold pt-1">
-                Hotline / WhatsApp: +880 1712-345678
+
+              <div className="space-y-3">
+                <h4 className="text-base font-bold text-white leading-snug [text-wrap:balance]">
+                  {lang === "en" ? source.reviewedAction.instruction : source.reviewedAction.instructionBn}
+                </h4>
+                <div className="grid grid-cols-2 gap-2.5 text-xs pt-1">
+                  <div className="p-3 rounded-2xl bg-black/40 border border-white/5">
+                    <span className="text-[10px] text-muted-foreground block font-mono">
+                      {lang === "en" ? "Action Window" : "কার্যকারিতার মেয়াদ"}
+                    </span>
+                    <span className="font-bold text-white font-mono mt-0.5 block tabular-nums">
+                      {source.reviewedAction.validityHours} Hours
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-2xl bg-black/40 border border-white/5">
+                    <span className="text-[10px] text-muted-foreground block font-mono">
+                      {lang === "en" ? "Next Re-check" : "পরবর্তী মাপার সময়"}
+                    </span>
+                    <span className="font-bold text-emerald-400 font-mono mt-0.5 block">
+                      {source.reviewedAction.nextCheckTime}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/10 text-[11px] text-muted-foreground flex items-center justify-between">
+                <span>{lang === "en" ? "Reviewing Authority:" : "অনুমোদনকারী:"}</span>
+                <span className="font-semibold text-white">{source.reviewedAction.reviewer}</span>
               </div>
             </div>
+          </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <Link
-                href="/app/help"
-                className="text-xs text-muted-foreground hover:text-white flex items-center gap-1 transition-colors"
-              >
-                <HelpCircle className="w-3.5 h-3.5" />
-                <span>{lang === "en" ? "Dispute a reading or report issue" : "রিডিংয়ে ভুল থাকলে রিপোর্ট করুন"}</span>
-              </Link>
+          {/* Safe Alternative Water Source */}
+          <div className="bezel-shell">
+            <div className="bezel-core p-5 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
+                <Layers className="w-4 h-4 text-emerald-400" />
+                <span>{lang === "en" ? "Nearby Safe Alternative Source" : "নিকটবর্তী বিকল্প নিরাপদ উৎস"}</span>
+              </div>
 
-              <Link
-                href="/app/facilitator"
-                className="text-xs text-primary hover:underline flex items-center gap-1 font-semibold"
-              >
-                <span>{lang === "en" ? "Facilitator Sign-in" : "ফ্যাসিলিটেটর লগইন"}</span>
-                <ChevronRight className="w-3 h-3" />
-              </Link>
+              <div className="p-4 rounded-2xl bg-emerald-500/[0.05] border border-emerald-500/20 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sm text-white">{source.safeAlternative.name}</span>
+                  <span className="text-xs font-bold font-mono text-emerald-400 tabular-nums">
+                    {source.safeAlternative.ec25} dS/m (C2)
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{source.safeAlternative.type} • {source.safeAlternative.distanceMeters}m away</span>
+                  <span className="text-[11px] text-emerald-300 font-medium">{source.safeAlternative.accessPermission}</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed [text-wrap:pretty]">
+                {lang === "en"
+                  ? "Note: Community permission verified. Use stored freshwater specifically for nursery beds or seed soaking."
+                  : "পরামর্শ: স্থানীয় কমিটির সাথে কথা বলে নিশ্চিত করা হয়েছে। শুধুমাত্র বীজতলা বা চারা বাঁচাতে এই পানি ব্যবহার করুন।"}
+              </p>
             </div>
-          </Card>
+          </div>
+
+          {/* Local Facilitator & Help Contacts */}
+          <div className="bezel-shell">
+            <div className="bezel-core p-5 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
+                <Phone className="w-4 h-4 text-primary" />
+                <span>{lang === "en" ? "Local Support & Facilitator" : "স্থানীয় সাহায্য ও ফ্যাসিলিটেটর"}</span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <div>
+                    <div className="font-bold text-white">M. Rahman (রহমান)</div>
+                    <div className="text-[11px] text-muted-foreground">Dacope Water Facilitator</div>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30 font-mono">
+                    DAE Liaison
+                  </Badge>
+                </div>
+                <div className="text-xs text-primary font-mono font-bold pt-1">
+                  Hotline / WhatsApp: <a href="tel:+8801712345678" className="hover:underline">+880 1712-345678</a>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <Link
+                  href="/app/help"
+                  className="btn-tactile text-xs text-muted-foreground hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                  <span>{lang === "en" ? "Report an issue / dispute" : "সমস্যা রিপোর্ট করুন"}</span>
+                </Link>
+
+                <Link
+                  href="/app/facilitator"
+                  className="btn-tactile text-xs text-primary hover:underline flex items-center gap-1 font-semibold"
+                >
+                  <span>{lang === "en" ? "Facilitator Portal" : "ফ্যাসিলিটেটর পোর্টাল"}</span>
+                  <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

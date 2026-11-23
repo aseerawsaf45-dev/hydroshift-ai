@@ -228,162 +228,166 @@ export default function FacilitatorPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left: Measurement Form (5 cols) */}
           <div className="lg:col-span-5 space-y-5">
-            <Card className="p-5 bg-[#081320] border-white/15 rounded-2xl shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <Droplets className="w-4 h-4 text-primary" />
-                  <span>New Field EC Reading</span>
-                </span>
-                <span className="text-[11px] text-muted-foreground font-mono">Dacope Meter #03</span>
-              </div>
-
-              {submitSuccess && (
-                <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Reading verified and published to "My Water" instantly!</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSaveMeasurement} className="space-y-3.5 text-xs">
-                {/* Source Selection */}
-                <div>
-                  <label className="text-muted-foreground block mb-1 font-medium">Water Source / Sampling Point:</label>
-                  <select
-                    value={sourceId}
-                    onChange={(e) => setSourceId(e.target.value)}
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
-                  >
-                    <option value="dacope-bajua-canal">Bajua Main Irrigation Canal (Polder 31)</option>
-                    <option value="dacope-pankhali-khari">Pankhali Freshwater Retention Khari (Polder 31)</option>
-                    <option value="dacope-kamarkhola-sluice">Kamarkhola Sluice Outfall Canal (Polder 32)</option>
-                  </select>
-                </div>
-
-                {/* EC Reading and Temperature */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-muted-foreground block mb-1 font-medium">
-                      EC Reading (<span className="text-primary">dS/m</span>):
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      value={ecInput}
-                      onChange={(e) => setEcInput(e.target.value)}
-                      placeholder="e.g. 1.80"
-                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white font-mono font-bold text-sm focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-muted-foreground block mb-1 font-medium">
-                      Water Temp (°C):
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      required
-                      value={tempInput}
-                      onChange={(e) => setTempInput(e.target.value)}
-                      placeholder="25.0"
-                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                </div>
-
-                {/* Meter Check & Quality Controls */}
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white font-medium">Meter Zero & Calibration Check:</span>
-                    <input
-                      type="checkbox"
-                      checked={meterChecked}
-                      onChange={(e) => setMeterChecked(e.target.checked)}
-                      className="w-4 h-4 accent-primary rounded cursor-pointer"
-                    />
-                  </div>
-                  <span className="text-[10px] text-muted-foreground block">
-                    Confirmed calibrated with standard 1.413 dS/m KCl solution this week.
+            <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-2xl">
+              <div className="bezel-core p-5 rounded-[20px] bg-[#081320] space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Droplets className="w-4 h-4 text-primary" />
+                    <span>New Field EC Reading</span>
                   </span>
+                  <span className="text-[10px] text-muted-foreground font-mono">Dacope Meter #03</span>
                 </div>
 
-                {/* Water Appearance */}
-                <div>
-                  <label className="text-muted-foreground block mb-1 font-medium">Water Appearance / Turbidity:</label>
-                  <select
-                    value={clarityInput}
-                    onChange={(e: any) => setClarityInput(e.target.value)}
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
+                {submitSuccess && (
+                  <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Reading verified and published to "My Water" instantly!</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveMeasurement} className="space-y-3.5 text-xs">
+                  {/* Source Selection */}
+                  <div>
+                    <label className="text-muted-foreground block mb-1 font-medium">Water Source / Sampling Point:</label>
+                    <select
+                      value={sourceId}
+                      onChange={(e) => setSourceId(e.target.value)}
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary transition-colors"
+                    >
+                      <option value="dacope-bajua-canal">Bajua Main Irrigation Canal (Polder 31)</option>
+                      <option value="dacope-pankhali-khari">Pankhali Freshwater Retention Khari (Polder 31)</option>
+                      <option value="dacope-kamarkhola-sluice">Kamarkhola Sluice Outfall Canal (Polder 32)</option>
+                    </select>
+                  </div>
+
+                  {/* EC Reading and Temperature */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-muted-foreground block mb-1 font-medium">
+                        EC Reading (<span className="text-primary font-bold">dS/m</span>):
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        required
+                        value={ecInput}
+                        onChange={(e) => setEcInput(e.target.value)}
+                        placeholder="e.g. 1.80"
+                        className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white font-mono font-bold text-sm focus:outline-none focus:border-primary tabular-nums transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-muted-foreground block mb-1 font-medium">
+                        Water Temp (°C):
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        required
+                        value={tempInput}
+                        onChange={(e) => setTempInput(e.target.value)}
+                        placeholder="25.0"
+                        className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-primary tabular-nums transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Meter Check & Quality Controls */}
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white font-medium">Meter Zero &amp; Calibration Check:</span>
+                      <input
+                        type="checkbox"
+                        checked={meterChecked}
+                        onChange={(e) => setMeterChecked(e.target.checked)}
+                        className="w-4 h-4 accent-primary rounded cursor-pointer"
+                      />
+                    </div>
+                    <span className="text-[10px] text-muted-foreground block">
+                      Confirmed calibrated with standard 1.413 dS/m KCl solution this week.
+                    </span>
+                  </div>
+
+                  {/* Water Appearance */}
+                  <div>
+                    <label className="text-muted-foreground block mb-1 font-medium">Water Appearance / Turbidity:</label>
+                    <select
+                      value={clarityInput}
+                      onChange={(e: any) => setClarityInput(e.target.value)}
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary transition-colors"
+                    >
+                      <option value="Clear">Clear / Transparent (পরিষ্কার)</option>
+                      <option value="Slightly Turbid">Slightly Turbid / Grey (হালকা ঘোলা)</option>
+                      <option value="Heavy Silt">Heavy Silt / Dark Clay (কাদাযুক্ত)</option>
+                    </select>
+                  </div>
+
+                  {/* Field Notes */}
+                  <div>
+                    <label className="text-muted-foreground block mb-1 font-medium">Field Observations / Flap Gate Status:</label>
+                    <textarea
+                      rows={2}
+                      value={fieldNotes}
+                      onChange={(e) => setFieldNotes(e.target.value)}
+                      placeholder="e.g. Sluice flap tightly seated. Low tide outflow clear."
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-xl bg-primary text-black font-bold text-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.01]"
                   >
-                    <option value="Clear">Clear / Transparent (পরিষ্কার)</option>
-                    <option value="Slightly Turbid">Slightly Turbid / Grey (হালকা ঘোলা)</option>
-                    <option value="Heavy Silt">Heavy Silt / Dark Clay (কাদাযুক্ত)</option>
-                  </select>
-                </div>
-
-                {/* Field Notes */}
-                <div>
-                  <label className="text-muted-foreground block mb-1 font-medium">Field Observations / Flap Gate Status:</label>
-                  <textarea
-                    rows={2}
-                    value={fieldNotes}
-                    onChange={(e) => setFieldNotes(e.target.value)}
-                    placeholder="e.g. Sluice flap tightly seated. Low tide outflow clear."
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-2.5 rounded-xl bg-primary text-black font-bold text-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>Verify & Submit Measurement</span>
-                </button>
-              </form>
-            </Card>
+                    <Save className="w-4 h-4" />
+                    <span>Verify &amp; Submit Measurement</span>
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
 
           {/* Right: Live Log of Field Records (7 cols) */}
           <div className="lg:col-span-7 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
                 <ClipboardList className="w-4 h-4 text-primary" />
                 <span>Recent Field Measurements (Dacope Pilot)</span>
               </h3>
-              <span className="text-xs text-muted-foreground font-mono">{records.length} Recorded</span>
+              <span className="text-[10px] text-muted-foreground font-mono">{records.length} Recorded</span>
             </div>
 
             <div className="space-y-3">
               {records.map((r) => (
-                <Card key={r.id} className="p-4 bg-[#081320] border-white/10 rounded-xl space-y-2">
-                  <div className="flex items-center justify-between text-xs pb-1.5 border-b border-white/5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-white">{r.sourceName}</span>
-                      <span className="text-[10px] text-muted-foreground font-mono">({r.id})</span>
+                <div key={r.id} className="bezel-shell p-1 rounded-2xl bg-white/[0.03] border border-white/10 shadow-lg">
+                  <div className="bezel-core p-4 rounded-[14px] bg-[#081320] space-y-2">
+                    <div className="flex items-center justify-between text-xs pb-1.5 border-b border-white/5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white">{r.sourceName}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">({r.id})</span>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/30 font-mono">
+                        {r.reviewerStatus}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-                      {r.reviewerStatus}
-                    </Badge>
+
+                    <div className="flex items-center justify-between text-xs pt-1">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-black font-mono text-white tabular-nums">{r.ecValue}</span>
+                        <span className="font-mono text-primary font-bold">dS/m</span>
+                        <span className="text-[11px] text-muted-foreground">({r.cClass} Class)</span>
+                      </div>
+
+                      <div className="text-right text-[11px] text-muted-foreground font-mono">
+                        <span>{r.timestamp}</span>
+                        <span className="block text-[10px] text-emerald-400">Temp: <span className="tabular-nums">{r.temperatureC}</span>°C</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground pt-1 border-t border-white/5 leading-relaxed">
+                      {r.notes} • Clarity: {r.clarity}
+                    </p>
                   </div>
-
-                  <div className="flex items-center justify-between text-xs pt-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-black font-mono text-white">{r.ecValue}</span>
-                      <span className="font-mono text-primary font-bold">dS/m</span>
-                      <span className="text-[11px] text-muted-foreground">({r.cClass} Class)</span>
-                    </div>
-
-                    <div className="text-right text-[11px] text-muted-foreground font-mono">
-                      <span>{r.timestamp}</span>
-                      <span className="block text-[10px] text-emerald-400">Temp: {r.temperatureC}°C</span>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-muted-foreground pt-1 border-t border-white/5">
-                    {r.notes} • Clarity: {r.clarity}
-                  </p>
-                </Card>
+                </div>
               ))}
             </div>
           </div>
@@ -397,126 +401,131 @@ export default function FacilitatorPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Form */}
           <div className="lg:col-span-5 space-y-5">
-            <Card className="p-5 bg-[#081320] border-white/15 rounded-2xl shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <ClipboardList className="w-4 h-4 text-primary" />
-                  <span>Log Farmer Response</span>
-                </span>
-                <span className="text-[11px] text-muted-foreground font-mono">Closed Feedback Loop</span>
+            <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-2xl">
+              <div className="bezel-core p-5 rounded-[20px] bg-[#081320] space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4 text-primary" />
+                    <span>Log Farmer Response</span>
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-mono">Closed Feedback Loop</span>
+                </div>
+
+                {followupSuccess && (
+                  <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Follow-up response successfully archived!</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveFollowup} className="space-y-3 text-xs">
+                  <div>
+                    <label className="text-muted-foreground block mb-1 font-medium">Village:</label>
+                    <select
+                      value={farmerVillage}
+                      onChange={(e) => setFarmerVillage(e.target.value)}
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary transition-colors"
+                    >
+                      <option value="Bajua">Bajua (বাজুয়া)</option>
+                      <option value="Pankhali">Pankhali (পানখালী)</option>
+                      <option value="Kamarkhola">Kamarkhola (কামারখোলা)</option>
+                      <option value="Sutarkhali">Sutarkhali (সুতারখালী)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-muted-foreground block mb-1 font-medium">Intended Crop / Variety:</label>
+                    <input
+                      type="text"
+                      value={cropAdvised}
+                      onChange={(e) => setCropAdvised(e.target.value)}
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-muted-foreground block mb-1 font-medium">Advisory Delivered to Farmer:</label>
+                    <input
+                      type="text"
+                      value={adviceGiven}
+                      onChange={(e) => setAdviceGiven(e.target.value)}
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-muted-foreground block mb-1 font-medium">Action Actually Taken by Farmer:</label>
+                    <select
+                      value={actionTaken}
+                      onChange={(e: any) => setActionTaken(e.target.value)}
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary transition-colors"
+                    >
+                      <option value="Followed Advice">Followed Advice (পরামর্শ মেনে কাজ করেছেন)</option>
+                      <option value="Delayed Action">Delayed Action (বপন পিছিয়ে দিয়েছেন)</option>
+                      <option value="Irrigated Anyway">Irrigated Anyway (ঝুঁকি নিয়ে সেচ দিয়েছেন)</option>
+                      <option value="Constrained by Canal Silt">Constrained by Canal Silt (খালে পানি না থাকায় পারেননি)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-muted-foreground block mb-1 font-medium">Farmer Feedback / Outcome Notes:</label>
+                    <textarea
+                      rows={2}
+                      value={outcomeNotes}
+                      onChange={(e) => setOutcomeNotes(e.target.value)}
+                      placeholder="e.g. Farmer pleased with seedling vigor; avoided water during spring tide."
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-xl bg-primary text-black font-bold text-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.01]"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Record Farmer Follow-up</span>
+                  </button>
+                </form>
               </div>
-
-              {followupSuccess && (
-                <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Follow-up response successfully archived!</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSaveFollowup} className="space-y-3 text-xs">
-                <div>
-                  <label className="text-muted-foreground block mb-1">Village:</label>
-                  <select
-                    value={farmerVillage}
-                    onChange={(e) => setFarmerVillage(e.target.value)}
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
-                  >
-                    <option value="Bajua">Bajua (বাজুয়া)</option>
-                    <option value="Pankhali">Pankhali (পানখালী)</option>
-                    <option value="Kamarkhola">Kamarkhola (কামারখোলা)</option>
-                    <option value="Sutarkhali">Sutarkhali (সুতারখালী)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-muted-foreground block mb-1">Intended Crop / Variety:</label>
-                  <input
-                    type="text"
-                    value={cropAdvised}
-                    onChange={(e) => setCropAdvised(e.target.value)}
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-muted-foreground block mb-1">Advisory Delivered to Farmer:</label>
-                  <input
-                    type="text"
-                    value={adviceGiven}
-                    onChange={(e) => setAdviceGiven(e.target.value)}
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-muted-foreground block mb-1">Action Actually Taken by Farmer:</label>
-                  <select
-                    value={actionTaken}
-                    onChange={(e: any) => setActionTaken(e.target.value)}
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
-                  >
-                    <option value="Followed Advice">Followed Advice (পরামর্শ মেনে কাজ করেছেন)</option>
-                    <option value="Delayed Action">Delayed Action (বপন পিছিয়ে দিয়েছেন)</option>
-                    <option value="Irrigated Anyway">Irrigated Anyway (ঝুঁকি নিয়ে সেচ দিয়েছেন)</option>
-                    <option value="Constrained by Canal Silt">Constrained by Canal Silt (খালে পানি না থাকায় পারেননি)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-muted-foreground block mb-1">Farmer Feedback / Outcome Notes:</label>
-                  <textarea
-                    rows={2}
-                    value={outcomeNotes}
-                    onChange={(e) => setOutcomeNotes(e.target.value)}
-                    placeholder="e.g. Farmer pleased with seedling vigor; avoided water during spring tide."
-                    className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-2.5 rounded-xl bg-primary text-black font-bold text-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Record Farmer Follow-up</span>
-                </button>
-              </form>
-            </Card>
+            </div>
           </div>
 
           {/* Follow-up List */}
           <div className="lg:col-span-7 space-y-4">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <ClipboardList className="w-4 h-4 text-primary" />
               <span>Community Feedback Records ({followups.length})</span>
             </h3>
 
             <div className="space-y-3">
               {followups.map((f) => (
-                <Card key={f.id} className="p-4 bg-[#081320] border-white/10 rounded-xl space-y-2 text-xs">
-                  <div className="flex items-center justify-between pb-1.5 border-b border-white/5">
-                    <span className="font-bold text-white">
-                      {f.farmerCode} ({f.village}) • {f.cropSelected}
-                    </span>
-                    <Badge
-                      className={
-                        f.actionTaken === "Followed Advice"
-                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                          : "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                      }
-                    >
-                      {f.actionTaken}
-                    </Badge>
+                <div key={f.id} className="bezel-shell p-1 rounded-2xl bg-white/[0.03] border border-white/10 shadow-lg">
+                  <div className="bezel-core p-4 rounded-[14px] bg-[#081320] space-y-2 text-xs">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-white/5">
+                      <span className="font-bold text-white">
+                        {f.farmerCode} ({f.village}) • {f.cropSelected}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] font-mono ${
+                          f.actionTaken === "Followed Advice"
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                            : "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                        }`}
+                      >
+                        {f.actionTaken}
+                      </Badge>
+                    </div>
+                    <div className="text-muted-foreground text-[11px]">
+                      <span className="font-semibold text-white">Advice: </span>
+                      {f.adviceGiven}
+                    </div>
+                    <div className="text-muted-foreground text-[11px]">
+                      <span className="font-semibold text-white">Outcome: </span>
+                      {f.outcomeNotes}
+                    </div>
                   </div>
-                  <div className="text-muted-foreground">
-                    <span className="font-semibold text-white">Advice: </span>
-                    {f.adviceGiven}
-                  </div>
-                  <div className="text-muted-foreground">
-                    <span className="font-semibold text-white">Outcome: </span>
-                    {f.outcomeNotes}
-                  </div>
-                </Card>
+                </div>
               ))}
             </div>
           </div>
