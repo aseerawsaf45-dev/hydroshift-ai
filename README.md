@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 # 🌊 HydroShift AI
 ### Climate-Smart Crop Rotation & Estuarine Salinity Intelligence Platform
