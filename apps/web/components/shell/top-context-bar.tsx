@@ -33,19 +33,19 @@ export function TopContextBar({ onToggleMobileNav }: { onToggleMobileNav?: () =>
         {/* Desktop Context Info: Dacope Pilot Community Focus */}
         <div className="hidden md:flex items-center gap-5">
           <div className="flex flex-col">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Pilot Community</span>
-            <span className="text-xs font-semibold text-foreground">Dacope, Khulna (Polders 31 & 32)</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Pilot community</span>
+            <span className="text-xs font-medium text-foreground">Dacope, Khulna (Polders 31 & 32)</span>
           </div>
           
-          <div className="h-6 w-px bg-white/10" />
+          <div className="h-4 w-px bg-white/10" />
           
-          <div className="flex items-center gap-2.5">
-            <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/30 px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Field Readings Verified
-            </Badge>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-white/[0.04] text-secondary border border-white/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              Field readings verified
+            </span>
             <span className="text-[11px] text-muted-foreground font-mono">
-              Shared EC Meter Service Active
+              Shared EC meter active
             </span>
           </div>
         </div>

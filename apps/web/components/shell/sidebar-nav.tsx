@@ -60,22 +60,22 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
       {/* Pilot Scope Chip */}
       <div className="px-3 py-2.5 border-b border-white/5">
-        <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20 text-[11px] shadow-inner">
-          <span className="flex items-center gap-1.5 text-emerald-300 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] border border-white/10 text-[11px]">
+          <span className="flex items-center gap-1.5 text-secondary font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             Dacope Pilot Community
           </span>
-          <span className="font-mono text-emerald-400 font-bold">Polders 31-32</span>
+          <span className="font-mono text-muted-foreground">Polders 31–32</span>
         </div>
       </div>
 
       {/* Primary 4-Item Menu */}
       <div className="flex-1 overflow-y-auto py-3 px-3 space-y-5 scrollbar-thin">
         <div className="space-y-1">
-          <div className="px-2.5 py-1 text-[10px] font-mono uppercase font-bold tracking-wider text-muted-foreground/70">
-            Community Service
+          <div className="px-2.5 py-1 text-[11px] font-medium text-muted-foreground/80">
+            Community service
           </div>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {primaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive =
@@ -88,21 +88,21 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                   key={item.href}
                   href={item.href}
                   onClick={onClose}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors ${
                     isActive
-                      ? "bg-gradient-to-r from-primary to-cyan-400 text-black font-bold shadow-lg shadow-primary/25 border border-primary/50"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
+                      ? "bg-white/[0.08] text-white font-medium border border-white/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-black scale-105" : "text-muted-foreground"}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
                     <span className="truncate">{item.name}</span>
                   </div>
                   {item.badge && (
-                    <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded-full border ${
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${
                       isActive
-                        ? "bg-black/20 text-black border-black/30 font-bold"
-                        : "bg-white/5 text-muted-foreground border-white/10"
+                        ? "bg-white/10 text-white border-white/15"
+                        : "bg-white/[0.03] text-muted-foreground border-white/5"
                     }`}>
                       {item.badge}
                     </span>
@@ -115,10 +115,10 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
         {/* Roles & Supporting Infrastructure */}
         <div className="space-y-1 pt-2 border-t border-white/5">
-          <div className="px-2.5 py-1 text-[10px] font-mono uppercase font-bold tracking-wider text-muted-foreground/70">
-            Roles & Review
+          <div className="px-2.5 py-1 text-[11px] font-medium text-muted-foreground/80">
+            Roles & review
           </div>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {secondaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -128,18 +128,18 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                   key={item.href}
                   href={item.href}
                   onClick={onClose}
-                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                  className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors ${
                     isActive
-                      ? "bg-white/10 text-white font-bold border border-white/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
+                      ? "bg-white/[0.08] text-white font-medium border border-white/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
                     <span className="truncate">{item.name}</span>
                   </div>
                   {item.badge && (
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-white/5 text-muted-foreground border border-white/10">
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/[0.03] text-muted-foreground border border-white/5">
                       {item.badge}
                     </span>
                   )}
