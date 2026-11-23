@@ -170,7 +170,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
 export function SidebarNav() {
   return (
-    <aside className="hidden md:flex w-64 flex-col fixed inset-y-0 left-0 z-30">
+    <aside className="w-64 hidden md:flex flex-col h-full shrink-0 z-30">
       <Suspense fallback={<div className="w-64 bg-[#08131f]/95 h-full" />}>
         <SidebarContent />
       </Suspense>

@@ -26,7 +26,7 @@ export default function HelpPage() {
   const [reportSubmitted, setReportSubmitted] = useState(false);
 
   return (
-    <div className="min-h-[100dvh] bg-[#05070d] text-foreground p-3 sm:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto">
+    <div className="w-full max-w-6xl mx-auto min-w-0 space-y-6 p-2 sm:p-4 lg:p-6">
       {/* 1. HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>

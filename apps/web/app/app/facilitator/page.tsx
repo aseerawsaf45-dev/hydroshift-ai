@@ -181,7 +181,7 @@ export default function FacilitatorPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#05070d] text-foreground p-3 sm:p-6 lg:p-8 space-y-6 max-w-6xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto min-w-0 space-y-6 p-2 sm:p-4 lg:p-6">
       {/* 1. HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
@@ -225,9 +225,9 @@ export default function FacilitatorPage() {
       {/* TAB 1: LOG FIELD MEASUREMENT */}
       {/* ===================================================================== */}
       {activeTab === "measurement" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
           {/* Left: Measurement Form (5 cols) */}
-          <div className="lg:col-span-5 space-y-5">
+          <div className="lg:col-span-5 space-y-5 w-full min-w-0">
             <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-2xl">
               <div className="bezel-core p-5 rounded-[20px] bg-[#081320] space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-white/10">
@@ -347,7 +347,7 @@ export default function FacilitatorPage() {
           </div>
 
           {/* Right: Live Log of Field Records (7 cols) */}
-          <div className="lg:col-span-7 space-y-4">
+          <div className="lg:col-span-7 space-y-4 w-full min-w-0">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
                 <ClipboardList className="w-4 h-4 text-primary" />
@@ -398,9 +398,9 @@ export default function FacilitatorPage() {
       {/* TAB 2: FARMER FOLLOW-UP LOG */}
       {/* ===================================================================== */}
       {activeTab === "followup" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
           {/* Form */}
-          <div className="lg:col-span-5 space-y-5">
+          <div className="lg:col-span-5 space-y-5 w-full min-w-0">
             <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-2xl">
               <div className="bezel-core p-5 rounded-[20px] bg-[#081320] space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-white/10">
@@ -491,7 +491,7 @@ export default function FacilitatorPage() {
           </div>
 
           {/* Follow-up List */}
-          <div className="lg:col-span-7 space-y-4">
+          <div className="lg:col-span-7 space-y-4 w-full min-w-0">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <ClipboardList className="w-4 h-4 text-primary" />
               <span>Community Feedback Records ({followups.length})</span>

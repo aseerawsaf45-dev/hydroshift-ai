@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         
         {/* Page Canvas */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 min-h-0 relative z-10 scrollbar-thin">
-          <div className="mx-auto max-w-[1640px] w-full h-full pb-8">
+          <div className="mx-auto max-w-[1640px] w-full min-w-0 pb-8">
             {children}
           </div>
         </main>

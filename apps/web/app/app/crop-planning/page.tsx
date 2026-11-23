@@ -289,7 +289,7 @@ export default function CropPlanningPage() {
   }, [selectedCrop, waterAccess, seedbedCondition]);
 
   return (
-    <div className="min-h-[100dvh] bg-[#05070d] text-foreground p-3 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto min-w-0 space-y-6 p-2 sm:p-4 lg:p-6">
       {/* 1. TOP HEADER & VIEW TOGGLES */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
@@ -369,9 +369,9 @@ export default function CropPlanningPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
             {/* Left: Input Form (5 cols) */}
-            <div className="lg:col-span-5 space-y-5">
+            <div className="lg:col-span-5 space-y-5 w-full min-w-0">
               <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/10 shadow-2xl">
                 <div className="bezel-core p-5 rounded-[20px] bg-[#081320] space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-white/10">
@@ -466,7 +466,7 @@ export default function CropPlanningPage() {
             </div>
 
             {/* Right: Sowing Window Advisory Output (7 cols) */}
-            <div className="lg:col-span-7 space-y-5">
+            <div className="lg:col-span-7 space-y-5 w-full min-w-0">
               <div
                 className={`bezel-shell p-1 rounded-3xl border shadow-2xl transition-all ${
                   sowingAdvisory.status === "SUITABLE_WINDOW"

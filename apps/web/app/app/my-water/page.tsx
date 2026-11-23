@@ -346,7 +346,7 @@ export default function MyWaterPage() {
   const cMeta = getCClassMeta(source.cClass);
 
   return (
-    <div className="min-h-[100dvh] bg-[#04070e] text-foreground p-3 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto min-w-0 space-y-6 p-2 sm:p-4 lg:p-6">
       {/* 1. TOP HEADER & BILINGUAL TOGGLE */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
@@ -440,9 +440,9 @@ export default function MyWaterPage() {
       </div>
 
       {/* 3. CORE WATER STATUS & ACTION HERO GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
         {/* Left Column: Current Reading & Salinity Class (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 space-y-6 w-full min-w-0">
           {/* Main Reading Card: Double-Bezel */}
           <div className="bezel-shell">
             <div className="bezel-core p-6 space-y-6">
@@ -599,7 +599,7 @@ export default function MyWaterPage() {
         </div>
 
         {/* Right Column: Reviewed Action Card, Local Contacts & Safe Alternatives (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-5 space-y-6 w-full min-w-0">
           {/* Action Card: Double-Bezel */}
           <div className="bezel-shell">
             <div className="bezel-core p-6 bg-gradient-to-br from-[#0c1a2d] to-[#081320] border-primary/25 space-y-4">
