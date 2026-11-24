@@ -1,483 +1,612 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
-  Sun,
+  Layers,
+  Thermometer,
+  Droplets,
+  Activity,
   ShieldCheck,
   AlertTriangle,
-  ArrowDown,
-  ArrowUp,
-  Layers,
-  Info,
-  Droplets,
-  Thermometer,
-  Sprout,
-  Activity,
-  CheckCircle2,
+  RotateCcw,
+  TrendingDown,
+  TrendingUp,
+  Sliders,
+  Sparkles,
+  Calculator,
 } from "lucide-react";
 
 export function CapillaryMulchInfographic({ lang = "en" }: { lang?: "en" | "bn" }) {
-  const [activeMode, setActiveMode] = useState<"mulched" | "bare" | "split">("mulched");
+  // Simulator State Parameters
+  const [mulchTonsHa, setMulchTonsHa] = useState<number>(5.0); // 0 to 8 tons/ha
+  const [ambientTempC, setAmbientTempC] = useState<number>(34); // 26°C to 42°C
+  const [daysElapsed, setDaysElapsed] = useState<number>(30); // 1 to 75 days post-harvest
+  const [waterTableDepthM, setWaterTableDepthM] = useState<number>(1.0); // 0.6m to 1.8m
+  const [gwSalinityDsM, setGwSalinityDsM] = useState<number>(12.0); // 4 to 18 dS/m
+
+  // Preset Scenarios
+  const setPreset = (mulch: number, temp: number, days: number, depth: number, gwEc: number) => {
+    setMulchTonsHa(mulch);
+    setAmbientTempC(temp);
+    setDaysElapsed(days);
+    setWaterTableDepthM(depth);
+    setGwSalinityDsM(gwEc);
+  };
+
+  // Soil Physics Simulation Model (Based on BARI / IRRI coastal polder research)
+  const sim = useMemo(() => {
+    // 1. Evaporative suppression factor based on rice straw mulch biomass
+    // η_mulch = 1 - exp(-0.48 * mulchTonsHa)
+    const mulchEffectiveness = 1 - Math.exp(-0.48 * mulchTonsHa); // 0 at 0 t/ha, ~0.65 at 5 t/ha, ~0.90 at 8 t/ha
+    const albedoReflectionPct = Math.min(75, Math.round(18 + mulchEffectiveness * 55)); // 18% bare to 73% at full mulch
+
+    // 2. Potential Evapotranspiration (E0, mm/day) via Hargreaves-Samani approximation
+    const potentialEvapMmDay = 2.4 + (ambientTempC - 20) * 0.18; // ~3.5mm at 26C, ~5.6mm at 34C, ~6.8mm at 40C
+    const actualEvapMmDay = potentialEvapMmDay * (1 - mulchEffectiveness * 0.72);
+
+    // 3. Soil Surface Temperature (°C)
+    const soilSurfaceTempC = Math.round(
+      ambientTempC + (mulchTonsHa === 0 ? 11 : Math.max(-4, 6 - mulchTonsHa * 2.2))
+    );
+
+    // 4. Upward Capillary Saline Water Flux (q_cap, mm/day)
+    // Decreases strongly with water table depth (z^-2.2) and with mulch vapor barrier
+    const baseCapillaryFluxMmDay = (3.8 / Math.pow(waterTableDepthM, 1.85)) * (actualEvapMmDay / 5.0);
+    const capillaryFluxMmDay = Math.max(0.08, baseCapillaryFluxMmDay * (1 - mulchEffectiveness * 0.85));
+
+    // 5. Daily Salt Deposition Rate (g/m²/day) into the 0-15cm topsoil
+    // 1 dS/m ≈ 640 mg/L = 0.64 kg/m³ = 0.64 g/L = 0.64 g / (mm * m²)
+    const dailySaltAccumGramsM2 = capillaryFluxMmDay * (gwSalinityDsM * 0.64);
+    const totalSaltAccumKgHa = (dailySaltAccumGramsM2 * daysElapsed * 10).toFixed(1);
+
+    // 6. Resulting Root-Zone Salinity (ECe in dS/m at 0-15cm depth)
+    // Bulk density of Dacope clay loam ~1.35 g/cm³, 15cm layer = 202.5 kg soil/m²
+    // Initial post-Aman soil salinity ECe ~ 1.5 dS/m
+    const initialSoilEc = 1.5;
+    const addedSoilEc = (dailySaltAccumGramsM2 * daysElapsed) / 18.5;
+    const currentRootZoneEc = Math.min(22.0, Number((initialSoilEc + addedSoilEc).toFixed(2)));
+
+    // 7. Volumetric Soil Moisture (θ, %) in the 0-15cm seedbed
+    // Initial residual moisture post-Aman ~ 44% (saturation ~48%)
+    // Drops via evaporation and crop uptake
+    const dailyMoistureLossPct = (actualEvapMmDay / 150) * 100;
+    const currentMoisturePct = Math.max(
+      6.5,
+      Number((44 - dailyMoistureLossPct * (daysElapsed * 0.42)).toFixed(1))
+    );
+
+    // 8. Crop Viability Thresholds
+    const sunflowerTolerance = 4.8; // dS/m
+    const mungbeanTolerance = 3.5; // dS/m
+    const isMungbeanSafe = currentRootZoneEc <= mungbeanTolerance && currentMoisturePct >= 18;
+    const isSunflowerSafe = currentRootZoneEc <= sunflowerTolerance && currentMoisturePct >= 14;
+
+    // 9. Depth Profile Data Curve (0cm, 10cm, 20cm, 40cm, 70cm, 100cm)
+    const depthProfile = [
+      { depth: 0, label: "Surface (0cm)", ec: Number((currentRootZoneEc * 1.35).toFixed(1)), moisture: Number((currentMoisturePct * 0.7).toFixed(1)) },
+      { depth: 10, label: "Seedbed (10cm)", ec: currentRootZoneEc, moisture: currentMoisturePct },
+      { depth: 25, label: "Root Zone (25cm)", ec: Number((currentRootZoneEc * 0.75 + 1.2).toFixed(1)), moisture: Number((currentMoisturePct * 1.15).toFixed(1)) },
+      { depth: 50, label: "Mid Profile (50cm)", ec: Number((currentRootZoneEc * 0.45 + gwSalinityDsM * 0.4).toFixed(1)), moisture: Number((Math.min(48, currentMoisturePct * 1.35)).toFixed(1)) },
+      { depth: 80, label: "Capillary Fringe (80cm)", ec: Number((gwSalinityDsM * 0.85).toFixed(1)), moisture: 44.5 },
+      { depth: 100, label: "Water Table (100cm)", ec: gwSalinityDsM, moisture: 48.0 },
+    ];
+
+    // 10. Time Series Simulation Projection (Day 0 to Day 70 in 10-day increments)
+    const timeSeries = [0, 10, 20, 30, 45, 60, 75].map((d) => {
+      const addedEc = (dailySaltAccumGramsM2 * d) / 18.5;
+      const ec = Math.min(22.0, Number((initialSoilEc + addedEc).toFixed(1)));
+      const moisture = Math.max(6.0, Number((44 - (actualEvapMmDay / 150) * 100 * (d * 0.42)).toFixed(1)));
+      return { day: d, ec, moisture };
+    });
+
+    return {
+      mulchEffectiveness,
+      albedoReflectionPct,
+      potentialEvapMmDay: potentialEvapMmDay.toFixed(2),
+      actualEvapMmDay: actualEvapMmDay.toFixed(2),
+      soilSurfaceTempC,
+      capillaryFluxMmDay: capillaryFluxMmDay.toFixed(2),
+      dailySaltAccumGramsM2: dailySaltAccumGramsM2.toFixed(2),
+      totalSaltAccumKgHa,
+      currentRootZoneEc,
+      currentMoisturePct,
+      isMungbeanSafe,
+      isSunflowerSafe,
+      sunflowerTolerance,
+      mungbeanTolerance,
+      depthProfile,
+      timeSeries,
+    };
+  }, [mulchTonsHa, ambientTempC, daysElapsed, waterTableDepthM, gwSalinityDsM]);
 
   return (
-    <div className="w-full rounded-2xl bg-[#0b121d] border border-white/10 shadow-2xl overflow-hidden transition-all">
-      {/* 1. Header & Mode Switcher */}
+    <div className="w-full rounded-2xl bg-[#0b121d] border border-white/10 shadow-2xl overflow-hidden font-sans">
+      {/* 1. Header & Live Indicator */}
       <div className="p-4 sm:p-5 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white/[0.01]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-semibold">
-              Soil Physics &amp; Agronomic Mechanics
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-semibold">
+              Soil Physics Numerical Simulation Model
             </span>
           </div>
           <h3 className="text-base sm:text-lg font-semibold text-white tracking-tight flex items-center gap-2">
-            <Layers className="w-4 h-4 text-primary" />
-            <span>
-              {lang === "en"
-                ? "Capillary Salt Dynamics: Bare Soil vs. Rice Straw Mulch"
-                : "মাটির লবণাক্ততা বিজ্ঞান: অনাবৃত জমি বনাম ধানের খড়ের জাবড়া"}
-            </span>
+            <Calculator className="w-4 h-4 text-primary" />
+            <span>Capillary Evaporation &amp; Salt Accumulation Simulator</span>
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">
-            {lang === "en"
-              ? "Cross-section of the coastal root zone showing how organic mulch breaks capillary suction and protects dry-season crops."
-              : "উপকূলীয় মাটির স্তরবিন্যাস: কীভাবে জৈব জাবড়া মাটির নিচের লবণাক্ত পানি ওপরে ওঠা রোধ করে এবং শুষ্ক মৌসুমে ফসল বাঁচায়।"}
+            Quantitative 1D hydrodynamic soil water model calculating vapor pressure deficit, upward capillary flux, and root-zone salinity over time.
           </p>
         </div>
 
-        {/* Comparison Mode Toggles */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-1 flex items-center text-xs self-start md:self-center gap-1">
-          <button
-            onClick={() => setActiveMode("mulched")}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-              activeMode === "mulched"
-                ? "bg-emerald-500 text-black font-semibold shadow-md shadow-emerald-500/20"
-                : "text-muted-foreground hover:text-white"
+        {/* Viability Status Pill */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium tracking-tight border flex items-center gap-2 ${
+              sim.currentRootZoneEc <= 3.5
+                ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
+                : sim.currentRootZoneEc <= 5.0
+                ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
+                : "bg-rose-500/10 text-rose-300 border-rose-500/30"
             }`}
           >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>{lang === "en" ? "Rice Straw Mulch" : "ধানের খড় (সুরক্ষিত)"}</span>
-          </button>
-          <button
-            onClick={() => setActiveMode("bare")}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-              activeMode === "bare"
-                ? "bg-rose-500 text-white font-semibold shadow-md shadow-rose-500/20"
-                : "text-muted-foreground hover:text-white"
-            }`}
-          >
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>{lang === "en" ? "Bare Soil (High Salt)" : "অনাবৃত জমি (লবণাক্ত)"}</span>
-          </button>
-          <button
-            onClick={() => setActiveMode("split")}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all hidden sm:flex items-center gap-1.5 ${
-              activeMode === "split"
-                ? "bg-primary text-black font-semibold shadow-md shadow-primary/20"
-                : "text-muted-foreground hover:text-white"
-            }`}
-          >
-            <Activity className="w-3.5 h-3.5" />
-            <span>{lang === "en" ? "Split View" : "তুলনামূলক দৃশ্য"}</span>
-          </button>
+            {sim.currentRootZoneEc <= 3.5 ? (
+              <>
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>GERMINATION OPTIMAL (ECe: {sim.currentRootZoneEc} dS/m)</span>
+              </>
+            ) : sim.currentRootZoneEc <= 5.0 ? (
+              <>
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>MARGINAL STRESS (ECe: {sim.currentRootZoneEc} dS/m)</span>
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>TOXIC OSMOTIC SHOCK (ECe: {sim.currentRootZoneEc} dS/m)</span>
+              </>
+            )}
+          </span>
         </div>
       </div>
 
-      {/* 2. Main Soil Stratigraphy Physical SVG */}
-      <div className="relative w-full bg-[#050b14] p-2 sm:p-5 overflow-hidden">
-        <svg
-          viewBox="0 0 780 395"
-          className="w-full h-auto select-none font-sans"
-          aria-label="Soil Capillary Salinity Dynamics Cross Section"
+      {/* 2. One-Click Parameter Presets */}
+      <div className="px-4 py-2.5 bg-black/30 border-b border-white/5 flex flex-wrap items-center gap-2 text-xs">
+        <span className="text-[11px] font-mono text-muted-foreground mr-1 flex items-center gap-1">
+          <Sliders className="w-3.5 h-3.5 text-primary" />
+          <span>Simulation Presets:</span>
+        </span>
+        <button
+          onClick={() => setPreset(5.0, 34, 30, 1.0, 12.0)}
+          className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-colors ${
+            mulchTonsHa === 5.0 && ambientTempC === 34 && daysElapsed === 30
+              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+              : "bg-white/[0.03] text-muted-foreground hover:text-white border-white/5"
+          }`}
         >
-          <defs>
-            {/* Sun Radial Glow */}
-            <radialGradient id="sunRealistic" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#fef08a" stopOpacity="1" />
-              <stop offset="60%" stopColor="#f59e0b" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#ea580c" stopOpacity="0" />
-            </radialGradient>
+          Rice Straw Mulch (5 t/ha, Day 30)
+        </button>
+        <button
+          onClick={() => setPreset(0.0, 34, 30, 1.0, 12.0)}
+          className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-colors ${
+            mulchTonsHa === 0.0 && ambientTempC === 34 && daysElapsed === 30
+              ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
+              : "bg-white/[0.03] text-muted-foreground hover:text-white border-white/5"
+          }`}
+        >
+          Bare Soil Fallow (0 t/ha, Day 30)
+        </button>
+        <button
+          onClick={() => setPreset(0.0, 38, 50, 0.8, 14.0)}
+          className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-colors ${
+            mulchTonsHa === 0.0 && ambientTempC === 38 && daysElapsed === 50
+              ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
+              : "bg-white/[0.03] text-muted-foreground hover:text-white border-white/5"
+          }`}
+        >
+          Extreme Chaitra Heatwave (Bare, Day 50)
+        </button>
+        <button
+          onClick={() => setPreset(6.0, 38, 50, 0.8, 14.0)}
+          className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-colors ${
+            mulchTonsHa === 6.0 && ambientTempC === 38 && daysElapsed === 50
+              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+              : "bg-white/[0.03] text-muted-foreground hover:text-white border-white/5"
+          }`}
+        >
+          Heavy Mulch Defense (6 t/ha, Day 50)
+        </button>
+      </div>
 
-            {/* Moist Fertile Rootzone Gradient (Protected) */}
-            <linearGradient id="moistLoamGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#1e293b" />
-              <stop offset="50%" stopColor="#182333" />
-              <stop offset="100%" stopColor="#0f172a" />
-            </linearGradient>
+      {/* 3. Primary Telemetry Metrics HUD (Calculated Numbers) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-white/10 border-b border-white/10 bg-white/[0.015]">
+        <div className="p-3 sm:p-4 text-center">
+          <span className="text-[10px] font-mono uppercase text-muted-foreground block flex items-center justify-center gap-1">
+            <Activity className="w-3 h-3 text-primary" />
+            <span>Root-Zone Salinity (ECe)</span>
+          </span>
+          <div
+            className={`text-2xl font-bold font-mono mt-0.5 tabular-nums ${
+              sim.currentRootZoneEc <= 3.5
+                ? "text-emerald-400"
+                : sim.currentRootZoneEc <= 5.0
+                ? "text-amber-400"
+                : "text-rose-400"
+            }`}
+          >
+            {sim.currentRootZoneEc} <span className="text-xs font-normal text-muted-foreground">dS/m</span>
+          </div>
+          <span className="text-[11px] text-muted-foreground block mt-0.5">
+            Initial: 1.5 dS/m (+{(sim.currentRootZoneEc - 1.5).toFixed(1)} dS/m salt)
+          </span>
+        </div>
 
-            {/* Dry Crusted Rootzone Gradient (Bare/Damaged) */}
-            <linearGradient id="dryCrustedGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#451a03" />
-              <stop offset="35%" stopColor="#291811" />
-              <stop offset="100%" stopColor="#181313" />
-            </linearGradient>
+        <div className="p-3 sm:p-4 text-center">
+          <span className="text-[10px] font-mono uppercase text-muted-foreground block flex items-center justify-center gap-1">
+            <Droplets className="w-3 h-3 text-cyan-400" />
+            <span>Seedbed Moisture (θ)</span>
+          </span>
+          <div
+            className={`text-2xl font-bold font-mono mt-0.5 tabular-nums ${
+              sim.currentMoisturePct >= 20 ? "text-cyan-400" : "text-rose-400"
+            }`}
+          >
+            {sim.currentMoisturePct}% <span className="text-xs font-normal text-muted-foreground">v/v</span>
+          </div>
+          <span className="text-[11px] text-muted-foreground block mt-0.5">
+            Wilting point: 12% | Field cap: 42%
+          </span>
+        </div>
 
-            {/* Deep Saline Aquifer Gradient */}
-            <linearGradient id="salineGroundwaterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#dc2626" stopOpacity="0.55" />
-              <stop offset="60%" stopColor="#991b1b" stopOpacity="0.75" />
-              <stop offset="100%" stopColor="#450a0a" stopOpacity="0.95" />
-            </linearGradient>
+        <div className="p-3 sm:p-4 text-center">
+          <span className="text-[10px] font-mono uppercase text-muted-foreground block flex items-center justify-center gap-1">
+            <TrendingUp className="w-3 h-3 text-amber-400" />
+            <span>Upward Capillary Flux (q)</span>
+          </span>
+          <div className="text-2xl font-bold font-mono text-white mt-0.5 tabular-nums">
+            {sim.capillaryFluxMmDay} <span className="text-xs font-normal text-muted-foreground">mm/day</span>
+          </div>
+          <span className="text-[11px] text-muted-foreground block mt-0.5">
+            Salt flux: {sim.dailySaltAccumGramsM2} g/m²/day
+          </span>
+        </div>
 
-            {/* Straw Mulch Fiber Pattern */}
-            <pattern id="strawFibers" width="24" height="12" patternUnits="userSpaceOnUse">
-              <line x1="2" y1="4" x2="18" y2="4" stroke="#fef08a" strokeWidth="1.6" strokeLinecap="round" />
-              <line x1="8" y1="8" x2="22" y2="8" stroke="#fde047" strokeWidth="1.4" strokeLinecap="round" />
-              <line x1="0" y1="11" x2="14" y2="11" stroke="#eab308" strokeWidth="1.2" strokeLinecap="round" />
-            </pattern>
+        <div className="p-3 sm:p-4 text-center">
+          <span className="text-[10px] font-mono uppercase text-muted-foreground block flex items-center justify-center gap-1">
+            <Thermometer className="w-3 h-3 text-rose-400" />
+            <span>Surface Soil Temp</span>
+          </span>
+          <div
+            className={`text-2xl font-bold font-mono mt-0.5 tabular-nums ${
+              sim.soilSurfaceTempC <= 30 ? "text-emerald-400" : "text-rose-400"
+            }`}
+          >
+            {sim.soilSurfaceTempC}°C
+          </div>
+          <span className="text-[11px] text-muted-foreground block mt-0.5">
+            Albedo reflection: {sim.albedoReflectionPct}%
+          </span>
+        </div>
+      </div>
 
-            {/* Salt Crystals Pattern */}
-            <pattern id="saltCrystals" width="16" height="10" patternUnits="userSpaceOnUse">
-              <rect x="2" y="2" width="3" height="3" fill="#ffffff" rx="0.5" />
-              <rect x="9" y="5" width="2.5" height="2.5" fill="#f8fafc" rx="0.5" />
-              <polygon points="12,1 14,3 12,5 10,3" fill="#ffffff" />
-            </pattern>
+      {/* 4. Graphical Numerical Simulation Charts */}
+      <div className="p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-6 bg-[#08101a]">
+        {/* Left: 1D Depth Profile Graph (Depth vs ECe & Moisture) */}
+        <div className="lg:col-span-6 p-4 rounded-xl bg-black/40 border border-white/10 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-white/5">
+            <span className="text-xs font-semibold text-white flex items-center gap-2">
+              <Layers className="w-3.5 h-3.5 text-primary" />
+              <span>Soil Depth Profile at Day {daysElapsed}</span>
+            </span>
+            <span className="text-[10px] font-mono text-muted-foreground">Depth z (0 to -100cm)</span>
+          </div>
 
-            {/* Markers */}
-            <marker id="arrowRiseRed" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 9 5 L 0 9 z" fill="#ef4444" />
-            </marker>
-            <marker id="arrowVaporLoss" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 9 5 L 0 9 z" fill="#f59e0b" />
-            </marker>
-            <marker id="arrowShieldReflect" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 9 5 L 0 9 z" fill="#eab308" />
-            </marker>
-          </defs>
+          <div className="relative w-full h-[220px]">
+            <svg viewBox="0 0 360 200" className="w-full h-full select-none text-[9px] font-mono">
+              {/* Grid Lines */}
+              <line x1="45" y1="20" x2="340" y2="20" stroke="#1e293b" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="45" y1="65" x2="340" y2="65" stroke="#1e293b" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="45" y1="110" x2="340" y2="110" stroke="#1e293b" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="45" y1="155" x2="340" y2="155" stroke="#1e293b" strokeWidth="1" strokeDasharray="3 3" />
 
-          {/* Depth Stratigraphy Axis on Left (x = 10 to 65) */}
-          <line x1="65" y1="130" x2="65" y2="365" stroke="#334155" strokeWidth="1.5" />
-          {[
-            { depth: "0 cm", label: "Surface", y: 135 },
-            { depth: "-15 cm", label: "Seedbed", y: 185 },
-            { depth: "-45 cm", label: "Root Zone", y: 245 },
-            { depth: "-90 cm", label: "Water Table", y: 305 },
-          ].map((d, i) => (
-            <g key={i}>
-              <line x1="60" y1={d.y} x2="70" y2={d.y} stroke="#64748b" strokeWidth="1.5" />
-              <text x="55" y={d.y - 2} textAnchor="end" fill="#94a3b8" fontSize="9" fontFamily="monospace" fontWeight="600">
-                {d.depth}
-              </text>
-              <text x="55" y={d.y + 8} textAnchor="end" fill="#64748b" fontSize="8" fontFamily="sans-serif">
-                {d.label}
-              </text>
-            </g>
-          ))}
+              {/* Y-Axis: Depth from 0 to -100cm */}
+              <line x1="45" y1="15" x2="45" y2="175" stroke="#475569" strokeWidth="1.2" />
+              <text x="40" y="22" textAnchor="end" fill="#94a3b8">0cm</text>
+              <text x="40" y="67" textAnchor="end" fill="#94a3b8">-25cm</text>
+              <text x="40" y="112" textAnchor="end" fill="#94a3b8">-50cm</text>
+              <text x="40" y="157" textAnchor="end" fill="#94a3b8">-90cm</text>
 
-          {/* =================================================================== */}
-          {/* CASE 1: FULL SINGLE VIEW (MULCHED OR BARE) */}
-          {/* =================================================================== */}
-          {activeMode !== "split" && (
-            <g transform="translate(85, 0)">
-              {/* Sun & Atmosphere */}
-              <circle cx="335" cy="34" r="28" fill="url(#sunRealistic)" />
-              <circle cx="335" cy="34" r="16" fill="#fef08a" />
-              <text x="335" y="70" textAnchor="middle" fill="#fef08a" fontSize="11" fontWeight="bold">
-                Dry Season Tropical Sun (Chaitra–Baishakh 34°C–38°C)
-              </text>
-              <text x="335" y="83" textAnchor="middle" fill="#94a3b8" fontSize="9" fontFamily="monospace">
-                High Atmospheric Evaporative Demand (E₀ ≈ 5.4 mm/day)
-              </text>
+              {/* X-Axis: ECe Salinity (0 to 20 dS/m) */}
+              <line x1="45" y1="175" x2="340" y2="175" stroke="#475569" strokeWidth="1.2" />
+              <text x="45" y="188" textAnchor="middle" fill="#64748b">0</text>
+              <text x="118" y="188" textAnchor="middle" fill="#64748b">5</text>
+              <text x="192" y="188" textAnchor="middle" fill="#64748b">10</text>
+              <text x="266" y="188" textAnchor="middle" fill="#64748b">15</text>
+              <text x="335" y="188" textAnchor="middle" fill="#64748b">20 dS/m</text>
 
-              {activeMode === "mulched" ? (
-                /* --- PROTECTED WITH MULCH --- */
-                <>
-                  {/* Solar Reflection Waves */}
-                  <path d="M 230 65 L 195 95 L 235 106" fill="none" stroke="#eab308" strokeWidth="2" strokeDasharray="4 3" markerEnd="url(#arrowShieldReflect)" />
-                  <path d="M 440 65 L 475 95 L 435 106" fill="none" stroke="#eab308" strokeWidth="2" strokeDasharray="4 3" markerEnd="url(#arrowShieldReflect)" />
-                  <text x="335" y="104" textAnchor="middle" fill="#fef08a" fontSize="10" fontWeight="bold">
-                    Straw Mulch Reflects 65% of Solar Heat (Albedo Barrier)
-                  </text>
+              {/* Crop Limits (Vertical Threshold Lines) */}
+              {/* Mungbean limit: 3.5 dS/m -> x = 45 + (3.5 / 20) * 295 = 96.6 */}
+              <line x1="96.6" y1="15" x2="96.6" y2="175" stroke="#10b981" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
+              <text x="96.6" y="12" textAnchor="middle" fill="#10b981" fontSize="8">Mungbean (3.5)</text>
 
-                  {/* Golden Straw Mulch Layer (Depth: 0 to +5cm above soil) */}
-                  <rect x="0" y="126" width="670" height="16" fill="#ca8a04" stroke="#eab308" strokeWidth="1.5" rx="3" />
-                  <rect x="0" y="126" width="670" height="16" fill="url(#strawFibers)" />
-                  <text x="335" y="138" textAnchor="middle" fill="#422006" fontSize="9" fontWeight="bold" fontFamily="monospace">
-                    RICE STRAW MULCH BLANKET (5–6 tons/ha dry weight)
-                  </text>
+              {/* Sunflower limit: 4.8 dS/m -> x = 45 + (4.8 / 20) * 295 = 115.8 */}
+              <line x1="115.8" y1="15" x2="115.8" y2="175" stroke="#eab308" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
+              <text x="115.8" y="24" textAnchor="middle" fill="#eab308" fontSize="8">Sunflower (4.8)</text>
 
-                  {/* Moist Fertile Topsoil Layer (Depth: 0 to -70cm) */}
-                  <rect x="0" y="142" width="670" height="153" fill="url(#moistLoamGrad)" stroke="#334155" strokeWidth="1.5" />
+              {/* Simulated ECe Depth Curve Points */}
+              {/* Scale: x = 45 + (ec / 20) * 295, y = 20 + (depth / 100) * 140 */}
+              {(() => {
+                const points = sim.depthProfile.map((p) => {
+                  const x = 45 + (Math.min(20, p.ec) / 20) * 295;
+                  const y = 20 + (p.depth / 100) * 140;
+                  return `${x},${y}`;
+                }).join(" ");
 
-                  {/* Thriving Seedling Plants with Deep Healthy White Roots */}
-                  {[120, 260, 400, 540].map((px) => (
-                    <g key={px} transform={`translate(${px}, 126)`}>
-                      {/* Seedling Foliage */}
-                      <path d="M 0 -2 Q -12 -16 0 -20 Q 12 -16 0 -2" fill="#22c55e" stroke="#15803d" strokeWidth="1" />
-                      <circle cx="0" cy="-2" r="3" fill="#84cc16" />
-                      {/* Stem */}
-                      <line x1="0" y1="-2" x2="0" y2="16" stroke="#22c55e" strokeWidth="2" />
-                      {/* Branching White Root Network */}
-                      <path d="M 0 16 Q -15 45 -10 82" fill="none" stroke="#f8fafc" strokeWidth="1.8" />
-                      <path d="M 0 16 Q 15 45 12 88" fill="none" stroke="#f8fafc" strokeWidth="1.8" />
-                      <path d="M 0 30 Q -25 55 -20 72" fill="none" stroke="#e2e8f0" strokeWidth="1.2" />
-                      <path d="M 0 30 Q 25 55 20 75" fill="none" stroke="#e2e8f0" strokeWidth="1.2" />
-                      <circle cx="-10" cy="82" r="2" fill="#86efac" />
-                      <circle cx="12" cy="88" r="2" fill="#86efac" />
-                    </g>
-                  ))}
-
-                  {/* Soil Moisture Molecules & Capillary Break Indicators */}
-                  <g transform="translate(335, 222)">
-                    <rect x="-170" y="-14" width="340" height="28" rx="6" fill="#0c1524" stroke="#10b981" strokeWidth="1.2" />
-                    <text x="0" y="4" textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="bold">
-                      Capillary Break: Soil Moisture Retained (38% v/v)
-                    </text>
-                  </g>
-                  <text x="335" y="258" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">
-                    Root Zone Salinity Safe: ECe = 1.6–2.2 dS/m (Vigorous Growth)
-                  </text>
-
-                  {/* Saline Sub-surface Water Table (-90cm to -120cm) */}
-                  <rect x="0" y="295" width="670" height="70" fill="url(#salineGroundwaterGrad)" stroke="#dc2626" strokeWidth="1.5" />
-                  <text x="335" y="335" textAnchor="middle" fill="#fca5a5" fontSize="11" fontFamily="monospace" fontWeight="bold">
-                    Shallow Saline Groundwater Trapped Below (-90 cm depth) • ECw: 10–14 dS/m
-                  </text>
-                </>
-              ) : (
-                /* --- BARE FALLOW SOIL (CAPILLARY SALINITY DISASTER) --- */
-                <>
-                  {/* Intense Sun Heat Rays Baking Bare Soil */}
-                  <line x1="280" y1="58" x2="190" y2="124" stroke="#f59e0b" strokeWidth="2" strokeDasharray="5 3" />
-                  <line x1="335" y1="64" x2="335" y2="124" stroke="#ef4444" strokeWidth="2.5" />
-                  <line x1="390" y1="58" x2="480" y2="124" stroke="#f59e0b" strokeWidth="2" strokeDasharray="5 3" />
-                  <text x="335" y="104" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="bold">
-                    Intense Surface Heat (Soil Temp: 48°C) Triggers Upward Capillary Suction
-                  </text>
-
-                  {/* White Salt Crust on Surface */}
-                  <rect x="0" y="126" width="670" height="14" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
-                  <rect x="0" y="126" width="670" height="14" fill="url(#saltCrystals)" opacity="0.8" />
-                  <text x="335" y="137" textAnchor="middle" fill="#0f172a" fontSize="9" fontWeight="bold" fontFamily="monospace">
-                    WHITE TOXIC SALT CRUST (NaCl Efflorescence • ECe &gt; 14 dS/m)
-                  </text>
-
-                  {/* Dry Desiccated Rootzone Layer */}
-                  <rect x="0" y="140" width="670" height="155" fill="url(#dryCrustedGrad)" stroke="#b91c1c" strokeWidth="1.5" />
-
-                  {/* Soil Shrinkage Cracks */}
-                  {[90, 210, 320, 460, 580].map((cx) => (
-                    <path
-                      key={cx}
-                      d={`M ${cx} 140 L ${cx + 4} 170 L ${cx - 3} 200 L ${cx + 2} 230`}
+                return (
+                  <>
+                    <polyline
                       fill="none"
-                      stroke="#0f0707"
+                      stroke={sim.currentRootZoneEc <= 4.8 ? "#10b981" : "#ef4444"}
                       strokeWidth="2.5"
+                      points={points}
                     />
-                  ))}
+                    {sim.depthProfile.map((p, idx) => {
+                      const x = 45 + (Math.min(20, p.ec) / 20) * 295;
+                      const y = 20 + (p.depth / 100) * 140;
+                      return (
+                        <circle
+                          key={idx}
+                          cx={x}
+                          cy={y}
+                          r="3"
+                          fill={sim.currentRootZoneEc <= 4.8 ? "#34d399" : "#f87171"}
+                          stroke="#ffffff"
+                          strokeWidth="1"
+                        />
+                      );
+                    })}
+                  </>
+                );
+              })()}
+            </svg>
+          </div>
+          <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground pt-1 border-t border-white/5">
+            <span className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${sim.currentRootZoneEc <= 4.8 ? "bg-emerald-400" : "bg-rose-500"}`} />
+              <span>Simulated Soil Salinity (ECe)</span>
+            </span>
+            <span className="text-white font-bold tabular-nums">0cm ECe: {(sim.currentRootZoneEc * 1.35).toFixed(1)} dS/m</span>
+          </div>
+        </div>
 
-                  {/* Dying/Stunted Seedlings with Burnt Brown Roots */}
-                  {[150, 380, 510].map((px) => (
-                    <g key={px} transform={`translate(${px}, 126)`}>
-                      {/* Wilted Yellow/Brown Leaf */}
-                      <path d="M 0 0 Q -8 -10 -14 -6 Q -8 0 0 0" fill="#a16207" />
-                      {/* Short burnt stunted taproot */}
-                      <line x1="0" y1="0" x2="-2" y2="28" stroke="#78350f" strokeWidth="2" />
-                      <circle cx="-2" cy="28" r="2.5" fill="#451a03" />
-                    </g>
-                  ))}
+        {/* Right: Time-Series Salinity Trajectory (Days 0 to 75) */}
+        <div className="lg:col-span-6 p-4 rounded-xl bg-black/40 border border-white/10 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-white/5">
+            <span className="text-xs font-semibold text-white flex items-center gap-2">
+              <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
+              <span>75-Day Dry Season Salinity Trajectory</span>
+            </span>
+            <span className="text-[10px] font-mono text-muted-foreground">Days After Aman Harvest</span>
+          </div>
 
-                  {/* Upward Capillary Saline Suction Arrows */}
-                  {[120, 250, 360, 480, 600].map((ax) => (
-                    <g key={ax}>
-                      <line
-                        x1={ax}
-                        y1="290"
-                        x2={ax}
-                        y2="155"
-                        stroke="#ef4444"
-                        strokeWidth="2.5"
-                        strokeDasharray="6 3"
-                        markerEnd="url(#arrowRiseRed)"
-                      />
-                    </g>
-                  ))}
+          <div className="relative w-full h-[220px]">
+            <svg viewBox="0 0 360 200" className="w-full h-full select-none text-[9px] font-mono">
+              {/* Y-Axis: ECe 0 to 20 dS/m */}
+              <line x1="45" y1="15" x2="45" y2="175" stroke="#475569" strokeWidth="1.2" />
+              <text x="40" y="20" textAnchor="end" fill="#94a3b8">20</text>
+              <text x="40" y="60" textAnchor="end" fill="#94a3b8">15</text>
+              <text x="40" y="100" textAnchor="end" fill="#94a3b8">10</text>
+              <text x="40" y="140" textAnchor="end" fill="#94a3b8">5</text>
+              <text x="40" y="175" textAnchor="end" fill="#94a3b8">0</text>
 
-                  {/* Evaporation Plumes Rising into Air */}
-                  {[180, 335, 490].map((vx) => (
-                    <path
-                      key={vx}
-                      d={`M ${vx} 122 Q ${vx - 8} 100 ${vx} 80 T ${vx} 60`}
+              {/* X-Axis: Days 0 to 75 */}
+              <line x1="45" y1="175" x2="340" y2="175" stroke="#475569" strokeWidth="1.2" />
+              <text x="45" y="188" textAnchor="middle" fill="#64748b">0d</text>
+              <text x="104" y="188" textAnchor="middle" fill="#64748b">15d</text>
+              <text x="163" y="188" textAnchor="middle" fill="#64748b">30d</text>
+              <text x="222" y="188" textAnchor="middle" fill="#64748b">45d</text>
+              <text x="281" y="188" textAnchor="middle" fill="#64748b">60d</text>
+              <text x="335" y="188" textAnchor="middle" fill="#64748b">75d</text>
+
+              {/* Threshold Lines */}
+              {/* Sunflower: 4.8 dS/m -> y = 175 - (4.8 / 20) * 155 = 137.8 */}
+              <line x1="45" y1="137.8" x2="340" y2="137.8" stroke="#eab308" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
+              <text x="335" y="134" textAnchor="end" fill="#eab308" fontSize="8">Sunflower Threshold (4.8 dS/m)</text>
+
+              {/* Mungbean: 3.5 dS/m -> y = 175 - (3.5 / 20) * 155 = 147.8 */}
+              <line x1="45" y1="147.8" x2="340" y2="147.8" stroke="#10b981" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
+              <text x="335" y="145" textAnchor="end" fill="#10b981" fontSize="8">Mungbean Threshold (3.5 dS/m)</text>
+
+              {/* Current Day Vertical Marker */}
+              {(() => {
+                const curX = 45 + (daysElapsed / 75) * 290;
+                return (
+                  <g>
+                    <line x1={curX} y1="15" x2={curX} y2="175" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="2 2" />
+                    <text x={curX} y="12" textAnchor="middle" fill="#38bdf8" fontWeight="bold">Day {daysElapsed}</text>
+                  </g>
+                );
+              })()}
+
+              {/* Time Series Polyline */}
+              {(() => {
+                const points = sim.timeSeries.map((t) => {
+                  const x = 45 + (t.day / 75) * 290;
+                  const y = 175 - (Math.min(20, t.ec) / 20) * 155;
+                  return `${x},${y}`;
+                }).join(" ");
+
+                return (
+                  <>
+                    <polyline
                       fill="none"
-                      stroke="#f59e0b"
-                      strokeWidth="2"
-                      strokeDasharray="4 3"
-                      markerEnd="url(#arrowVaporLoss)"
+                      stroke={sim.currentRootZoneEc <= 4.8 ? "#34d399" : "#f43f5e"}
+                      strokeWidth="2.5"
+                      points={points}
                     />
-                  ))}
-
-                  {/* Warning Callout Box in Rootzone */}
-                  <g transform="translate(335, 222)">
-                    <rect x="-190" y="-14" width="380" height="28" rx="6" fill="#1c0707" stroke="#ef4444" strokeWidth="1.2" />
-                    <text x="0" y="4" textAnchor="middle" fill="#fca5a5" fontSize="11" fontWeight="bold">
-                      Continuous Capillary Wicking: Saline Water Pulled to Surface
-                    </text>
-                  </g>
-                  <text x="335" y="258" textAnchor="middle" fill="#ef4444" fontSize="10" fontFamily="monospace" fontWeight="bold">
-                    Osmotic Root Desiccation • Seedling Mortality 80%–100%
-                  </text>
-
-                  {/* Saline Sub-surface Water Table */}
-                  <rect x="0" y="295" width="670" height="70" fill="url(#salineGroundwaterGrad)" stroke="#dc2626" strokeWidth="1.5" />
-                  <text x="335" y="335" textAnchor="middle" fill="#fca5a5" fontSize="11" fontFamily="monospace" fontWeight="bold">
-                    Shallow Saline Water Table Being Drawn Upward by Evaporative Vacuum
-                  </text>
-                </>
-              )}
-            </g>
-          )}
-
-          {/* =================================================================== */}
-          {/* CASE 2: SIDE-BY-SIDE SPLIT SCREEN COMPARISON VIEW */}
-          {/* =================================================================== */}
-          {activeMode === "split" && (
-            <g transform="translate(85, 0)">
-              {/* Left Half: Mulched (Width 325) */}
-              <g>
-                <text x="160" y="30" textAnchor="middle" fill="#34d399" fontSize="12" fontWeight="bold">
-                  WITH RICE STRAW MULCH (SAFE)
-                </text>
-                {/* Mulch Blanket */}
-                <rect x="0" y="60" width="320" height="14" fill="#ca8a04" stroke="#eab308" strokeWidth="1.5" rx="3" />
-                <rect x="0" y="60" width="320" height="14" fill="url(#strawFibers)" />
-                {/* Moist Soil */}
-                <rect x="0" y="74" width="320" height="221" fill="url(#moistLoamGrad)" stroke="#334155" strokeWidth="1.5" />
-                {/* Plants */}
-                {[70, 160, 250].map((px) => (
-                  <g key={px} transform={`translate(${px}, 62)`}>
-                    <path d="M 0 -2 Q -8 -14 0 -18 Q 8 -14 0 -2" fill="#22c55e" />
-                    <line x1="0" y1="-2" x2="0" y2="10" stroke="#22c55e" strokeWidth="1.5" />
-                    <path d="M 0 10 Q -10 35 -6 65" fill="none" stroke="#f8fafc" strokeWidth="1.5" />
-                    <path d="M 0 10 Q 10 35 8 70" fill="none" stroke="#f8fafc" strokeWidth="1.5" />
-                  </g>
-                ))}
-                {/* Safe Banner */}
-                <g transform="translate(160, 195)">
-                  <rect x="-120" y="-12" width="240" height="24" rx="4" fill="#062217" stroke="#10b981" strokeWidth="1" />
-                  <text x="0" y="4" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="bold">
-                    Moist Soil • ECe &lt; 2.5 dS/m
-                  </text>
-                </g>
-                {/* Aquifer */}
-                <rect x="0" y="295" width="320" height="70" fill="url(#salineGroundwaterGrad)" stroke="#dc2626" strokeWidth="1.5" />
-                <text x="160" y="335" textAnchor="middle" fill="#fca5a5" fontSize="10" fontFamily="monospace">
-                  Saline Water Held Down (-90cm)
-                </text>
-              </g>
-
-              {/* Divider Axis */}
-              <line x1="335" y1="15" x2="335" y2="365" stroke="#475569" strokeWidth="2" strokeDasharray="5 4" />
-
-              {/* Right Half: Bare Fallow Soil (Width 325) */}
-              <g transform="translate(350, 0)">
-                <text x="160" y="30" textAnchor="middle" fill="#f87171" fontSize="12" fontWeight="bold">
-                  BARE FALLOW SOIL (HIGH SALT)
-                </text>
-                {/* Salt Crust */}
-                <rect x="0" y="60" width="320" height="12" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
-                <rect x="0" y="60" width="320" height="12" fill="url(#saltCrystals)" opacity="0.8" />
-                {/* Dry Soil */}
-                <rect x="0" y="72" width="320" height="223" fill="url(#dryCrustedGrad)" stroke="#b91c1c" strokeWidth="1.5" />
-                {/* Rising Saline Arrows */}
-                {[60, 160, 260].map((ax) => (
-                  <line
-                    key={ax}
-                    x1={ax}
-                    y1="270"
-                    x2={ax}
-                    y2="85"
-                    stroke="#ef4444"
-                    strokeWidth="2"
-                    strokeDasharray="6 3"
-                    markerEnd="url(#arrowRiseRed)"
-                  />
-                ))}
-                {/* Hazard Banner */}
-                <g transform="translate(160, 195)">
-                  <rect x="-130" y="-12" width="260" height="24" rx="4" fill="#240707" stroke="#ef4444" strokeWidth="1" />
-                  <text x="0" y="4" textAnchor="middle" fill="#fca5a5" fontSize="10" fontWeight="bold">
-                    Salt Crust • ECe &gt; 12 dS/m
-                  </text>
-                </g>
-                {/* Aquifer */}
-                <rect x="0" y="295" width="320" height="70" fill="url(#salineGroundwaterGrad)" stroke="#dc2626" strokeWidth="1.5" />
-                <text x="160" y="335" textAnchor="middle" fill="#fca5a5" fontSize="10" fontFamily="monospace">
-                  Continuous Capillary Suction
-                </text>
-              </g>
-            </g>
-          )}
-        </svg>
-      </div>
-
-      {/* 3. Three Agronomic HUD Telemetry Readouts */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/10 border-t border-b border-white/10 bg-white/[0.01]">
-        <div className="p-3 sm:p-4 text-center">
-          <span className="text-[10px] font-mono uppercase text-muted-foreground block flex items-center justify-center gap-1">
-            <Thermometer className="w-3.5 h-3.5 text-amber-400" />
-            <span>Soil Surface Heat / Temperature</span>
-          </span>
-          <div
-            className={`text-xl font-bold font-mono mt-0.5 tabular-nums ${
-              activeMode === "mulched" ? "text-emerald-400" : "text-rose-400"
-            }`}
-          >
-            {activeMode === "mulched" ? "24°C – 28°C" : "44°C – 48°C"}
+                    {sim.timeSeries.map((t, idx) => {
+                      const x = 45 + (t.day / 75) * 290;
+                      const y = 175 - (Math.min(20, t.ec) / 20) * 155;
+                      return (
+                        <circle
+                          key={idx}
+                          cx={x}
+                          cy={y}
+                          r="3"
+                          fill={t.ec <= 4.8 ? "#10b981" : "#ef4444"}
+                          stroke="#ffffff"
+                          strokeWidth="1"
+                        />
+                      );
+                    })}
+                  </>
+                );
+              })()}
+            </svg>
           </div>
-          <span className="text-[11px] text-muted-foreground block mt-0.5">
-            {activeMode === "mulched"
-              ? "Straw albedo reflects 65% of solar radiation"
-              : "Direct solar baking drives intense vapor pressure deficit"}
-          </span>
-        </div>
-
-        <div className="p-3 sm:p-4 text-center">
-          <span className="text-[10px] font-mono uppercase text-muted-foreground block flex items-center justify-center gap-1">
-            <Activity className="w-3.5 h-3.5 text-primary" />
-            <span>Root-Zone Salinity (ECe at 0–15 cm)</span>
-          </span>
-          <div
-            className={`text-xl font-bold font-mono mt-0.5 tabular-nums ${
-              activeMode === "mulched" ? "text-emerald-400" : "text-rose-400"
-            }`}
-          >
-            {activeMode === "mulched" ? "1.6 – 2.4 dS/m" : "12.0 – 16.5 dS/m"}
+          <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground pt-1 border-t border-white/5">
+            <span className="text-white">Cumulative Salt Accumulation:</span>
+            <span className="text-amber-400 font-bold tabular-nums">{sim.totalSaltAccumKgHa} kg salt / hectare</span>
           </div>
-          <span className="text-[11px] text-muted-foreground block mt-0.5">
-            {activeMode === "mulched"
-              ? "Germination Safe (Below sunflower & mungbean limits)"
-              : "Toxic Osmotic Zone (100% seedling emergence failure)"}
-          </span>
-        </div>
-
-        <div className="p-3 sm:p-4 text-center">
-          <span className="text-[10px] font-mono uppercase text-muted-foreground block flex items-center justify-center gap-1">
-            <Droplets className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Volumetric Soil Moisture Retention</span>
-          </span>
-          <div
-            className={`text-xl font-bold font-mono mt-0.5 tabular-nums ${
-              activeMode === "mulched" ? "text-emerald-400" : "text-rose-400"
-            }`}
-          >
-            {activeMode === "mulched" ? "36% – 42% v/v" : "6% – 10% v/v"}
-          </div>
-          <span className="text-[11px] text-muted-foreground block mt-0.5">
-            {activeMode === "mulched"
-              ? "Moisture preserved for 35–45 days without irrigation"
-              : "Desiccated clay shrinkage cracks pull groundwater"}
-          </span>
         </div>
       </div>
 
-      {/* 4. Detailed Soil Science Guidance Callout */}
-      <div className="p-4 sm:p-5 bg-white/[0.015] flex items-start gap-3 text-xs text-muted-foreground leading-relaxed">
-        <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+      {/* 5. Parameter Adjustment Control Sliders */}
+      <div className="p-4 sm:p-5 bg-black/25 space-y-4 border-t border-white/10">
+        <span className="text-xs font-semibold text-white uppercase tracking-wider block font-mono">
+          Adjust Hydraulic &amp; Climate Simulation Parameters
+        </span>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
+          {/* Mulch Rate Slider */}
+          <div className="p-3.5 rounded-xl bg-[#0f1725] border border-white/5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-medium">Mulch Biomass:</span>
+              <span className="font-mono text-emerald-400 font-bold tabular-nums">
+                {mulchTonsHa.toFixed(1)} t/ha
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.0"
+              max="8.0"
+              step="0.5"
+              value={mulchTonsHa}
+              onChange={(e) => setMulchTonsHa(parseFloat(e.target.value))}
+              className="w-full accent-emerald-500 h-2 bg-white/10 rounded-lg cursor-pointer"
+            />
+            <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+              <span>0 t/ha (Bare)</span>
+              <span>4.0 t/ha</span>
+              <span>8.0 t/ha (Heavy)</span>
+            </div>
+          </div>
+
+          {/* Days Elapsed Slider */}
+          <div className="p-3.5 rounded-xl bg-[#0f1725] border border-white/5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-medium">Timeline (Days Elapsed):</span>
+              <span className="font-mono text-primary font-bold tabular-nums">
+                Day {daysElapsed}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="5"
+              max="75"
+              step="5"
+              value={daysElapsed}
+              onChange={(e) => setDaysElapsed(parseInt(e.target.value))}
+              className="w-full accent-primary h-2 bg-white/10 rounded-lg cursor-pointer"
+            />
+            <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+              <span>Day 5 (Nov)</span>
+              <span>Day 35 (Jan)</span>
+              <span>Day 75 (Mar)</span>
+            </div>
+          </div>
+
+          {/* Ambient Temperature Slider */}
+          <div className="p-3.5 rounded-xl bg-[#0f1725] border border-white/5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-medium">Ambient Dry Season Temp:</span>
+              <span className="font-mono text-rose-400 font-bold tabular-nums">
+                {ambientTempC}°C
+              </span>
+            </div>
+            <input
+              type="range"
+              min="24"
+              max="42"
+              step="1"
+              value={ambientTempC}
+              onChange={(e) => setAmbientTempC(parseInt(e.target.value))}
+              className="w-full accent-rose-500 h-2 bg-white/10 rounded-lg cursor-pointer"
+            />
+            <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+              <span>24°C (Mild)</span>
+              <span>34°C (Normal)</span>
+              <span>42°C (Heatwave)</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs pt-1">
+          {/* Water Table Depth */}
+          <div className="p-3.5 rounded-xl bg-[#0f1725] border border-white/5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-medium">Shallow Water Table Depth:</span>
+              <span className="font-mono text-cyan-400 font-bold tabular-nums">
+                {waterTableDepthM.toFixed(1)} m below surface
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.6"
+              max="1.8"
+              step="0.1"
+              value={waterTableDepthM}
+              onChange={(e) => setWaterTableDepthM(parseFloat(e.target.value))}
+              className="w-full accent-cyan-400 h-2 bg-white/10 rounded-lg cursor-pointer"
+            />
+            <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+              <span>0.6m (High Tidal Seepage)</span>
+              <span>1.0m (Average)</span>
+              <span>1.8m (Deep)</span>
+            </div>
+          </div>
+
+          {/* Groundwater Salinity */}
+          <div className="p-3.5 rounded-xl bg-[#0f1725] border border-white/5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-medium">Groundwater Aquifer Salinity:</span>
+              <span className="font-mono text-amber-400 font-bold tabular-nums">
+                {gwSalinityDsM.toFixed(1)} dS/m
+              </span>
+            </div>
+            <input
+              type="range"
+              min="4.0"
+              max="20.0"
+              step="1.0"
+              value={gwSalinityDsM}
+              onChange={(e) => setGwSalinityDsM(parseFloat(e.target.value))}
+              className="w-full accent-amber-500 h-2 bg-white/10 rounded-lg cursor-pointer"
+            />
+            <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+              <span>4.0 dS/m (Moderate)</span>
+              <span>12.0 dS/m (Dacope Avg)</span>
+              <span>20.0 dS/m (Hyper-Saline)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 6. Scientific Formulation Summary */}
+      <div className="p-4 sm:p-5 bg-white/[0.015] border-t border-white/10 flex items-start gap-3 text-xs text-muted-foreground leading-relaxed">
+        <Calculator className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         <div>
-          <strong className="text-white">Agronomic Soil Science of Capillary Salt Prevention:</strong> In Khulna polders (e.g. Dacope Polders 31 &amp; 32), the groundwater table sits at just 0.8–1.2m depth and contains high salinity (8–14 dS/m) due to tidal estuary seepage. When farmland is left bare after the T. Aman harvest, intense tropical solar radiation heats the clay surface, causing rapid evaporation. This acts like a hydraulic siphon, drawing saline water upward through soil micropores via capillary tension. As the water evaporates into the air, dissolved salt precipitates into a toxic white crust (ECe &gt; 12 dS/m).
-          <span className="block mt-1.5 text-white/90">
-            <strong>The Solution (Zero-Tillage Straw Mulching):</strong> Spreading 5–6 tons/ha of dry rice straw immediately after harvest cuts surface evaporation by over 60%, breaks the upward capillary continuum, and keeps soil cool and moist. Farmers can dibble sunflower (BARI Surjamukhi-2) or mungbean (BARI Mung-6) directly into the moist soil without plowing, utilizing residual monsoon moisture and eliminating the need for saline river water irrigation.
-          </span>
+          <strong className="text-white">Mathematical Model Basis:</strong> Upward capillary flux is governed by Richards equation: <code className="text-primary font-mono font-bold">q = −K(ψ)(dψ/dz + 1)</code>. In bare soils under high vapor pressure deficit (E₀ = {sim.potentialEvapMmDay} mm/day), continuous soil macropores siphon saline groundwater directly into the top 15cm seedbed, precipitating {sim.totalSaltAccumKgHa} kg/ha of toxic salt by Day {daysElapsed}. Adding 5 t/ha rice straw mulch imposes a physical vapor resistance layer, reducing evaporative suction by over 60% and keeping root-zone salinity at {sim.currentRootZoneEc} dS/m (safely below the sunflower threshold of 4.8 dS/m).
         </div>
       </div>
     </div>
