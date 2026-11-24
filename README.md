@@ -1,10 +1,11 @@
-﻿<div align="center">
+<div align="center">
 
 # 🌊 HydroShift AI
 ### Climate-Smart Crop Rotation & Estuarine Salinity Intelligence Platform
 **Bridging NASA SWOT Satellite Altimetry, Polder Flap-Gate Hydraulics, and Fourier-PINN Machine Learning for Coastal Agriculture in Southwest Bangladesh**
 
 <p align="center">
+  <a href="https://hydroshift-ai.onrender.com"><img src="https://img.shields.io/badge/Live_Demo-hydroshift--ai.onrender.com-success?style=for-the-badge&logo=render&logoColor=white" alt="Live Demo" /></a>
   <a href="https://podaac.jpl.nasa.gov/SWOT"><img src="https://img.shields.io/badge/NASA_SWOT-KaRIn_Radar_Altimetry-0B3D91?style=for-the-badge&logo=nasa&logoColor=white" alt="NASA SWOT" /></a>
   <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch_2.4-Fourier_PINN-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch" /></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-Fail_Closed_API-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
