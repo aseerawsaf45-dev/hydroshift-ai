@@ -15,6 +15,12 @@
 </p>
 
 <p align="center">
+  <a href="https://render.com/deploy?repo=https://github.com/aseerawsaf45-dev/hydroshift-ai">
+    <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" />
+  </a>
+</p>
+
+<p align="center">
   <b>Developed for the NASA International Space Apps Challenge & Global Coastal Delta Resilience</b><br />
   <i>Target Pilot: Dacope, Paikgachha & Koyra Coastal Polders, Khulna Division, Bangladesh</i>
 </p>
