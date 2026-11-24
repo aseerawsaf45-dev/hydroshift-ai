@@ -663,9 +663,9 @@ export default function ScenariosPage() {
           <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-2.5">
             <div className="w-3 h-3 rounded-full bg-emerald-400 mt-0.5 shrink-0 shadow-sm shadow-emerald-400/50" />
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-emerald-300 font-mono">&lt; 1.0 dS/m • Potable Fresh</span>
+              <span className="text-xs font-bold text-emerald-300 font-mono">{"< 1.0 dS/m • Potable Fresh"}</span>
               <span className="text-[11px] text-foreground/80 mt-0.5">
-                Safe for drinking (Khulna WASA) &amp; all sensitive crops.
+                Safe for drinking (Khulna WASA) & all sensitive crops.
               </span>
             </div>
           </div>

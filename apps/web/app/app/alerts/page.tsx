@@ -103,7 +103,7 @@ export default function AlertsPage() {
               </div>
 
               <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-                Active Salinity &amp; Hydraulic Alerts
+                Active Salinity & Hydraulic Alerts
               </h1>
 
               <p className="text-xs md:text-sm text-muted-foreground max-w-3xl leading-relaxed">

@@ -201,7 +201,7 @@ const DEFAULT_AUDIT_CHECKLIST: AuditChecklistItem[] = [
     friendlyTitle: "Sluice Gate Flood & Salt Shield",
     category: "Hydraulics",
     status: "passed",
-    metric: "Gravity Head Delta_h Evaluated",
+    metric: "Gravity Head Δh Evaluated",
     friendlyMetric: "Prevents Saline Backflow",
     description: "SWOT radar WSE evaluated against polder canal stages to prevent saline reverse flow through flap gates.",
     friendlyDescription: "Tells operators exactly when to close polder flap gates before high tide saltwater floods inland freshwater canals."
@@ -334,7 +334,7 @@ export default function OverviewPage() {
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
             <div className="min-w-0">
               <span className="font-bold text-white block">Upper Khulna Drinking Water</span>
-              <span className="text-[11px] text-emerald-300/90 truncate block">Safe (&lt; 1.0 dS/m) • Intakes Protected</span>
+              <span className="text-[11px] text-emerald-300/90 truncate block">{"Safe (< 1.0 dS/m) • Intakes Protected"}</span>
             </div>
           </div>
 

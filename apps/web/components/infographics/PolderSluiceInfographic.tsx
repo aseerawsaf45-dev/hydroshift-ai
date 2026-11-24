@@ -142,10 +142,10 @@ export function PolderSluiceInfographic({
           </div>
           <h3 className="text-base sm:text-lg font-semibold text-white tracking-tight flex items-center gap-2">
             <Gauge className="w-4 h-4 text-primary" />
-            <span>Polder Flap-Gate Discharge &amp; Thrust Simulator</span>
+            <span>Polder Flap-Gate Discharge & Thrust Simulator</span>
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">
-            Calculates real-time Torricelli orifice discharge ($Q$), hydrostatic sealing thrust ($F$), flap deflection ($\theta$), and semi-diurnal tidal drainage windows.
+            Calculates real-time Torricelli orifice discharge (Q), hydrostatic sealing thrust (F), flap deflection (θ), and semi-diurnal tidal drainage windows.
           </p>
         </div>
 
@@ -414,7 +414,7 @@ export function PolderSluiceInfographic({
           <div className="flex items-center justify-between pb-2 border-b border-white/5">
             <span className="text-xs font-semibold text-white flex items-center gap-2">
               <Activity className="w-3.5 h-3.5 text-amber-400" />
-              <span>Hydraulic Grade Line &amp; Pressure Vectors</span>
+              <span>Hydraulic Grade Line & Pressure Vectors</span>
             </span>
             <span className="text-[10px] font-mono text-muted-foreground">{ventCount} Vents ({hydro.totalAreaM2.toFixed(1)} m²)</span>
           </div>
@@ -520,7 +520,7 @@ export function PolderSluiceInfographic({
       {interactive && (
         <div className="p-4 sm:p-5 bg-black/25 space-y-4 border-t border-white/10">
           <span className="text-xs font-semibold text-white uppercase tracking-wider block font-mono">
-            Adjust Water Levels &amp; Sluice Gate Dimensions
+            Adjust Water Levels & Sluice Gate Dimensions
           </span>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
@@ -613,7 +613,7 @@ export function PolderSluiceInfographic({
       <div className="p-4 sm:p-5 bg-white/[0.015] border-t border-white/10 flex items-start gap-3 text-xs text-muted-foreground leading-relaxed">
         <Calculator className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         <div>
-          <strong className="text-white">Hydraulic Governing Equations:</strong> Gravity discharge is calculated via the submerged orifice equation: <code className="text-primary font-mono font-bold">Q = C_d · A · √(2g|Δh|)</code> where C_d = 0.62. When the river exceeds the internal canal (Δh &gt; 0), backpressure thrust is computed as <code className="text-rose-400 font-mono font-bold">F = ρ·g·Δh·A = {hydro.totalThrustKiloNewtons} kN ({hydro.totalThrustMetricTons} Metric Tons)</code>, forcing the heavy steel flap watertight against the perimeter rubber gasket. Saline river intrusion is 100% blocked. When the tide falls below the canal stage, the flap gate swings open {hydro.flapAngleDeg}°, allowing {hydro.dischargeM3S} m³/s of freshwater drainage to flush out into the bay.
+          <strong className="text-white">Hydraulic Governing Equations:</strong> Gravity discharge is calculated via the submerged orifice equation: <code className="text-primary font-mono font-bold">{"Q = Cd · A · √(2g|Δh|)"}</code> where Cd = 0.62. When the river exceeds the internal canal {"(Δh > 0)"}, backpressure thrust is computed as <code className="text-rose-400 font-mono font-bold">{"F = ρ·g·Δh·A = "}{hydro.totalThrustKiloNewtons}{" kN ("}{hydro.totalThrustMetricTons}{" Metric Tons)"}</code>, forcing the heavy steel flap watertight against the perimeter rubber gasket. Saline river intrusion is 100% blocked. When the tide falls below the canal stage, the flap gate swings open {hydro.flapAngleDeg}°, allowing {hydro.dischargeM3S} m³/s of freshwater drainage to flush out into the bay.
         </div>
       </div>
     </div>

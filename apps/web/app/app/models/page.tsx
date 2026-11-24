@@ -65,7 +65,7 @@ export default async function ModelsPage() {
               </Badge>
             </div>
             <p className="text-xs md:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-              Physics-Informed Neural Network with Random Fourier features and exact tidal harmonics (M2 12.42h, S2 12.0h, spring-neap 14.77d), regularized by the 1D Advection-Dispersion Equation: $u_t + v u_x - D u_xx = 0$.
+              Physics-Informed Neural Network with Random Fourier features and exact tidal harmonics (M2 12.42h, S2 12.0h, spring-neap 14.77d), regularized by the 1D Advection-Dispersion Equation: <code className="text-primary font-mono font-semibold">∂u/∂t + v·∂u/∂x − D·∂²u/∂x² = 0</code>.
             </p>
           </div>
           <div className="text-right flex flex-col space-y-1 shrink-0">

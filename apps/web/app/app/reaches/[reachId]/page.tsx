@@ -163,7 +163,7 @@ function ReachDetailContent() {
       {/* Main Tabs */}
       <div className="flex items-center gap-2 border-b border-white/10 pb-2 text-xs font-semibold overflow-x-auto scrollbar-none">
         <button className="px-3.5 py-1.5 rounded-xl bg-primary text-black font-bold shadow-md shadow-primary/20">
-          Overview &amp; Timeseries
+          Overview & Timeseries
         </button>
         <button className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white border border-white/10 transition-colors">
           Polder Hydraulics
@@ -182,7 +182,7 @@ function ReachDetailContent() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <Waves className="w-4 h-4 text-primary" />
-              <span>Salinity &amp; Elevation Timeseries (Harmonized + PINN Forecast)</span>
+              <span>Salinity & Elevation Timeseries (Harmonized + PINN Forecast)</span>
             </h3>
             
             <div className="flex items-center gap-4 text-[11px] font-mono">
@@ -211,7 +211,7 @@ function ReachDetailContent() {
               <div className="flex items-center gap-2.5">
                 <Gauge className="w-5 h-5 text-amber-400" />
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                  Polder Flap-Gate Drainage &amp; Hydraulic Head Status
+                  Polder Flap-Gate Drainage & Hydraulic Head Status
                 </h3>
                 <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-400 border-amber-500/30 font-mono">
                   PHASE 4 SWOT DECOUPLING
@@ -347,7 +347,7 @@ function ReachDetailContent() {
               </div>
 
               <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 text-[11px] text-muted-foreground leading-relaxed">
-                <strong>Tidal Sluice Rule:</strong> When river stage exceeds canal water level (Δh &gt; 0), flap gates must seat firmly shut to prevent salinity penetration into polder crop fields.
+                <strong>Tidal Sluice Rule:</strong> When river stage exceeds canal water level {"(Δh > 0)"}, flap gates must seat firmly shut to prevent salinity penetration into polder crop fields.
               </div>
             </div>
 
@@ -396,7 +396,7 @@ function ReachDetailContent() {
         <div className="bezel-core rounded-[20px] bg-[#081320] overflow-hidden">
           <div className="p-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Ingested Observations &amp; Ground Truth</h3>
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Ingested Observations & Ground Truth</h3>
               <span className="text-[11px] text-muted-foreground">Showing {observations.slice(0, 15).length} latest records for this reach</span>
             </div>
             <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/5 border border-white/10 font-mono text-muted-foreground self-start sm:self-auto">

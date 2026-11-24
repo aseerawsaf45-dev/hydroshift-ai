@@ -31,7 +31,7 @@ export default function HelpPage() {
           <div className="flex items-center gap-2 mb-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <span className="text-[11px] font-medium text-secondary">
-              Community service &amp; support
+              Community service & support
             </span>
             <span className="text-xs text-muted-foreground font-mono">• Dacope polder assistance</span>
           </div>

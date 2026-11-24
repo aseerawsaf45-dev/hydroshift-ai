@@ -199,7 +199,7 @@ export function SalinityWedgeProfile({
               <MapPin className="w-3.5 h-3.5 text-emerald-400" />
               Khulna City / WASA (km 82)
             </span>
-            <span className="text-muted-foreground">Standard &lt;1.0 dS/m</span>
+            <span className="text-muted-foreground">{"Standard <1.0 dS/m"}</span>
           </div>
         </div>
 

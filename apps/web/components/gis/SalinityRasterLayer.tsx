@@ -492,7 +492,7 @@ export function SalinityRasterLayer({
         <div className="leaflet-top leaflet-left pointer-events-none mt-20 ml-28 z-[600]">
           <div className="pointer-events-auto px-2.5 py-1.5 rounded-lg bg-sky-950/85 backdrop-blur text-white text-[11px] font-mono shadow-xl border border-sky-400/30 flex items-center gap-2">
             <span className="w-2.5 h-2.5 border-2 border-sky-400 border-t-transparent rounded-full animate-spin shrink-0" />
-            <span>Loading {activeVariable} salinity raster &amp; contours...</span>
+            <span>Loading {activeVariable} salinity raster & contours...</span>
           </div>
         </div>
       )}

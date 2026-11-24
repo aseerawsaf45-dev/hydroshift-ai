@@ -1032,7 +1032,7 @@ export default function MapExplorerPage() {
                         riskFilter === "critical" ? "bg-rose-500/25 text-rose-300 font-bold border border-rose-500/40" : "bg-white/5 text-rose-400 hover:bg-rose-500/10"
                       }`}
                     >
-                      &gt;4.0 ({criticalCount})
+                      {">4.0"} ({criticalCount})
                     </button>
                     <button
                       onClick={() => setRiskFilter("warning")}
@@ -1671,7 +1671,7 @@ export default function MapExplorerPage() {
                 <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-white">
                     <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Boro Rice &amp; Irrigation Hazard:</span>
+                    <span>Boro Rice & Irrigation Hazard:</span>
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
                     {selectedRegion.boroVulnerability}
@@ -1681,7 +1681,7 @@ export default function MapExplorerPage() {
                 {/* Recommended Salt-Tolerant Crops */}
                 <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1.5">
                   <span className="font-mono text-[10px] font-bold uppercase text-muted-foreground block">
-                    Recommended Crop Rotations (SRDI &amp; BRRI):
+                    Recommended Crop Rotations (SRDI & BRRI):
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedRegion.recommendedCrops.map((crop) => (
@@ -1762,7 +1762,7 @@ export default function MapExplorerPage() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3.5 h-1 rounded bg-rose-500" />
-                <span className="text-white">Marine Ingress (&gt;8 dS/m)</span>
+                <span className="text-white">{"Marine Ingress (>8 dS/m)"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3.5 h-1 rounded bg-amber-500 border-dashed" />

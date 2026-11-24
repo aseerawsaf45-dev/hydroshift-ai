@@ -513,10 +513,10 @@ export default function MyWaterPage() {
                 />
               </div>
               <div className="flex justify-between text-[10px] font-mono text-muted-foreground pt-0.5">
-                <span>C1 (&lt; 0.75)</span>
+                <span>{"C1 (< 0.75)"}</span>
                 <span>C2 (0.75 - 1.5)</span>
                 <span>C3 (1.5 - 3.0)</span>
-                <span>C4 (&gt; 3.0 dS/m)</span>
+                <span>{"C4 (> 3.0 dS/m)"}</span>
               </div>
             </div>
 

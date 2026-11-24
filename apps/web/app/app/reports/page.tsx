@@ -39,7 +39,7 @@ export default function ReportsPage() {
       <div className="bezel-shell p-1 rounded-3xl bg-white/[0.04] border border-white/15 shadow-2xl">
         <div className="bezel-core p-6 rounded-[20px] bg-[#081320] flex flex-col space-y-3">
           <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-            Intelligence Reports &amp; Exports
+            Intelligence Reports & Exports
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
             Curated analytics, seasonal assessments, and technical validations derived from the HydroShift AI pipeline. Export ready for institutional stakeholders and agricultural researchers.

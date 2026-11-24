@@ -223,7 +223,7 @@ export function FeatureInspector({
             {/* Agricultural Decision Support & Recommended Crops */}
             <div className="space-y-1.5">
               <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-muted-foreground">
-                Crop &amp; Irrigation Recommendations
+                Crop & Irrigation Recommendations
               </span>
               <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1.5">
                 <div className="font-serif font-bold text-emerald-800 dark:text-emerald-300">

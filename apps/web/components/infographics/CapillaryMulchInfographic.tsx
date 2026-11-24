@@ -132,7 +132,7 @@ export function CapillaryMulchInfographic({ lang = "en" }: { lang?: "en" | "bn" 
           </div>
           <h3 className="text-base sm:text-lg font-semibold text-white tracking-tight flex items-center gap-2">
             <Calculator className="w-4 h-4 text-primary" />
-            <span>Capillary Evaporation &amp; Salt Accumulation Simulator</span>
+            <span>Capillary Evaporation & Salt Accumulation Simulator</span>
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">
             Quantitative 1D hydrodynamic soil water model calculating vapor pressure deficit, upward capillary flux, and root-zone salinity over time.
@@ -474,7 +474,7 @@ export function CapillaryMulchInfographic({ lang = "en" }: { lang?: "en" | "bn" 
       {/* 5. Parameter Adjustment Control Sliders */}
       <div className="p-4 sm:p-5 bg-black/25 space-y-4 border-t border-white/10">
         <span className="text-xs font-semibold text-white uppercase tracking-wider block font-mono">
-          Adjust Hydraulic &amp; Climate Simulation Parameters
+          Adjust Hydraulic & Climate Simulation Parameters
         </span>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">

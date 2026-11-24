@@ -293,7 +293,7 @@ export default function FacilitatorPage() {
                 {/* Meter Check & Quality Controls */}
                 <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-white font-medium">Meter zero &amp; calibration check:</span>
+                    <span className="text-white font-medium">Meter zero & calibration check:</span>
                     <input
                       type="checkbox"
                       checked={meterChecked}
@@ -337,7 +337,7 @@ export default function FacilitatorPage() {
                   className="btn-tactile w-full py-2.5 rounded-lg bg-white/10 hover:bg-white/15 text-white border border-white/15 font-medium text-xs transition-colors flex items-center justify-center gap-2"
                 >
                   <Save className="w-4 h-4 text-primary" />
-                  <span>Verify &amp; submit measurement</span>
+                  <span>Verify & submit measurement</span>
                 </button>
               </form>
             </div>

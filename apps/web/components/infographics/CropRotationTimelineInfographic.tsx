@@ -116,7 +116,7 @@ export function CropRotationTimelineInfographic({ lang = "en" }: { lang?: "en" |
             </h3>
           </div>
           <span className="text-[10px] font-mono text-muted-foreground uppercase px-2.5 py-1 rounded-full bg-white/5 border border-white/10 self-start sm:self-auto">
-            Dacope Polders 31 &amp; 32 Benchmark
+            Dacope Polders 31 & 32 Benchmark
           </span>
         </div>
 
@@ -128,9 +128,9 @@ export function CropRotationTimelineInfographic({ lang = "en" }: { lang?: "en" |
               <span>Passur River Salinity Trajectory (Monthly dS/m)</span>
             </span>
             <div className="flex items-center gap-3 text-[10px] font-mono">
-              <span className="text-emerald-400">● &lt;5 Safe</span>
+              <span className="text-emerald-400">{"● <5 Safe"}</span>
               <span className="text-amber-400">● 5–10 Moderate</span>
-              <span className="text-rose-400">● &gt;10 Severe Peak</span>
+              <span className="text-rose-400">{"● >10 Severe Peak"}</span>
             </div>
           </div>
 

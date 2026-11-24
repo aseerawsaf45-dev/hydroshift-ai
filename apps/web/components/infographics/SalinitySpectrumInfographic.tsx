@@ -141,7 +141,7 @@ export function SalinitySpectrumInfographic({ lang = "en" }: { lang?: "en" | "bn
             </h3>
           </div>
           <span className="text-[10px] font-mono text-muted-foreground uppercase px-2.5 py-1 rounded-full bg-white/5 border border-white/10 self-start sm:self-auto">
-            FAO Irrigation &amp; Salinity Standard
+            FAO Irrigation & Salinity Standard
           </span>
         </div>
 

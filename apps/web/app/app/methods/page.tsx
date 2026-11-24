@@ -29,11 +29,11 @@ export default function MethodsPage() {
             <span className="text-[11px] font-medium text-secondary">
               Technical documentation
             </span>
-            <span className="text-xs text-muted-foreground font-mono">• Hydro-AI &amp; validation methodology</span>
+            <span className="text-xs text-muted-foreground font-mono">• Hydro-AI & validation methodology</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white flex items-center gap-2">
             <BrainCircuit className="w-5 h-5 text-primary" />
-            <span>Research Methods, Data Provenance &amp; Technical Tools</span>
+            <span>Research Methods, Data Provenance & Technical Tools</span>
           </h1>
           <p className="text-xs text-muted-foreground mt-1 max-w-2xl [text-wrap:pretty]">
             For academic reviewers, NASA Space Apps evaluators, and hydrologic engineers inspecting underlying models.
@@ -97,10 +97,10 @@ export default function MethodsPage() {
         <div className="p-5 sm:p-6 rounded-xl bg-[#121824] border border-white/10 space-y-3.5">
           <div className="flex items-center gap-2 text-xs font-semibold text-white">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>4. Conformal uncertainty &amp; fail-closed gate</span>
+            <span>4. Conformal uncertainty & fail-closed gate</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed [text-wrap:pretty]">
-            Mondrian Conformal Prediction provides distribution-free, finite-sample 90% coverage intervals stratified across salinity tiers (S0–S4), overcoming non-negative skewness and heteroscedasticity. The "Fail-Closed" API gate automatically halts ungrounded simulation runs if ground telemetry has gaps &gt; 30 days.
+            Mondrian Conformal Prediction provides distribution-free, finite-sample 90% coverage intervals stratified across salinity tiers (S0–S4), overcoming non-negative skewness and heteroscedasticity. The "Fail-Closed" API gate automatically halts ungrounded simulation runs if ground telemetry has {"gaps > 30 days"}.
           </p>
           <div className="p-2.5 rounded-lg bg-black/30 border border-white/5 text-[11px] text-emerald-400 font-mono">
             Empirical test coverage: 91.6% (≥ 90% target)
@@ -114,7 +114,7 @@ export default function MethodsPage() {
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4 text-primary" />
             <h3 className="text-xs font-semibold text-white">
-              Internal research &amp; technical workspaces
+              Internal research & technical workspaces
             </h3>
           </div>
           <span className="text-[10px] text-muted-foreground font-mono">Preserved for reviewers</span>
@@ -133,7 +133,7 @@ export default function MethodsPage() {
               <div className="font-medium text-xs text-white group-hover:text-primary transition-colors">
                 Telemetry dashboard
               </div>
-              <div className="text-[11px] text-muted-foreground">Regional gauges &amp; sensor status</div>
+              <div className="text-[11px] text-muted-foreground">Regional gauges & sensor status</div>
             </div>
             <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
           </Link>
@@ -146,7 +146,7 @@ export default function MethodsPage() {
               <div className="font-medium text-xs text-white group-hover:text-primary transition-colors">
                 Full map explorer
               </div>
-              <div className="text-[11px] text-muted-foreground">Quantized GIS layers &amp; kriging rasters</div>
+              <div className="text-[11px] text-muted-foreground">Quantized GIS layers & kriging rasters</div>
             </div>
             <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
           </Link>
@@ -157,7 +157,7 @@ export default function MethodsPage() {
           >
             <div>
               <div className="font-medium text-xs text-white group-hover:text-primary transition-colors">
-                Models &amp; benchmarks
+                Models & benchmarks
               </div>
               <div className="text-[11px] text-muted-foreground">PINN vs Persistence baseline registry</div>
             </div>
@@ -172,7 +172,7 @@ export default function MethodsPage() {
               <div className="font-medium text-xs text-white group-hover:text-primary transition-colors">
                 Scenario simulation studio
               </div>
-              <div className="text-[11px] text-muted-foreground">Upstream Gorai discharge &amp; SLR sliders</div>
+              <div className="text-[11px] text-muted-foreground">Upstream Gorai discharge & SLR sliders</div>
             </div>
             <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
           </Link>
@@ -183,9 +183,9 @@ export default function MethodsPage() {
           >
             <div>
               <div className="font-medium text-xs text-white group-hover:text-primary transition-colors">
-                Data hub &amp; bulk CSV
+                Data hub & bulk CSV
               </div>
-              <div className="text-[11px] text-muted-foreground">Ingestion pipelines &amp; historical archives</div>
+              <div className="text-[11px] text-muted-foreground">Ingestion pipelines & historical archives</div>
             </div>
             <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
           </Link>
@@ -196,7 +196,7 @@ export default function MethodsPage() {
           >
             <div>
               <div className="font-medium text-xs text-white group-hover:text-primary transition-colors">
-                Reports &amp; export
+                Reports & export
               </div>
               <div className="text-[11px] text-muted-foreground">Downloadable agronomic advisories</div>
             </div>
